@@ -26,6 +26,90 @@ have h2:x∈ S:= by exact Set.mem_toFinset.mp hx
 refine nonempty_subtype.mpr ?intro.a
 use x
 
+lemma nat_rat_nat (a: ℕ): Nat.floor (a:ℚ)=a:= by
+exact rfl
+
+lemma nat_rat_mul (a b c: ℕ)(heq: c=a*b): (c:ℚ)= (a:ℚ) * (b:ℚ ):= by
+have h1:(((a*b):ℕ ):ℚ)=(a:ℚ) * (b:ℚ):= by exact Nat.cast_mul a b
+calc
+  (c:ℚ)= (((a*b):ℕ ):ℚ):=by exact congrArg Nat.cast heq
+  _=(a:ℚ) * (b:ℚ):= by exact h1
+
+lemma nat_rat_add (a b c: ℕ)(heq: c=a+b): (c:ℚ)= (a:ℚ) + (b:ℚ ):= by
+have h1:(((a+b):ℕ ):ℚ)=(a:ℚ) + (b:ℚ):= by exact Nat.cast_add a b
+calc
+  (c:ℚ)= (((a+b):ℕ ):ℚ):=by exact congrArg Nat.cast heq
+  _=(a:ℚ) + (b:ℚ):= by exact h1
+
+lemma nat_le_rat (a b: ℕ) (hle: a≤ b):(a:ℚ )≤ (b:ℚ) := by
+exact Nat.cast_le.mpr hle
+
+lemma nat_eq_rat (a b: ℕ) (hle: a= b):(a:ℚ )= (b:ℚ) := by
+exact congrArg Nat.cast hle
+
+lemma nat_divisor_div (a b:ℕ)(ha:0<a): ((b*a)/a=b):= by
+apply Nat.mul_div_cancel
+exact ha
+
+
+lemma nat_div_ge (a b e v:ℕ)
+(hineq:   v * b≤ a * e)
+(hbpos: 0<b):
+(a / b+1) * e   ≥ v:= by
+have xa:v≤ (a*e)/b ↔ v * b≤ a * e:= by exact Nat.le_div_iff_mul_le'  hbpos
+have _:v≤ (a*e)/b:= by apply xa.2; exact hineq
+let a':ℚ:= a
+let b':ℚ:= b
+let e':ℚ:= e
+let v':ℚ:= v
+have ha'':a'=(a:ℚ):= by exact rfl
+have hb''':b'=(b:ℚ):= by exact rfl
+
+have hb':b'>0:= by exact Nat.cast_pos.mpr hbpos
+have hineq':   v' * b'≤ a' * e':= by calc
+  v' * b'=((v * b):ℕ):= by exact (Nat.cast_mul v b).symm
+  _≤ ((a * e):ℕ):= by exact Nat.cast_le.mpr hineq
+  _=a' * e':= by exact Nat.cast_mul a e
+have h1:v'≤ (a'*e')/b':= by exact (le_div_iff hb').mpr hineq'
+have h2: (e'*a')/b'=e'*(a'/b'):= by exact mul_div_assoc  e' a' b'
+have h3: (a'/b')≤ Nat.ceil (a'/b'):= by exact Nat.le_ceil (a' / b')
+have h4: Nat.ceil (a'/b')≤ Nat.floor (a'/b')+1:= by exact Nat.ceil_le_floor_add_one (a' / b')
+have h5: Nat.floor ((a:ℚ) /(b:ℚ))=a/b:=by exact Nat.floor_div_eq_div a b
+--have h7: (Nat.ceil (a'/b'):ℚ)≤ ((Nat.floor (a'/b')+1):ℚ):= by  apply Nat.cast_le.mpr
+have h7: (Nat.ceil (a'/b'):ℚ)≤ ((Nat.floor (a'/b')+1:ℕ ):ℚ):= by exact  nat_le_rat ⌈a' / b'⌉₊ (⌊a' / b'⌋₊ + 1) h4
+have h8: (Nat.floor (a' / b') + 1)=Nat.floor (a' / b') + 1:= by exact rfl
+
+let n:ℕ := ((Nat.floor (a' / b') + 1)) * e
+have hn: n= ((Nat.floor (a' / b') + 1)) * e:= by exact rfl
+
+have h6: (n:ℚ )≥ (v:ℚ):= by calc
+  (n:ℚ) =  (((Nat.floor (a' / b') + 1) * e:ℕ ):ℚ):= by exact nat_eq_rat n ((Nat.floor (a' / b') + 1) * e) hn
+  _=(((Nat.floor (a' / b') + 1:ℕ ) * (e:ℕ )):ℚ):= by exact nat_rat_mul ((Nat.floor (a' / b') + 1)) e ((Nat.floor (a' / b') + 1) * e) hn
+  _≥ (Nat.ceil (a'/b'))*e:= by gcongr;
+  _=  (Nat.ceil (a'/b'))*e':= by exact rfl
+  _≥ (a'/b')*e':= by gcongr;
+  _= e'*(a'/b'):= by exact Rat.mul_comm (a' / b') e'
+  _= (e'*a')/b':= by exact id h2.symm
+  _= (a'*e')/b':= by   rw [Rat.mul_comm]
+  _≥ v':= by exact h1
+  _=(v:ℚ):= by exact rfl
+
+have h8: Nat.floor (n:ℚ )≥ Nat.floor (v:ℚ):=by gcongr
+have h9: Nat.floor (n: ℚ)=n:= by exact nat_rat_nat n
+have h10: Nat.floor (v:ℚ)= v:= by exact nat_rat_nat v
+have h11:n≥ v:=by calc
+  n=Nat.floor (n: ℚ):= by exact rfl
+  _≥ Nat.floor (v:ℚ):= by exact h8
+  _=v:= by exact h10
+--have h12: a/b=⌊ (a:ℚ )/(b:ℚ) ⌋ := by exact?
+rw [h5.symm, ha''.symm, hb'''.symm, hn.symm]
+exact h11
+
+lemma nat_self_div (a:ℕ)(ha:0<a): (a/a=1):= by
+have h0: a≤ a:= by exact Nat.le_refl a
+have h1:a/a=(a-a)/a+1:= by exact Nat.div_eq_sub_div ha h0
+exact Nat.div_self ha
+
 lemma subgraph_preserves_adj  (H K: Subgraph G)(hHK:H≤ K)(v w:V):( H.Adj v w → K.Adj v w):= by
 have h1: (H.verts ⊆ K.verts) ∧ (∀ (v w : V), H.Adj v w → K.Adj v w):= by exact hHK
 apply h1.2
@@ -168,8 +252,6 @@ have h2: 2*(((Y ∩ X).card +  (Z ∩ X).card)) ≥  2*X.card:=by exact Nat.mul_
 have h3:  2 * ((Y ∩ X).card + (Z ∩ X).card)+2*X.card<2 * ((Y ∩ X).card + (Z ∩ X).card)+2*X.card:= by
   exact  lt_imp_lt_of_le_imp_le (fun a ↦ h2) h1
 exact (lt_self_iff_false (2 * ((Y ∩ X).card + (Z ∩ X).card) + 2 * X.card)).mp h3
-
-
 
 theorem cut_dense_union (H: Subgraph G)(K: Subgraph G)
 (p q:ℕ )(HCutDense: cut_dense G H p)(KCutDense: cut_dense G K p)
@@ -333,84 +415,4 @@ have hineqfrac: (a / b+1) * e   ≥ v:= by exact nat_div_ge a b e v hineq hbpos
 rw [hq, ha.symm, hb.symm, he.symm, hv.symm]
 exact hineqfrac
 
-
-
-
-
-
-lemma q_simplification_2
-{q r: ℕ}
-{H K: Subgraph G}
-(hpPos: p>0)
-{hNonemptyIntersection: (H.verts ∩ K.verts).Nonempty }
-(hr: (H.verts ∪  K.verts).toFinset.card≤ (H.verts ∩ K.verts).toFinset.card*r)
-(hq: q= (4*p* (H.verts ∪  K.verts).toFinset.card)/((H.verts ∩ K.verts).toFinset.card)+1)
-:16*p*r≥ q:= by
-calc
-q=4*p* (H.verts ∪  K.verts).toFinset.card/((H.verts ∩ K.verts).toFinset.card)+1:= by
-  exact hq
-_≤ (4*p*(H.verts ∪  K.verts).toFinset.card/((H.verts ∩ K.verts).toFinset.card))*2:=by
-  refine plus_one_leq_than_double ?aPositive
-  refine (Nat.div_pos_iff ?aPositive.hb).mpr ?aPositive.a
-  refine card_ne_zero.mpr ?aPositive.hb.a
-  refine Set.toFinset_nonempty.mpr ?aPositive.hb.a.a
-  exact hNonemptyIntersection
-  calc
-    4 * p * (H.verts ∪ K.verts).toFinset.card
-    ≥ (H.verts ∪ K.verts).toFinset.card:= by
-      refine Nat.le_mul_of_pos_left (H.verts ∪ K.verts).toFinset.card ?h
-      exact Nat.succ_mul_pos 3 hpPos
-    _≥ (H.verts ∩ K.verts).toFinset.card:= by
-      gcongr
-      refine Set.toFinset_subset_toFinset.mpr ?_
-      exact intersection_contained_in_union
-_=((4*p)*(H.verts ∪  K.verts).toFinset.card/((H.verts ∩ K.verts).toFinset.card))*2:=by
-  ring_nf
-_≤ (2*(4*p)*((H.verts ∪  K.verts).toFinset.card/((H.verts ∩ K.verts).toFinset.card)))*2:=by
-  gcongr
-  apply @div_assoc_le1 (4*p) ((H.verts ∪  K.verts).toFinset.card) ((H.verts ∩ K.verts).toFinset.card)
-  refine card_pos.mpr ?bc.cPos.a
-  exact Set.toFinset_nonempty.mpr hNonemptyIntersection
-  gcongr
-  refine Set.toFinset_subset_toFinset.mpr ?bc.bgec.a.a
-  exact intersection_contained_in_union
-
-_≤ (2*(4*p)*(r))*2:=by
-  gcongr
-  refine Nat.div_le_of_le_mul ?bc.bc.a
-  exact hr
-
-_= 16*p*r:= by
-  ring_nf
-
-
-
-
-
-theorem cut_dense_union_simplified
-{G: SimpleGraph V}
-{H K: Subgraph G}
-(p q r:ℕ )
-(HCutDense: cut_dense G H p)
-(KCutDense: cut_dense G K p)
-(hq: q≥  16*p*r)
-(hpPos: p>0)
-(hNonemptyIntersection: (H.verts ∩ K.verts).Nonempty )
-(hr: (H.verts ∪  K.verts).toFinset.card≤ (H.verts ∩ K.verts).toFinset.card*r)
---(hNonemptyIntersection: (H.verts ∩ K.verts)≠ ∅ )
-:cut_dense G (H⊔K) q:= by
-let q': ℕ := (4*p* (H.verts ∪  K.verts).toFinset.card)/((H.verts ∩ K.verts).toFinset.card)+1
-have h1: cut_dense G (H⊔K) q':= by
-  apply cut_dense_union G H K p q' HCutDense KCutDense rfl _
-  exact Set.nonempty_iff_ne_empty.mp hNonemptyIntersection
-apply Cut_Dense_monotone G q'
-calc
-  q'= (4*p* (H.verts ∪  K.verts).toFinset.card)/((H.verts ∩ K.verts).toFinset.card)+1:= by
-    exact rfl
-  _≤ 16*p*r:= by
-   apply q_simplification_2 G hpPos hr rfl
-   exact hNonemptyIntersection
-  _≤ q:= by
-    exact hq
-
-exact h1
+end SimpleGraph

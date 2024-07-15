@@ -1,6 +1,5 @@
 import MyProject
 import MyProject.pro
---import MyProject.Basic_results
 import MyProject.averagedegmindeg2
 import Mathlib.Combinatorics.SimpleGraph.Density
 
@@ -37,49 +36,6 @@ def cut_dense (G : SimpleGraph V)(H: Subgraph G)(k : ℕ ): Prop :=
 #check cut_dense
 --set_option maxHeartbeats 600000
 --set_option diagnostics true
---jjjk
-lemma Cut_Dense_monotone
-{H:   Subgraph G}
-(a: ℕ)
-{b: ℕ}
-(hab: a≤ b)
-(hcut_dense: cut_dense G H a)
-: cut_dense G H b:= by
-intro A B hUnion
-calc
-b * (Rel.interedges H.Adj A B).card ≥
-a * (Rel.interedges H.Adj A B).card:= by
-  gcongr
-_≥ A.card * B.card:= by
-  exact hcut_dense A B hUnion
-
-lemma cut_dense_subgraph_monotone
-{H K: Subgraph G}
-{k: ℕ}
-(hHK: H≤ K)
-(hvertsEq: H.verts= K.verts)
-(hcut_dense: cut_dense G H k)
-: cut_dense G K k:= by
-intro A B hUnion
-have hUnion': H.verts.toFinset= A ∪ B:= by
-  rw [hvertsEq]
-  exact hUnion
-have h1: (Rel.interedges H.Adj A B) ⊆  (Rel.interedges K.Adj A B):= by
-  intro x hx
-  have h2: x∈ (Rel.interedges H.Adj A B):= by exact hx
-  have h3: x.1∈ A ∧ x.2∈ B ∧ H.Adj x.1 x.2:= by exact Rel.mem_interedges_iff.mp h2
-  have h4: H.Adj x.1 x.2:= by exact h3.2.2
-  have h5: K.Adj x.1 x.2:= by
-    exact subgraph_implies_adjacency_inherited hHK h4
-  exact Rel.mem_interedges_iff.mpr ⟨h3.1, h3.2.1, h5⟩
-
-
-calc
-k * (Rel.interedges K.Adj A B).card
-≥ k * (Rel.interedges H.Adj A B).card:=by
-  gcongr
-_≥ A.card * B.card:=by
-  exact hcut_dense A B hUnion'
 
 theorem cut_dense_min_degree
 {H: Subgraph G}
