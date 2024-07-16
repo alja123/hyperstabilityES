@@ -10,7 +10,7 @@ open scoped BigOperators
 namespace SimpleGraph
 
 
- set_option maxHeartbeats 600000
+ set_option maxHeartbeats 300000
 
 universe u
 variable {V : Type u} {G : SimpleGraph V}
@@ -214,7 +214,7 @@ lemma clump_joining_1
 --{HFam: Finset (Subgraph G)}
 {q k:ℕ }
 {I: Set V}
-(μbiggerthanp: μ ≥ κ)
+--(μbiggerthanp: μ ≥ κ)
 (hk1biggerthank: K1.k =  k)
 (hk2biggerthank: K2.k ≤  k)
 (hedge_disjoint: HEdge_Disjoint (K1.H ∪ K2.H))
@@ -611,7 +611,20 @@ have M_in_C: FamilyContained_in_Graph M C:=by
     _≤ C:=by
       exact le_sup_right'
 
-simp at hCsize
-let X: Clump G p m κ pr h:=⟨(K1.Gr⊔ K2.Gr), k',  H, M, C, HEdgeDisjoint, hMVD, HCutDense, HOrder_m_family, HOrder_le_hm_family , HContained_in_Gr, HpartitionGr, hMNR, C_in_Gr, M_in_C, hMcard, C_cut_dense, hCsize, hMgraphs_in_H, hk'2.1, k'pos⟩
+--simp only [--Subgraph.verts_sup,
+--Subgraph.induce_verts,
+--Subgraph.verts_sSup,
+--Set.toFinset_card,
+--Fintype.card_ofFinset,
+--Set.toFinset_union, union_assoc, mem_coe
+--] at hCsize
+#check K1.C_Order
+
+have hCSize2: (@Set.toFinset V C.verts (Subtype.fintype fun x ↦ x ∈ C.verts) : Finset V).card≤ m * h * 4 ^ k':= by
+  dsimp [C]
+  simp
+  simp at hCsize
+  exact hCsize
+let X: Clump G p m κ pr h:=⟨(K1.Gr⊔ K2.Gr), k',  H, M, C, HEdgeDisjoint, hMVD, HCutDense, HOrder_m_family, HOrder_le_hm_family , HContained_in_Gr, HpartitionGr, hMNR, C_in_Gr, M_in_C, hMcard, C_cut_dense, hCSize2, hMgraphs_in_H, hk'2.1, k'pos⟩
 
 use X
