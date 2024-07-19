@@ -451,6 +451,36 @@ _=  (Hi.verts.toFinset.card)^2+(HB).edgeSet.toFinset.card*p^2*4:=by
 
 
 
+
+
+lemma clump_most_edges_of_Hi_in_Bgraph_simplified
+(K: Clump G p m κ pr h)
+(Hi HB: Subgraph G)
+(hHB: HB= bipartite_induce Hi  (Hi.verts∩ BSetPlusM K) (Hi.verts∩(sSup K.M: Subgraph G).verts))
+(hHi: Hi∈ K.H)
+: 4*p^2*(Hi).edgeSet.toFinset.card≤  (Hi.verts.toFinset.card)^2+(HB).edgeSet.toFinset.card*p^2*4
+:= by
+let M:=  Hi.verts ∩ (sSup ↑K.M: Subgraph G).verts
+have hM: M=Hi.verts ∩ (sSup ↑K.M: Subgraph G).verts:=by exact rfl
+let S:= Hi.verts \ M
+have hS: S= Hi.verts \ M:=by exact rfl
+let B := Hi.verts ∩ BSetPlusM K
+have hB: B= Hi.verts ∩ BSetPlusM K:=by exact rfl
+let HS := Hi.induce S
+have hHS: HS = Hi.induce S:=by exact rfl
+let HBip := bipartite_induce Hi (Hi.verts \ B) Hi.verts
+have hBip: HBip = bipartite_induce Hi (Hi.verts \ B) Hi.verts:=by exact rfl
+apply clump_most_edges_of_Hi_in_Bgraph_fixed
+exact hM
+exact hS
+exact hB
+rw[hB, hM]
+exact hHB
+exact hHS
+repeat assumption
+
+/-
+
 lemma clump_most_edges_of_Hi_in_Bgraph_simplified
 {K: Clump G p m κ pr h}
 {Hi HB: Subgraph G}
@@ -467,10 +497,13 @@ let HBip: Subgraph G:= bipartite_induce Hi ((Hi.verts)\ B) (Hi.verts)
 let hS: S= Hi.verts \ M:= by exact rfl
 let hHS: HS= Hi.induce S:= by exact rfl
 let hBip: HBip= bipartite_induce Hi ((Hi.verts)\ B) (Hi.verts):= by exact rfl
+
+
+
 sorry--exact?
 
 
-/-
+
 lemma edges_in_clump
 {K: Clump G p m κ pr h}
 :K.Gr.edgeSet.toFinset.card= ∑ Hi in K.H, (Hi: Subgraph G).edgeSet.toFinset.card:= by

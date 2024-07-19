@@ -197,7 +197,9 @@ lemma Initial_Clump_Decomposition_1
 (hKFam: KFam= Finset.image (Clump_forming_L nan) L.H)
 :
 Clump_Decomposition L KFam
+∧ (∀ (X:Clump G p m κ pr h ), (X∈ KFam) → (X.k≤ (h*m)/(m/pr)+1))
 := by
+constructor
 constructor
 intro K1 K2 hK1 hK2 hK1K2
 have h1: ∃ (L1: Subgraph G), L1∈ L.H ∧ K1.Gr=L1∧ (Clump_forming_L nan L1 = K1):=by
@@ -246,6 +248,27 @@ have h4: Li≤ Ki.Gr:=by
   exact le_of_eq (id h3.symm)
 exact ⟨Ki, h2, h4⟩
 
+intro K1 hK1
+have h1: ∃ (L1: Subgraph G), L1∈ L.H ∧ K1.Gr=L1∧ (Clump_forming_L nan L1 = K1):=by
+  apply Initial_Clump_Decomposition_Li_eq_Gr
+  repeat assumption
+rcases h1 with ⟨L1, hL1, hK1L1, h'K1L1⟩
+have h1: graph_forms_clump L1 K1:=by
+  rw[h'K1L1.symm]
+  apply Initial_Clump_Decomposition_forms_clump
+  repeat assumption
+unfold graph_forms_clump at h1
+calc
+  K1.k ≤ L1.verts.toFinset.card / (m / pr) + 1:=by
+    exact h1.2.2.2.2
+  _≤ h * m / (m / pr) + 1:=by
+    gcongr
+    apply L.H_Order_Upper_Bound
+    exact hL1
+    
+
+
+/-
 lemma Initial_Clump_Decomposition
 (L: Locally_Dense G p m h)
 (nan: Clump G p m κ pr h)
@@ -256,9 +279,10 @@ Clump_Decomposition L KFam
 let KFam: Finset (Clump G p m κ pr h):=Finset.image (Clump_forming_L nan) L.H
 have hKFam: KFam= Finset.image (Clump_forming_L nan) L.H:= by exact rfl
 use KFam
+
 apply Initial_Clump_Decomposition_1
 repeat assumption
-
+-/
 
 /-
 lemma Initial_Clump_Decomposition

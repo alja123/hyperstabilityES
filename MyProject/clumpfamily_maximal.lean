@@ -108,7 +108,7 @@ exact h' hcont
 
 
 
-lemma Initial_Clump_Decomposition_narrow
+lemma Initial_Clump_Decomposition
 (L: Locally_Dense G p m h)
 (nan: Clump G p m κ pr h)
 :
@@ -118,11 +118,53 @@ Clump_Decomposition L KFam∧ Clump_family_narrow KFam
 let KFam: Finset (Clump G p m κ pr h):=Finset.image (Clump_forming_L nan) L.H
 have hKFam: KFam= Finset.image (Clump_forming_L nan) L.H:= by exact rfl
 use KFam
+have hProp: Clump_Decomposition L KFam
+∧ (∀ (X:Clump G p m κ pr h ), (X∈ KFam) → (X.k≤ (h*m)/(m/pr)+1)):=by
+  apply Initial_Clump_Decomposition_1
+  repeat assumption
+
 constructor
-apply Initial_Clump_Decomposition_1
+exact hProp.1
+
+intro Ki hKi
+calc
+  Ki.k≤ h * m / (m / pr) + 1:=by
+    apply hProp.2
+    exact hKi
+  _≤ pr * pr * h:=by
+    --h * m / (m / pr) + 1 ≤ pr * pr * h
+    sorry
+
+
+lemma Clump_decomposition_of_locally_dense
+(L: Locally_Dense G p m h)
+(nan: Clump G p m κ pr h)
+(hNoWideClumps: ¬ L_contains_wide_clump p m κ pr h G L )
+: ∃ (KFam2: Finset (Clump G p m κ pr h)),
+Clump_Decomposition L KFam2
+∧ Clump_family_narrow KFam2
+∧ Clump_family_separated KFam2
+:=by
+
+let KFam_ex:∃ (KFam: Finset (Clump G p m κ pr h)),
+Clump_Decomposition L KFam∧ Clump_family_narrow KFam:= by
+  apply Initial_Clump_Decomposition
+  repeat assumption
+rcases KFam_ex with ⟨KFam, hKFam⟩
+apply Clump_family_max L KFam hKFam.1 hKFam.2 hNoWideClumps
 repeat assumption
 
 
+
+/-
+intro Ki hKi
+dsimp [KFam] at hKi
+simp at hKi
+rcases hKi with ⟨Li, hLi⟩
+have h1: Clump_forming_L nan Li = Ki:= by exact hLi.2
+dsimp [Clump_forming_L] at h1
+-/
+/-
 lemma Clump_decomposition_of_locally_dense
 (L: Locally_Dense G p m h)
 (nan: Clump G p m κ pr h)
@@ -139,7 +181,7 @@ Clump_Decomposition L KFam:= by
   repeat assumption
 rcases KFam_ex with ⟨KFam, hKFam⟩
 exact Clump_family_max L KFam hKFam hKFam.2 hNoWideClumps
-
+-/
 /-lemma Initial_Clump_Decomposition
 (L: Locally_Dense G p m h)
 (nan: Clump G p m κ pr h)
