@@ -16,9 +16,9 @@ set_option maxHeartbeats 100000
 
 universe u
 variable {V : Type u} {G : SimpleGraph V}
-variable   [Fintype V]--[FinV: Fintype V]
-variable  [DecidableRel G.Adj] --[DecG: DecidableRel G.Adj]
-variable [Fintype (Sym2 V)]-- [FinV2: Fintype (Sym2 V)]
+variable  [FinV: Fintype V]
+variable  [DecG: DecidableRel G.Adj]
+variable  [FinV2: Fintype (Sym2 V)]
 variable {p m κ pr h γ α : ℕ}
 variable {κPositive: κ >0}
 variable {pPositive: p >0}
@@ -71,7 +71,6 @@ def Vertex_list_in_clump_list
   (Ver: List V): Prop:=
   ∀ (i: ℕ), (i< Ord.length-1)→ ((Ver.get! i)∈  (((Ord.get! i).Gr.verts)∩((Ord.get! (i+1)).Gr.verts)))
 
-
 def M_list_in_clump_list
   (ML: List (Subgraph G))
   (Ord: List (Clump G p m κ pr h))
@@ -84,27 +83,67 @@ def Clump_Family_Union
 :Subgraph G
 := sSup (Finset.image (fun C: Clump G p m κ pr h => C.Gr) KFam)
 
+def M_list_union
+(Li: List (Subgraph G))
+: Subgraph G:= sSup (Li.toFinset)
+
+def M_list_union_dropping_first --(p m κ pr h : ℕ )
+(Li: List (Subgraph G))
+: Subgraph G
+:=M_list_union  (Li.drop (1))
+
+
+
+def M_list_sparse_at_1 --( p m κ pr h α: ℕ )
+(m β: ℕ )
+(Li: List (Subgraph G))
+:=β*((Li.head!.verts)∩(( M_list_union_dropping_first Li).verts)).toFinset.card≤  m
+
+
+
+
+def M_list_sparse -- ( p m κ pr h α: ℕ )
+(m β : ℕ )
+(Li: List (Subgraph G))
+:=
+--∀ (i: ℕ ),  @M_list_sparse_at_1 V G FinV   p m κ pr h α β  (Li.rotate i)
+∀ (i: ℕ ),  M_list_sparse_at_1  m  β  (Li.rotate i)
+
+
 
 structure ClumpPathSequence
-(KFam: Finset (Clump G p m κ pr h)) where
+ (β : ℕ )(KFam: Finset (Clump G p m κ pr h)) where
   (Ord: List (Clump G p m κ pr h))
   (Ord_eq_KFam: Ord.toFinset⊆  KFam)
   (LM: List (Subgraph G))
   (LM_in_M: M_list_in_clump_list iI LM Ord)
-  (MSparse: ???)
+  (LM_Sparse: M_list_sparse m β LM )
   (Ver: List V)
   (VerNoDup: Ver.Nodup)
   (VerInOrd:Vertex_list_in_clump_list iI iV Ord Ver)
   (hlength: Ord.length ≥  h*pr)
 
 structure ClumpPathSequence_nolength
-(KFam: Finset (Clump G p m κ pr h)) where
+ (β : ℕ )(KFam: Finset (Clump G p m κ pr h)) where
+  (Ord: List (Clump G p m κ pr h))
+  (Ord_eq_KFam: Ord.toFinset⊆  KFam)
+  (LM: List (Subgraph G))
+  (LM_in_M: M_list_in_clump_list iI LM Ord)
+  (LM_Sparse: M_list_sparse m β LM )
+  (Ver: List V)
+  (VerNoDup: Ver.Nodup)
+  (VerInOrd:Vertex_list_in_clump_list iI iV Ord Ver)
+   -- (hlength: Ord.length ≥  h*pr)
+
+
+structure ClumpPathSequence_nolength_noM
+ (KFam: Finset (Clump G p m κ pr h)) where
   (Ord: List (Clump G p m κ pr h))
   (Ord_eq_KFam: Ord.toFinset⊆  KFam)
   (Ver: List V)
   (VerNoDup: Ver.Nodup)
   (VerInOrd:Vertex_list_in_clump_list iI iV Ord Ver)
- -- (hlength: Ord.length ≥  h*pr)
+   -- (hlength: Ord.length ≥  h*pr)
 
 
 lemma clump_sequence_gives_path
@@ -124,7 +163,7 @@ sorry
 
 lemma clump_path_sequence_gives_path
 (KFam: Finset (Clump G p m κ pr h))
-(ClumpPathSeq: ClumpPathSequence iI iV KFam)
+(ClumpPathSeq: ClumpPathSequence iI iV α KFam)
 :
 Has_length_d_path (Clump_Family_Union KFam) (h*m)
 :=by
@@ -199,18 +238,29 @@ exact (get_eq_get2! iI L i hi).symm
 exact hL3
 
 lemma Wide_clump_implies_path_sequence
+(β: ℕ )
 (K: Clump G p m κ pr h)
 (hWide1: K.k≥ pr*pr*h)
 (hWide2: K.k≤  4*pr*pr*h)
-: Nonempty (ClumpPathSequence iI iV {K})
+: Nonempty (ClumpPathSequence iI iV β {K})
 :=by
 have hcard: K.Gr.verts.toFinset.card ≥  (h*pr):=by
   sorry
 have hVex: ∃(VS:Finset V), (VS⊆ K.Gr.verts.toFinset)∧ (VS.card = (h*pr)):=by
   exact exists_smaller_set K.Gr.verts.toFinset (h*pr) hcard
 
+have Mcard: K.M.card≥ h*pr :=by
+  sorry
+
+have hMex: ∃(MS:Finset (Subgraph G)), (MS⊆ K.M)∧ (MS.card = (h*pr)):=by
+  exact exists_smaller_set K.M (h * pr) Mcard
+
 rcases hVex with ⟨ VS, ⟨VS1, VS2 ⟩   ⟩
 let VL:= VS.toList
+
+rcases hMex with ⟨ MS, ⟨MS1, MS2 ⟩   ⟩
+let ML:= MS.toList
+
 
 
 have LEx: ∃ (L: List (Clump G p m κ pr h)), L.length=(h*pr)+1∧(∀ (i:ℕ ), (i< L.length→ (L.get! i=K)))∧ L.toFinset={K}:=by
@@ -221,14 +271,20 @@ rcases LEx with ⟨ LK, ⟨ hLK1, hLK2, hLK3⟩  ⟩
 
 refine Nonempty.intro ?val
 refine
-  { Ord := ?val.Ord, Ord_eq_KFam := ?KFam, Ver := ?val.Ver, VerNoDup := ?val.VerNoDup,
+  { Ord := ?val.Ord, Ord_eq_KFam := ?KFam, LM := ?val.LM, LM_in_M := ?val.LM_in_M,
+    LM_Sparse := ?val.LM_Sparse, Ver := ?val.Ver, VerNoDup := ?val.VerNoDup,
     VerInOrd := ?val.VerInOrd, hlength := ?val.hlength }
+
 exact LK
 
 refine subset_singleton_iff.mpr ?KFam.a
 right
 exact hLK3
-
+exact ML
+--M_list_in_clump_list iI ML LK
+sorry
+-- M_list_sparse m β ML
+sorry
 exact VL
 exact nodup_toList VS
 unfold Vertex_list_in_clump_list
@@ -270,16 +326,16 @@ exact Nat.le.intro (id hLK1.symm)
 
 
 
-
+/-
 lemma dense_list_implies_path_sequence2
 (KFam: Finset (Clump G p m κ pr h))
-(t: ℕ)
+(t β : ℕ)
 (ht: t≤ h*pr)
 (narrow: Clump_family_narrow KFam)
 (separated: Clump_family_separated KFam)
 (has_dense_sets: family_contains_dense_list p m κ pr h α iI KFam  )
 :
-∃ (S:ClumpPathSequence_nolength iI iV KFam), S.Ord.length=t
+∃ (S:ClumpPathSequence_nolength iI iV β KFam), S.Ord.length=t
 :=by
 unfold family_contains_dense_list at has_dense_sets
 rcases has_dense_sets with ⟨ LA, ⟨ hLA1, ⟨ hLA2, hLA3⟩ ⟩ ⟩
@@ -287,22 +343,400 @@ unfold clump_list_dense at hLA3
 
 sorry
 
+structure ClumpPathSequence_nolength_noM
+ (KFam: Finset (Clump G p m κ pr h)) where
+  (Ord: List (Clump G p m κ pr h))
+  (Ord_eq_KFam: Ord.toFinset⊆  KFam)
+  (Ver: List V)
+  (VerNoDup: Ver.Nodup)
+  (VerInOrd:Vertex_list_in_clump_list iI iV Ord Ver)
+-/
+
+lemma get_last_eq
+{T: Type}
+{hI: Inhabited T}
+(L: List T)
+(LP2: L≠ [])
+: L.get! (L.length -1)=L.getLast LP2
+:=by
+simp
+have LengthPos: L.length>0:=by exact List.length_pos.mpr LP2
+have h1: L.length-1<L.length:=by
+  refine Nat.sub_one_lt_of_le LengthPos ?h₁
+  exact Nat.le_refl L.length
+calc
+L.getD (L.length - 1) default=L.get ⟨ (L.length-1), h1⟩:=by
+  exact List.getD_eq_get L default h1
+_=L.getLast LP2 :=by exact List.get_length_sub_one h1
+
+lemma get_last_eq_clump
+
+(L: List (Clump G p m κ pr h))
+(LP2: L≠ [])
+: L.get! (L.length -1)=L.getLast LP2
+:=by
+simp
+have LengthPos: L.length>0:=by exact List.length_pos.mpr LP2
+have h1: L.length-1<L.length:=by
+  refine Nat.sub_one_lt_of_le LengthPos ?h₁
+  exact Nat.le_refl L.length
+calc
+L.getD (L.length - 1) default=L.get ⟨ (L.length-1), h1⟩:=by
+  exact List.getD_eq_get L default h1
+_=L.getLast LP2 :=by exact List.get_length_sub_one h1
+
+
+/-lemma get_last_eq!
+(T: Type)
+(hI: Inhabited T)
+(L: List T)
+(LP2: L≠ [])
+: L.getLast!=L.get! (L.length -1)
+:=by
+simp
+calc
+L.getLast!=L.getLast LP2:=by
+  apply?
+
+_=L.get! (L.length -1):=by exact (get_last_eq T hI L LP2).symm
+-/
+
+def dense_clump_family
+(KFam: Finset (Clump G p m κ pr h))
+:=
+∀ (K: Clump G p m κ pr h),
+K∈ KFam→
+(α*(((BSet K)∩(Set.sUnion (Finset.image BSet (KFam\{K}) ).toSet)).toFinset.card)≥ m)
+
+
+
+lemma finset_diff_int
+(A B C: Finset V)
+:
+A∩ (B\ C)=(A∩ B)\ (A∩ C)
+:=by
+aesop
+
+
+
+lemma bigunion_comparision_one_direction_BSet
+(F: Finset (Clump G p m κ pr h))
+(K: Clump G p m κ pr h)
+(a:V)
+:
+a ∈ (⋃ H ∈ F, BSet K ∩ BSet H).toFinset
+→
+a∈ (Finset.biUnion F (fun H=>(BSet K∩ BSet H).toFinset))
+
+
+:= by
+
+intro h
+refine mem_biUnion.mpr ?_
+
+have h0: a ∈ (⋃ H ∈ F, BSet K ∩ BSet H):= by
+  exact Set.mem_toFinset.mp h
+have h1: ∃ H ∈ F, a ∈ BSet K ∩ BSet H:=by
+
+  have h3:_:= by apply Set.mem_iUnion.1 h0
+  rcases h3 with ⟨ x, y⟩
+  have h4:_:= by apply Set.mem_iUnion.1 y
+  rcases h4 with ⟨ z, h6⟩
+  use x
+
+
+
+rcases h1 with ⟨ a1, ha1⟩
+have h12: a ∈ BSet K ∩ BSet a1:= by
+  exact ha1.2
+have h2:a ∈ (BSet K ∩ BSet a1).toFinset:= by
+  exact Set.mem_toFinset.mpr h12
+
+use a1
+exact ⟨ha1.1, h2⟩
+
+
+lemma bigunion_equality_Bset
+(F: Finset (Clump G p m κ pr h))
+(K: Clump G p m κ pr h)
+:
+(⋃ x ∈ F, BSet K ∩ BSet x).toFinset
+=
+(Finset.biUnion F (fun x=>(BSet K∩ BSet x).toFinset))
+--(⋃ H ∈ F, H.verts).toFinset=(Finset.biUnion F (fun x=>x.verts.toFinset))
+--(⋃ H ∈ F, H.verts).toFinset.card≤∑ H∈ F, H.verts.toFinset.card
+:= by
+
+ext a
+constructor
+exact fun a_1 ↦ bigunion_comparision_one_direction_BSet F K a a_1
+
+
+intro b
+refine Set.mem_toFinset.mpr ?_
+refine Set.mem_iUnion₂.mpr ?_
+
+have h1: ∃ H ∈ F, a ∈ (BSet K∩ BSet H).toFinset:=by
+  exact mem_biUnion.mp b
+
+rcases h1 with ⟨ a1, ha1⟩
+have h11:_:= by
+  exact ha1.1
+have h12:_:= by
+  exact ha1.2
+use a1
+simp
+have h12: a ∈ (BSet K∩ BSet a1) := by exact Set.mem_toFinset.mp h12
+constructor
+exact Set.mem_of_mem_inter_left h12
+constructor
+exact h11
+exact Set.mem_of_mem_inter_right h12
+
+lemma separated_weakening
+(KFam: Finset (Clump G p m κ pr h))
+(K1 K2 : G.Clump p m κ pr h)
+(hK1: K1 ∈ KFam)
+(hK2: K2 ∈ KFam)
+(hdiff: K1 ≠ K2)
+(separated: Clump_family_separated KFam)
+:  κ * (BSet K1 ∩ BSet K2).toFinset.card ≤  m
+:=by
+have h1: κ ^ (10 * (100 * K1.k.max K2.k).factorial) * (BSet K1 ∩ BSet K2).toFinset.card < m
+  :=by
+    apply separated
+    repeat assumption
+calc
+κ * (BSet K1 ∩ BSet K2).toFinset.card
+≤
+κ ^ (10 * (100 * K1.k.max K2.k).factorial) * (BSet K1 ∩ BSet K2).toFinset.card
+:=by
+  gcongr
+  --κ ≤ κ ^ (10 * (100 * K1.k.max K2.k).factorial)
+  sorry
+_≤ m:=by
+  exact Nat.le_of_succ_le (separated K1 K2 hK1 hK2 hdiff)
+
+
+lemma separated_Bset_int_union_bound
+(KFam Av: Finset (Clump G p m κ pr h))
+(K: Clump G p m κ pr h)
+(hK: K ∈ KFam)
+(hK2: K∉ Av)
+(hAv:Av⊆  KFam)
+(separated: Clump_family_separated KFam)
+(narrow: Clump_family_narrow KFam)
+:
+2 * κ *
+(⋃ x ∈ Av, ↑(BSet K).toFinset ∩ BSet x).toFinset.card
+≤ 2*(Av.card*m)
+:= by
+--unfold Clump_family_separated at separated
+--unfold Clumps_separated at separated
+
+simp only [Set.coe_toFinset,  Fintype.card_ofFinset]
+calc
+2 * κ * (⋃ x ∈ Av, BSet K ∩ BSet x).toFinset.card
+=2 * κ * (Finset.biUnion Av (fun x=>(BSet K∩ BSet x).toFinset)).card:=by
+  congr
+  exact bigunion_equality_Bset Av K
+_≤ 2 * κ *(∑  (x ∈ Av), (BSet K ∩ BSet x).toFinset.card):=by
+  gcongr
+  simp
+  exact card_biUnion_le
+_=2 * (κ *(∑  (x ∈ Av), (BSet K ∩ BSet x).toFinset.card)):=by
+  ring_nf
+_=2 * (∑  (x ∈ Av), κ *(BSet K ∩ BSet x).toFinset.card):=by
+  congr
+  exact mul_sum Av (fun i ↦ (BSet K ∩ BSet i).toFinset.card) κ
+_≤ 2 * (∑  (x ∈ Av), m):=by
+  gcongr with Ki hKi
+  apply separated_weakening KFam K Ki
+  repeat assumption
+  exact hAv hKi
+  exact Ne.symm (ne_of_mem_of_not_mem hKi hK2)
+  repeat assumption
+_=2*(Av.card*m):=by
+  congr
+  exact sum_const_nat fun x ↦ congrFun rfl
+
+
+
+lemma dense_list_implies_larger_list
+(KFam: Finset (Clump G p m κ pr h))
+(KL:  Clump G p m κ pr h)
+(KLInFam: KL∈ KFam)
+(narrow: Clump_family_narrow KFam)
+(separated: Clump_family_separated KFam)
+(dense_family: @dense_clump_family V G FinV FinV2 p m κ pr h α  KFam   )
+
+(Av: Finset (Clump G p m κ pr h))
+(AvoidContained: Av⊆ KFam)
+(AvoidCard: Av.card≤ h*pr)
+:
+@dense_clump_family V G FinV FinV2 p m κ pr h (2*α)  (KFam\ Av)
+:=by
+
+unfold dense_clump_family
+intro K hK
+unfold Clump_family_separated at separated
+--simp only [coe_image, coe_sdiff, coe_singleton, Set.sUnion_image,  mem_coe,
+--  Set.mem_singleton_iff, Set.toFinset_inter, ge_iff_le]
+--simp
+unfold dense_clump_family at dense_family
+
+
+
+calc
+  2 * α * (BSet K ∩ ((image BSet ((KFam \ Av) \ {K})).toSet).sUnion).toFinset.card
+  ≥ 2 * α * (BSet K ∩ (((image BSet (((KFam ) \ {K}))).toSet.sUnion)\ ((image BSet   Av).toSet.sUnion))).toFinset.card:=by
+    gcongr
+    simp
+    gcongr
+    simp
+    refine Set.diff_subset_iff.mpr ?bc.a.h.a
+    simp
+    intro Ki hKi1 hKi2
+    by_cases case: Ki∈ Av
+    have h1:BSet Ki ⊆ (⋃ x ∈ Av, BSet x):=by
+      exact Set.subset_biUnion_of_mem case
+    exact
+      Set.subset_union_of_subset_left h1 (⋃ x, ⋃ (_ : (x ∈ KFam ∧ x ∉ Av) ∧ ¬x = K), BSet x)
+
+    have h2: (Ki ∈ KFam ∧ Ki ∉ Av) ∧ ¬Ki = K:=by
+      aesop
+    have h1: BSet Ki ⊆ ⋃ x, ⋃ (_ : (x ∈ KFam ∧ x ∉ Av) ∧ ¬x = K), BSet x:=by
+      exact Set.subset_biUnion_of_mem h2
+    exact Set.subset_union_of_subset_right h1 (⋃ x ∈ Av, BSet x)
+
+  _= 2 * α * (
+  (BSet K ∩ ((image BSet (((KFam ) \ {K}))).toSet.sUnion))
+  \
+  (BSet K ∩ ((image BSet   Av).toSet.sUnion))
+  ).toFinset.card:=by
+    simp
+    congr
+    left
+    congr
+    apply finset_diff_int
+
+  _≥ 2 * α * (((
+  (BSet K ∩ ((image BSet (((KFam ) \ {K}))).toSet.sUnion))
+  ).toFinset.card)
+  -
+  ((BSet K ∩ ((image BSet   Av).toSet.sUnion)).toFinset.card)
+  ):=by
+
+    gcongr
+    simp
+    exact card_le_card_sdiff_add_card
+
+
+
+
+
+
+  _≥ m:=by
+    simp only [coe_image, coe_sdiff, coe_singleton, Set.sUnion_image,  mem_coe,
+       Set.toFinset_inter]
+
+    simp only [Set.mem_diff, mem_coe, Set.mem_singleton_iff, ge_iff_le]
+    calc
+      2 * α *
+     (((BSet K).toFinset ∩ (⋃ x, ⋃ (_ : x ∈ KFam ∧ ¬x = K), BSet x).toFinset).card -
+      ((BSet K).toFinset ∩ (⋃ x ∈ Av, BSet x).toFinset).card)
+      =
+      2 * α *
+     (( (⋃ x, ⋃ (_ : x ∈ KFam ∧ ¬x = K), (BSet K).toFinset ∩BSet x).toFinset).card -
+      ( (⋃ x ∈ Av,(BSet K).toFinset ∩ BSet x).toFinset).card)
+      :=by
+        congr
+        simp
+        ext a
+        constructor
+        intro h
+        simp
+        simp at h
+        aesop
+
+        intro h
+        simp
+        simp at h
+        aesop
+
+        ext a
+        constructor
+        intro h
+        simp
+        simp at h
+        aesop
+
+        intro h
+        simp
+        simp at h
+        aesop
+
+
+
+
+      _≥ m:=by  sorry
+-- 2 * α * ((BSet K).toFinset ∩ (⋃ x, ⋃ (_ : (x ∈ KFam ∧ x ∉ Av) ∧ ¬x = K), BSet x).toFinset).card
+--  ≥  2 * α * ((BSet K).toFinset ∩ (⋃ x, ⋃ (_ : (x ∈ KFam ∧ x ∉ Av) ∧ ¬x = K), BSet x).toFinset).card:=by sorry
+--  _≥ m:=by sorry
+
+
+
+
+
+lemma dense_list_implies_larger_list2
+(KFam: Finset (Clump G p m κ pr h))
+(KL:  Clump G p m κ pr h)
+(KLInFam: KL∈ KFam)
+(narrow: Clump_family_narrow KFam)
+(separated: Clump_family_separated KFam)
+(dense_family: @dense_clump_family V G FinV FinV2 p m κ pr h α  KFam   )
+
+(Av: Finset (Clump G p m κ pr h))
+(AvoidContained: Av⊆ KFam)
+(AvoidCard: Av.card≤ h*pr)
+:
+∃ (Knew: Clump G p m κ pr h),
+Knew∈ KFam
+∧ Knew∉Av
+∧ (Knew.Gr.verts ∩ KL.Gr.verts).toFinset.card> h*pr
+:=by
+unfold dense_clump_family at dense_family
+have hInt: _ :=by apply dense_family KL KLInFam
+
+sorry
+
+
+
+
+
+
+
 
 lemma dense_list_implies_path_sequence
 (KFam: Finset (Clump G p m κ pr h))
+(KFamNonempty: KFam.Nonempty)
 (t: ℕ)
 (ht: t≤ h*pr)
 (narrow: Clump_family_narrow KFam)
 (separated: Clump_family_separated KFam)
 (has_dense_sets: family_contains_dense_list p m κ pr h α iI KFam  )
 :
-∃ (S:ClumpPathSequence_nolength iI iV KFam), S.Ord.length=t
+∃ (S: ClumpPathSequence_nolength_noM iI iV KFam), S.Ord.length=t+1∧ S.Ver.length=t∧ S.Ord.Nodup
 :=by
 induction' t with t' ht'
 --Ord: List (Clump G p m κ pr h))
 simp
-let Ord:List (Clump G p m κ pr h):= []
-have Ord_eq_KFam: Ord.toFinset⊆  KFam:=by exact inter_eq_left.mp rfl
+rcases KFamNonempty with ⟨K, hK ⟩
+let Ord:List (Clump G p m κ pr h):= [K]
+have Ord_eq_KFam: Ord.toFinset⊆  KFam:=by
+  dsimp[Ord]
+  simp
+  exact hK
 let Ver: List V:=[]
 have VerNoDup: Ver.Nodup:=by exact List.nodup_nil
 have VerInOrd:Vertex_list_in_clump_list iI iV Ord Ver:=by
@@ -310,14 +744,157 @@ have VerInOrd:Vertex_list_in_clump_list iI iV Ord Ver:=by
   intro i hi
   exfalso
   exact Nat.not_succ_le_zero i hi
-let S:ClumpPathSequence_nolength iI iV KFam:=⟨Ord, Ord_eq_KFam, Ver, VerNoDup, VerInOrd⟩
+let S:ClumpPathSequence_nolength_noM iI iV KFam:=⟨Ord, Ord_eq_KFam, Ver, VerNoDup, VerInOrd⟩
 use S
-
+constructor
+exact rfl
+constructor
+exact rfl
+dsimp[Ord]
+exact List.nodup_singleton K
 
 have hineq: t' ≤ h*pr:=by exact Nat.le_of_succ_le ht
-rcases ht' hineq with ⟨ S', hS'⟩
+rcases ht' hineq with ⟨ S', ⟨ hS'1, ⟨ hS'2, hS'3⟩ ⟩ ⟩
+have OrdNE:S'.Ord≠ []:=by exact List.ne_nil_of_length_eq_succ hS'1
+let KLast: Clump G p m κ pr h:= S'.Ord.getLast OrdNE
+have hnewKEx: ∃ (Knew: Clump G p m κ pr h), Knew∈ KFam∧ Knew∉S'.Ord ∧ (Knew.Gr.verts ∩ KLast.Gr.verts).toFinset.card> h*pr:=by
+  sorry
+rcases hnewKEx with ⟨ Knew, ⟨ hKnew1, ⟨ hKnew2, hKnew3⟩ ⟩ ⟩
 
-sorry
+have hv_ex: ∃ (v: V), v∈ (Knew.Gr.verts ∩ KLast.Gr.verts).toFinset\ S'.Ver.toFinset:= by
+  sorry
+
+rcases hv_ex with ⟨ vNew, hvNew⟩
+let OrdNew: List (Clump G p m κ pr h):= S'.Ord ++ [Knew]
+let VerNew: List V:= S'.Ver ++ [vNew]
+have hVerNew: VerNew.Nodup:=by
+  dsimp[VerNew]
+  refine List.Nodup.append ?d₁ ?d₂ ?dj
+  exact S'.VerNoDup
+  exact List.nodup_singleton vNew
+  simp
+  simp at hvNew
+  exact hvNew.2
+have hVerInOrdNew: Vertex_list_in_clump_list iI iV OrdNew VerNew:=by
+  unfold Vertex_list_in_clump_list
+  intro i hi
+  by_cases case: i < S'.Ord.length-1
+  have hv: VerNew.get! i= S'.Ver.get! i:=by
+    dsimp[VerNew]
+    simp
+    apply List.getD_append
+    calc
+      i < S'.Ord.length-1 := by exact case
+        _=S'.Ver.length:=by
+          rw[hS'1, hS'2]
+          simp
+  have hOr: OrdNew.get! i= S'.Ord.get! i:=by
+    dsimp[OrdNew]
+    simp
+    apply List.getD_append
+    calc
+      i < S'.Ord.length - 1:= by exact case
+      _≤  S'.Ord.length := by
+        exact Nat.sub_le S'.Ord.length 1
+  have hOr2: OrdNew.get! (i+1)= S'.Ord.get! (i+1):=by
+    dsimp[OrdNew]
+    simp
+    apply List.getD_append
+    exact Nat.add_lt_of_lt_sub case
+
+
+  rw[hv, hOr, hOr2]
+  apply S'.VerInOrd
+  exact case
+
+  simp at case
+  dsimp [OrdNew] at hi
+  simp at hi
+  have i_eq: i+1=S'.Ord.length:=by
+    exact (Nat.le_antisymm case hi).symm
+  have i_eq2: i=S'.Ord.length-1:=by exact Nat.eq_sub_of_add_eq i_eq
+  have hOrdlast: OrdNew.get! (i + 1)=Knew:=by
+    dsimp [OrdNew]
+    rw[i_eq]
+    simp
+    have hle: S'.Ord.length< (S'.Ord ++ [Knew]).length:=by
+      simp
+    calc
+      (S'.Ord ++ [Knew]).getD S'.Ord.length default=(S'.Ord ++ [Knew]).get ⟨ S'.Ord.length, hle⟩ :=by
+        exact
+          List.getD_eq_get (S'.Ord ++ [Knew]) default
+            (sorryAx (S'.Ord.length < (S'.Ord ++ [Knew]).length) true)
+
+      _=Knew:=by
+        apply List.get_last
+        simp
+  have hOrdlast2: OrdNew.get! i=KLast:=by
+    dsimp[OrdNew]
+    calc
+    (S'.Ord ++ [Knew]).get! i=(S'.Ord).get! i:=by
+      simp
+      exact List.getD_append S'.Ord [Knew] default i hi
+    _=(S'.Ord).get! (S'.Ord.length-1):=by
+      rw[i_eq2]
+    _=KLast:=by
+      dsimp [KLast]
+      apply get_last_eq_clump iI  (S'.Ord) OrdNE
+
+  have hVertLast:VerNew.get! i=vNew:=by
+    dsimp[VerNew]
+    rw[i_eq2]
+    rw[hS'1, hS'2.symm]
+    simp
+    have hne:S'.Ver.length< (S'.Ver ++ [vNew]).length:=by
+      exact List.get_of_append_proof rfl rfl
+    calc
+      (S'.Ver ++ [vNew]).getD S'.Ver.length default
+      =(S'.Ver ++ [vNew]).get ⟨ S'.Ver.length, hne⟩:=by
+        exact List.getD_eq_get (S'.Ver ++ [vNew]) default hne
+      _=vNew:= by exact List.get_of_append rfl rfl
+
+  rw[hOrdlast, hOrdlast2, hVertLast]
+  simp  at hvNew
+  simp
+  aesop
+
+have hOrdNew: OrdNew.toFinset⊆ KFam:=by
+  dsimp[OrdNew]
+  simp
+  refine union_subset_iff.mpr ?_
+  constructor
+  exact S'.Ord_eq_KFam
+  simp
+  exact hKnew1
+let S: ClumpPathSequence_nolength_noM iI iV KFam:=⟨OrdNew, hOrdNew, VerNew, hVerNew, hVerInOrdNew⟩
+use S
+constructor
+simp
+dsimp[OrdNew]
+rw[hS'1.symm]
+calc
+  (S'.Ord ++ [Knew]).length=(S'.Ord).length + ([Knew]).length:=by
+    exact List.length_append S'.Ord [Knew]
+  _= S'.Ord.length + 1:=by
+    simp
+
+simp
+dsimp[OrdNew]
+constructor
+dsimp[VerNew]
+simp
+--refine (Nat.eq_add_of_sub_eq ?h.right.left.hle ?h.right.left.h).symm
+-- 1 ≤ t'
+exact hS'2
+
+--exact id hS'2.symm
+
+refine List.Nodup.append ?h.right.d₁ ?h.right.d₂ ?h.right.dj
+exact hS'3
+exact List.nodup_singleton Knew
+simp
+exact hKnew2
+
 
 
 
