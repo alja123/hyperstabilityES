@@ -1,8 +1,8 @@
 
 import MyProject
 
-import MyProject.has_path
- 
+import MyProject.wide_or_separated_gives_path
+
 open Classical
 open Finset
 open scoped BigOperators
@@ -72,12 +72,13 @@ have hDecompositionExistence:
 
 rcases hDecompositionExistence with ⟨KFam, ⟨ hKFamDecomp, hKFamNarrow, hKFamSeparat⟩ ⟩
 
-
+have hNonemp: KFam.Nonempty:=by
+    sorry
 
 have NoDenseSets: ¬ family_contains_dense_list p m κ pr h α iI KFam :=by
   by_contra hDenseSets
   have hPath:Has_length_d_path (L.Gr) (h*m):=by
-    apply dense_list_implies_path
+    apply dense_list_implies_path _ _ _ KFam
     repeat assumption
     unfold Clump_Decomposition at hKFamDecomp
     exact hKFamDecomp.2.1
