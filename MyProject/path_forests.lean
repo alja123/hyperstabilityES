@@ -10,7 +10,7 @@ open scoped BigOperators
 namespace SimpleGraph
 
 
-set_option maxHeartbeats 400000
+set_option maxHeartbeats 100000
 
 universe u
 variable {V : Type u} {G : SimpleGraph V}
@@ -187,6 +187,71 @@ def vertex_list_outside_set
 :=∀ (i: ℕ ), i< k→ (S.get! i)∉ Fb
 
 
+
+lemma head_nin_tail
+(S: List V)
+(nodup: S.Nodup)
+(ne: S≠ [])
+:
+S.head ne ∉ S.tail :=by
+refine List.Nodup.not_mem ?h
+have h2: S.head ne :: S.tail=S:=by
+  exact List.head_cons_tail S ne
+rw[h2]
+exact nodup
+
+
+lemma getk_nin_dropk
+(S: List V)
+(nodup: S.Nodup)
+(k: ℕ )
+(hk: k< S.length)
+:
+S.get! k ∉ List.drop (k + 1) S
+:= by
+
+
+have Snonemp: (List.drop k S)≠ []:= by
+  refine List.ne_nil_of_length_pos ?_
+  exact List.lt_length_drop S hk
+have h1: S.get! k=S.get ⟨k, hk⟩:= by
+  simp
+  exact List.getD_eq_get S default hk
+--rw[h1]
+
+have hk':  k+0< S.length:= by simp; exact hk
+have h1: S.get! k=S.get ⟨k+0, hk'⟩:= by
+  simp
+  exact List.getD_eq_get S default hk
+rw[h1]
+
+rw[List.get_drop S hk']
+
+have hdropeq:  List.drop (k + 1) S=List.drop 1 (List.drop k S):= by
+  simp
+  rw[add_comm]
+
+have hdropeq2:  List.drop 1 (List.drop k S)=List.tail (List.drop k S):= by
+  exact List.drop_one (List.drop k S)
+
+rw[hdropeq, hdropeq2]
+
+have hin:  0 < (List.drop k S).length:=by
+  exact List.length_pos.mpr Snonemp
+
+have hgethead: (List.drop k S).get ⟨0, hin⟩=(List.drop k S).head Snonemp:= by
+  exact List.get_mk_zero hin
+
+rw[hgethead]
+apply head_nin_tail
+have sublist: List.Sublist (List.drop k S) S:= by
+  exact List.drop_sublist k S
+exact List.Nodup.sublist sublist nodup
+--have h2: S.get ⟨k, hk⟩=(List.drop k S).head Snonemp:= by
+--  simp
+
+
+
 lemma path_forest_specified_ends
 (H: Subgraph G)
 (S E: List V)
@@ -196,6 +261,7 @@ lemma path_forest_specified_ends
 (SinH: vertex_list_in_graph_list iV iSub S HL (HL.length))
 (EinH: vertex_list_in_graph_list iV iSub E HL (HL.length))
 
+(SE_Disjoint : List.Disjoint S E)
 
 
 (Slength: S.length> k)
@@ -207,6 +273,8 @@ lemma path_forest_specified_ends
 (SoutsideFb: vertex_list_outside_set iV S Fb (HL.length))
 (EoutsideFb: vertex_list_outside_set iV E Fb (HL.length))
 
+(Snodup: S.Nodup)
+(Enodup: E.Nodup)
 
 (cutdense: cut_dense_list  HL p )--∀(i: ℕ ), (i< k)→ (cut_dense G  (HL.get! i) p))
 (Fbcard: small_intersection_list  HL Fb p )--∀(i: ℕ ), (i< k)→ (8*p*(((HL.get! i).verts∩ Fb).toFinset.card≤ (HL.get! i).verts.toFinset.card)))
@@ -218,8 +286,8 @@ Fo.S=S
 ∧ Fo.P.length=k
 ∧ Path_forest_avoids iV iSP Fo Fb
 ∧ (Path_forest_support iV iSP Fo ).toFinset.card≤ p*k
-∧ Path_forest_avoids_list iV iSP Fo (List.drop k S)
-∧ Path_forest_avoids_list iV iSP Fo (List.drop k E)
+∧ Path_forest_avoids iV iSP Fo {v:V|v∈ (List.drop k S)}
+∧ Path_forest_avoids  iV iSP Fo {v:V|v∈ (List.drop k E)}
 := by
 
 induction' k with k hd1
@@ -288,8 +356,8 @@ have hex: ∃ (Fo: PathForest iV iSP H),Fo.S=S
   ∧ (Fo.P.length=k)
   ∧ (Path_forest_avoids iV iSP Fo Fb)
   ∧ ((Path_forest_support iV iSP Fo ).toFinset.card≤ p*k)
-  ∧ Path_forest_avoids_list iV iSP Fo (List.drop k S)
-  ∧ Path_forest_avoids_list iV iSP Fo (List.drop k E):= by
+  ∧ Path_forest_avoids iV iSP Fo {v:V|v∈ (List.drop k S)}
+  ∧ Path_forest_avoids iV iSP Fo {v: V|v∈ (List.drop k E)}:= by
     apply hd1
 
     exact Nat.lt_of_succ_lt Slength
@@ -335,7 +403,7 @@ have hEget: (E.get! (k + 1))=E.get ⟨k+1, kUB_E⟩:= by
   exact List.getD_eq_get E default kUB_E
 
 
-let Fb2: Set V:= Fb∪ {v: V| ∃ (i: ℕ ), i< k∧ v∈ (Fo.P.get! i).Pa.Wa.support}
+let Fb2: Set V:= Fb∪ {v: V| ∃ (i: ℕ ), i< k∧ v∈ (Fo.P.get! i).Pa.Wa.support}∪ {v | v ∈ List.drop (k + 1) S}∪ {v | v ∈ List.drop (k + 1) E}
 
 have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.length≤ 40*p∧ (Disjoint (PN.Wa.support.toFinset.toSet)  Fb2):=by
   apply Cut_Dense_path_avoiding
@@ -370,9 +438,70 @@ have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.l
   dsimp [Fb2]
   simp only [ Set.mem_union, Set.mem_setOf_eq, not_or, not_exists, not_and]
   constructor
+  constructor
+  constructor
   apply SoutsideFb
   exact kUb2
-  unfold Path_forest_avoids_list at FAvoidS
+
+  intro x hx
+  have h7: S.get! k∈(List.drop k S):= by
+    have h9: k+0< S.length:= by
+      exact Nat.lt_of_succ_lt Slength
+    have h10: (S.get! k)=S.get ⟨k+0, h9⟩:= by
+      simp
+      exact List.getD_eq_get S default h9
+    rw[h10]
+    rw[List.get_drop S h9]
+    exact List.get_mem (List.drop k S) 0 (List.lt_length_drop S h9)
+  have h8: Disjoint {v:V|v∈ (Fo.P.get! x).Pa.Wa.support} {v:V|v∈ (List.drop k S)}:= by
+    unfold Path_forest_avoids at FAvoidS
+    apply FAvoidS
+    exact Nat.lt_of_lt_of_eq hx (id Fk.symm)
+  have h72: S.get! k∈{v:V|v∈ (List.drop k S)}:= by
+    simp only [Set.mem_setOf_eq]
+    exact h7
+  have h11: S.get! k ∉ {v: V|v∈ (Fo.P.get! x).Pa.Wa.support}:= by
+    by_contra cont
+    simp only [ Set.mem_setOf_eq] at cont
+    have hneg: ¬(Disjoint {v | v ∈ (Fo.P.get! x).Pa.Wa.support} {v | v ∈ List.drop k S}):= by
+      unfold Disjoint
+      simp only [Set.le_eq_subset, Set.bot_eq_empty, not_forall, Classical.not_imp]
+      use {S.get! k}
+      simp only [Set.singleton_subset_iff, Set.mem_empty_iff_false,
+        not_false_eq_true, Set.mem_setOf_eq, exists_prop, and_true]
+      exact ⟨cont, h72⟩
+    simp at hneg
+    exact  hneg h8
+  simp only [Set.mem_setOf_eq] at h11
+  exact h11
+
+
+  apply getk_nin_dropk
+  exact Snodup
+  exact Nat.lt_of_succ_lt Slength
+
+  have h5: S.get! k∈ S:= by
+    have h9: k< S.length:= by
+      exact Nat.lt_of_succ_lt Slength
+    have h10: (S.get! k)=S.get ⟨k, h9⟩:= by
+      simp
+      exact List.getD_eq_get S default h9
+    rw[h10]
+    exact List.get_mem S k h9
+  have h5: S.get! k∉ E:= by
+    exact SE_Disjoint h5
+  --have h13: List.Sublist (List.drop (k + 1) E) E:= by
+  --  exact List.drop_sublist (k + 1) E
+  by_contra cont
+  --simp only [List.get!_eq_getD] at cont
+  have h5': S.get! k∈  E:= by
+    exact List.mem_of_mem_drop cont
+  exact h5 h5'
+
+  sorry
+
+
+  unfold Path_forest_avoids at FAvoidS
   intro x hx
   have h7: S.get! k∈(List.drop k S):= by
     have h9: k+0< S.length:= by
@@ -395,7 +524,10 @@ have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.l
   constructor
   apply EoutsideFb
   exact kUb2
-  unfold Path_forest_avoids_list at FAvoidS
+
+
+
+  /-unfold Path_forest_avoids_list at FAvoidS
   intro x hx
   have h7: E.get! k∈(List.drop k E):= by
     have h9: k+0< E.length:= by
@@ -410,7 +542,7 @@ have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.l
   have h8: (Fo.P.get! x).Pa.Wa.support.Disjoint (List.drop k E):= by
     apply FAvoidE
     exact Nat.lt_of_lt_of_eq hx (id Fk.symm)
-  exact id (List.Disjoint.symm h8) h7
+  exact id (List.Disjoint.symm h8) h7-/
 
 --have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.length≤ 40*p∧ (Disjoint (PN.Wa.support.toFinset.toSet)  Fb):=by
 --  sorry
@@ -418,6 +550,9 @@ have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.l
 
 rcases exN with ⟨PN, ⟨ hPN1, hPN2⟩ ⟩
 
+dsimp [Fb2] at hPN2
+simp at hPN2
+let ⟨⟨⟨  hPN2a, hPN2b⟩ , hPN2c⟩ , hPN2d⟩:= hPN2
 
 let PN_imp: SubgraphPath_implicit G:=⟨HL.get! (k), S.get! (k), E.get! (k), PN⟩
 
@@ -567,8 +702,6 @@ have Paths_disjoint: paths_disjoint iSP  Fo' (k+1):= by
     simp
     rw[h1]
   rw[h4]
-  dsimp[Fb2] at hPN2
-  simp at hPN2
   dsimp[PN_imp]
   have h5: {v | v ∈ (Fo.P.get! i).Pa.Wa.support}⊆ {v | ∃ t < k, v ∈ (Fo.P.get! t).Pa.Wa.support}:= by
     simp
@@ -581,7 +714,7 @@ have Paths_disjoint: paths_disjoint iSP  Fo' (k+1):= by
     exact h5
   apply Disjoint.mono_left h5 --hPN2.2
   apply Disjoint.symm
-  exact hPN2.2
+  exact hPN2b
 
 
 
@@ -633,15 +766,7 @@ have h6: (Fo.P ++ [PN_imp]).get! k=PN_imp:= by
   rw[h1]
 rw[h6]
 
-
-dsimp[PN_imp]
-simp at hPN2
---dsimp[Fb2] at hPN2
-have Fb_le: Fb⊆  Fb2:= by
-  dsimp[Fb2]
-  exact Set.subset_union_left Fb {v | ∃ i < k, v ∈ (Fo.P.get! i).Pa.Wa.support}
-apply Disjoint.mono_right Fb_le
-exact hPN2
+exact hPN2a
 
 
 
@@ -660,15 +785,15 @@ have h20: {v | ∃ Pi, (Pi ∈ Fo.P ∨ Pi = PN_imp) ∧ v ∈ Pi.Pa.Wa.support}
   rename_i
     h_1
   aesop_subst
-    [FE,
-    FFoL,
-    FS]
+    [Fk,
+    FS,
+    FE]
   simp_all only [gt_iff_lt,
     Set.toFinset_card,
     Fintype.card_ofFinset,
     List.get!_eq_getD,
     true_implies,
-    List.coe_toFinset,
+    and_self,
     PN_imp]
   unhygienic
     with_reducible
@@ -691,25 +816,24 @@ have h20: {v | ∃ Pi, (Pi ∈ Fo.P ∨ Pi = PN_imp) ∧ v ∈ Pi.Pa.Wa.support}
       h
     simp_all only [or_true]
 
-  intro h
-  rename_i
-    h_1
+  intro
+    a
   aesop_subst
-    [FE,
-    FFoL,
-    FS]
+    [Fk,
+    FS,
+    FE]
   simp_all only [gt_iff_lt,
     Set.toFinset_card,
     Fintype.card_ofFinset,
     List.get!_eq_getD,
     true_implies,
-    List.coe_toFinset,
+    and_self,
     Set.mem_union,
     Set.mem_setOf_eq,
     PN_imp]
   unhygienic
     aesop_cases
-      h
+      a
   · unhygienic
       with_reducible
         aesop_destruct_products
@@ -731,7 +855,6 @@ have h20: {v | ∃ Pi, (Pi ∈ Fo.P ∨ Pi = PN_imp) ∧ v ∈ Pi.Pa.Wa.support}
     apply
       Eq.refl
     simp_all only
-
 simp_rw[h20]
 
 
@@ -784,7 +907,7 @@ calc
 
 constructor
 
-
+--------------- Avoid S
 intro i hi
 by_cases case:(i< k)
 dsimp[Fo']
@@ -794,16 +917,76 @@ have h1: (Fo.P ++ [PN_imp]).get! i=(Fo.P).get! i:= by
     apply List.getD_append
     exact Nat.lt_of_lt_of_eq case (id FFoL.symm)
 rw[h1]
-refine List.disjoint_iff_ne.mpr ?_
-intro a ha b hb
-have h12: List.drop (1+k) S= List.drop (1) (List.drop (k) S):= by
-  exact List.drop_add 1 k S
-rw[add_comm] at h12
-
-have h11: b ∈ List.drop (k) S:= by
+have h13: {v | v ∈ List.drop (k + 1) S}⊆ {v | v ∈ List.drop (k ) S}:= by
+  simp
+  intro b hb
+  have h12: List.drop (1+k) S= List.drop (1) (List.drop (k) S):= by
+    exact List.drop_add 1 k S
+  rw[add_comm] at h12
   apply List.mem_of_mem_drop
   rw[h12] at hb
   exact hb
+apply Disjoint.mono_right h13
 apply FAvoidS
---apply FAvoidS
---exact Nat.lt_of_lt_of_eq case (id Fk.symm)
+exact Nat.lt_of_lt_of_eq case (id Fk.symm)
+
+simp at case
+have hieq: i=k:= by
+      exact Nat.eq_of_le_of_lt_succ case hi
+rw[hieq]
+dsimp[Fo']
+have h1: ((Fo.P ++ [PN_imp]).getD (Fo.P.length) default)=[PN_imp].getD (Fo.P.length-Fo.P.length) default:= by
+    apply List.getD_append_right
+    exact Nat.le_refl Fo.P.length
+simp at h1
+rw[FFoL] at h1
+have h6: (Fo.P ++ [PN_imp]).get! k=PN_imp:= by
+  simp
+  rw[h1]
+rw[h6]
+exact hPN2c
+
+
+
+
+
+
+
+--------------- Avoid E
+intro i hi
+by_cases case:(i< k)
+dsimp[Fo']
+  --simp
+have h1: (Fo.P ++ [PN_imp]).get! i=(Fo.P).get! i:= by
+    simp
+    apply List.getD_append
+    exact Nat.lt_of_lt_of_eq case (id FFoL.symm)
+rw[h1]
+have h13: {v | v ∈ List.drop (k + 1) E}⊆ {v | v ∈ List.drop (k ) E}:= by
+  simp
+  intro b hb
+  have h12: List.drop (1+k) E= List.drop (1) (List.drop (k) E):= by
+    exact List.drop_add 1 k E
+  rw[add_comm] at h12
+  apply List.mem_of_mem_drop
+  rw[h12] at hb
+  exact hb
+apply Disjoint.mono_right h13
+apply FAvoidE
+exact Nat.lt_of_lt_of_eq case (id Fk.symm)
+
+simp at case
+have hieq: i=k:= by
+      exact Nat.eq_of_le_of_lt_succ case hi
+rw[hieq]
+dsimp[Fo']
+have h1: ((Fo.P ++ [PN_imp]).getD (Fo.P.length) default)=[PN_imp].getD (Fo.P.length-Fo.P.length) default:= by
+    apply List.getD_append_right
+    exact Nat.le_refl Fo.P.length
+simp at h1
+rw[FFoL] at h1
+have h6: (Fo.P ++ [PN_imp]).get! k=PN_imp:= by
+  simp
+  rw[h1]
+rw[h6]
+exact hPN2d
