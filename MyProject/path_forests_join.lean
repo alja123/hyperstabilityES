@@ -10,7 +10,7 @@ open scoped BigOperators
 namespace SimpleGraph
 
 
-set_option maxHeartbeats 600000
+set_option maxHeartbeats 300000
 
 universe u
 variable {V : Type u} {G : SimpleGraph V}
@@ -267,17 +267,30 @@ lemma join_three_forests
 (hF1_F2: F1.E=F2.S)
 (hF2_F3: F2.E=F3.S)
 (hF3_F1: F3.E=F1.S.tail)
-(disj_F1_F2: tail_disjoint_forest iV iSP H F1 F2)
-(disj_F2_F1: tail_disjoint_forest iV iSP H F2 F1)
+--(disj_F1_F2: tail_disjoint_forest iV iSP H F1 F2)
+--(disj_F2_F1: tail_disjoint_forest iV iSP H F2 F1)
 
-(disj_F2_F3: tail_disjoint_forest iV iSP H F2 F3)
-(disj_F3_F1: tail_disjoint_forest iV iSP H F3 F1)
-(disj_F1_F3: tail_disjoint_forest iV iSP H F1 F3)
+--(disj_F2_F3: tail_disjoint_forest iV iSP H F2 F3)
+--(disj_F3_F1: tail_disjoint_forest iV iSP H F3 F1)
+--(disj_F1_F3: tail_disjoint_forest iV iSP H F1 F3)
+(t tmax: ℕ )
 
-(t: ℕ )
-(pos1: 0<F1.k)
-(pos2: 0<F2.k)
-(pos3: 0<F3.k)
+( hdisj11: ∀(i j: ℕ ), (i< j)→ (j<tmax)→ (tail_disjoint_imp (F1.P.get! i) (F1.P.get! j)))
+( hdisj22: ∀(i j: ℕ ), (i< j)→ (j<tmax)→ (tail_disjoint_imp (F2.P.get! i) (F2.P.get! j)))
+( hdisj33: ∀(i j: ℕ ), (i< j)→ (j<tmax)→ (tail_disjoint_imp (F3.P.get! i) (F3.P.get! j)))
+( hdisj12: ∀(i j: ℕ ), (i< tmax)→ (i<tmax)→ (tail_disjoint_imp (F1.P.get! i) (F2.P.get! j)))
+( hdisj21: ∀(i j: ℕ ), (i< tmax)→ (i<tmax)→ (tail_disjoint_imp (F2.P.get! i) (F1.P.get! j)))
+( hdisj13: ∀(i j: ℕ ), (i< tmax)→ (i<tmax)→ (tail_disjoint_imp (F1.P.get! i) (F3.P.get! j)))
+( hdisj31: ∀(i j: ℕ ), (i< tmax)→ (i<tmax)→ (tail_disjoint_imp (F3.P.get! i) (F1.P.get! j)))
+( hdisj23: ∀(i j: ℕ ), (i< tmax)→ (i<tmax)→ (tail_disjoint_imp (F2.P.get! i) (F3.P.get! j)))
+( hdisj32: ∀(i j: ℕ ), (i< tmax)→ (i<tmax)→ (tail_disjoint_imp (F3.P.get! i) (F2.P.get! j)))
+
+(Slength: tmax < F1.S.length)
+
+(ht: t<tmax)
+(pos1: tmax<F1.k)
+(pos2: tmax<F2.k)
+(pos3: tmax<F3.k)
 
 
 :
@@ -298,6 +311,10 @@ have F1PGet: ∀ (i:ℕ), (i< F1.P.length)→  (F1.P.get! i ∈ F1.P):=by
 
 induction' t with t IH
 simp
+
+have pos1: 0<F1.k:= by exact Nat.zero_lt_of_lt pos1
+have pos2: 0<F2.k:= by exact Nat.zero_lt_of_lt pos2
+have pos3: 0<F3.k:= by exact Nat.zero_lt_of_lt pos3
 
 have hex: _:= by
   apply  join_three_paths H (F1.P.get! 0) (F2.P.get! 0) (F3.P.get! 0) (F1.S.get! 0) (F3.E.get! (0))
@@ -331,28 +348,9 @@ have hex: _:= by
     symm;    apply F3.Starts_equal;    exact pos3
   rw[h1, hF2_F3]
 
-  apply disj_F1_F2
-
-
-  apply F1PGet
-  rw [F1.P_length]; exact pos1
-
-  --same as prev
-  sorry
-
-
-  unfold tail_disjoint_forest at disj_F2_F3
-  apply disj_F2_F3
-  --same as prev
-  sorry
-  --same as prev
-  sorry
-
-  apply disj_F1_F3
-  --same as prev
-  sorry
-  --same as prev
-  sorry
+  apply hdisj12; exact ht; exact ht
+  apply hdisj23; exact ht; exact ht
+  apply hdisj13; exact ht; exact ht
 
 
 
@@ -380,21 +378,32 @@ exact h
 --induction-------------------------------------
 
 
+have hdisj11: ∀(i j: ℕ ), (i< j)→ (j<t+2)→ (tail_disjoint_imp (F1.P.get! i) (F1.P.get! j)):= by
+  intro i j hi hj;  apply hdisj11; exact hi; exact Nat.lt_of_lt_of_le hj ht
+
+have hdisj22: ∀(i j: ℕ ), (i< j)→ (j<t+2)→ (tail_disjoint_imp (F2.P.get! i) (F2.P.get! j)):= by
+  intro i j hi hj;  apply hdisj22; exact hi; exact Nat.lt_of_lt_of_le hj ht
+have hdisj33: ∀(i j: ℕ ), (i< j)→ (j<t+2)→ (tail_disjoint_imp (F3.P.get! i) (F3.P.get! j)):= by
+  intro i j hi hj;  apply hdisj33; exact hi; exact Nat.lt_of_lt_of_le hj ht
 
 have hdisj12: ∀(i j: ℕ ), (i< t+2)→ (i<t+2)→ (tail_disjoint_imp (F1.P.get! i) (F2.P.get! j)):= by
-  sorry
+  intro i j hi hj;  apply hdisj12; exact Nat.lt_of_lt_of_le hi ht; exact Nat.lt_of_lt_of_le hj ht
 have hdisj21: ∀(i j: ℕ ), (i< t+2)→ (i<t+2)→ (tail_disjoint_imp (F2.P.get! i) (F1.P.get! j)):= by
-  sorry
+  intro i j hi hj;  apply hdisj21; exact Nat.lt_of_lt_of_le hi ht; exact Nat.lt_of_lt_of_le hj ht
 have hdisj13: ∀(i j: ℕ ), (i< t+2)→ (i<t+2)→ (tail_disjoint_imp (F1.P.get! i) (F3.P.get! j)):= by
-  sorry
+  intro i j hi hj;  apply hdisj13; exact Nat.lt_of_lt_of_le hi ht; exact Nat.lt_of_lt_of_le hj ht
+have hdisj31: ∀(i j: ℕ ), (i< t+2)→ (i<t+2)→ (tail_disjoint_imp (F3.P.get! i) (F1.P.get! j)):= by
+  intro i j hi hj;  apply hdisj31; exact Nat.lt_of_lt_of_le hi ht; exact Nat.lt_of_lt_of_le hj ht
 have hdisj23: ∀(i j: ℕ ), (i< t+2)→ (i<t+2)→ (tail_disjoint_imp (F2.P.get! i) (F3.P.get! j)):= by
-  sorry
+  intro i j hi hj;  apply hdisj23; exact Nat.lt_of_lt_of_le hi ht; exact Nat.lt_of_lt_of_le hj ht
+have hdisj32: ∀(i j: ℕ ), (i< t+2)→ (i<t+2)→ (tail_disjoint_imp (F3.P.get! i) (F2.P.get! j)):= by
+  intro i j hi hj;  apply hdisj32; exact Nat.lt_of_lt_of_le hi ht; exact Nat.lt_of_lt_of_le hj ht
 
 
 
-have pos1: t+1<F1.k:= by sorry
-have pos2: t+1<F2.k:= by sorry
-have pos3: t+1<F3.k:= by sorry
+have pos1: t+1<F1.k:= by exact Nat.lt_trans ht pos1
+have pos2: t+1<F2.k:= by exact Nat.lt_trans ht pos2
+have pos3: t+1<F3.k:= by exact Nat.lt_trans ht pos3
 
 have hex: _:= by
   apply  join_three_paths H (F1.P.get! (t+1)) (F2.P.get! (t+1)) (F3.P.get! (t+1)) (F3.E.get! t) (F3.E.get! ((t+1)))
@@ -402,36 +411,65 @@ have hex: _:= by
   apply  F2.Graphs_equal (t+1) pos2
   apply  F3.Graphs_equal (t+1) pos3
 
-  sorry
+  rw [hF3_F1]
+  have h1: F1.S.tail.get! t=F1.S.get! (t+1):=by
+    simp
+    have h2: F1.S=F1.S.drop 0:= by exact rfl
+    rw[h2]
+    rw[List.tail_drop]
+    simp only [zero_add]
+    rw[List.getD_eq_get]
+    rw[List.getD_eq_get]
 
-  sorry
 
-  sorry
-  /-have h1:  (F1.P.get! 0).e=F1.E.get! 0:=by
+    rw[List.get_drop']
+    simp
+    simp_rw[add_comm]
+    simp
+
+    refine Nat.lt_sub_of_add_lt ?hn.h
+    exact Nat.lt_trans ht Slength
+    simp
+    exact Nat.lt_trans ht Slength
+
+  rw[h1]
+  apply F1.Starts_equal (t+1)
+  exact pos1
+
+  apply F3.Ends_equal; exact pos3
+
+
+  have h1:  (F1.P.get! (t+1)).e=F1.E.get! (t+1):=by
     symm
     apply F1.Ends_equal
     exact pos1
   rw[h1]
-  have h1:  (F2.P.get! 0).s=F2.S.get! 0:=by
+  have h1:  (F2.P.get! (t+1)).s=F2.S.get! (t+1):=by
     symm
     apply F2.Starts_equal
     exact pos2
   rw[h1]
-  rw[hF1_F2]-/
+  rw[hF1_F2]
 
-  sorry--like previous block
+  have h1:  (F2.P.get! (t+1)).e=F2.E.get! (t+1):=by
+    symm
+    apply F2.Ends_equal
+    exact pos2
+  rw[h1]
+  have h1:  (F3.P.get! (t+1)).s=F3.S.get! (t+1):=by
+    symm
+    apply F3.Starts_equal
+    exact pos3
+  rw[h1]
+  rw[hF2_F3]
 
-  apply disj_F1_F2
-  simp
-  sorry
-  sorry
-
-  sorry
-
-  sorry
+  apply hdisj12; exact Nat.lt.base (t + 1); exact Nat.lt.base (t + 1);
+  apply hdisj23; exact Nat.lt.base (t + 1); exact Nat.lt.base (t + 1);
+  apply hdisj13; exact Nat.lt.base (t + 1); exact Nat.lt.base (t + 1);
 
 
-rcases IH with ⟨P, hP1 ⟩
+have ht':t<tmax:= by exact Nat.lt_of_succ_lt ht
+rcases IH ht' with ⟨ P, hP1 ⟩
 rcases hex with ⟨Q, ⟨ hQ1, hQ2⟩ ⟩
 
 let RWa: Walk G (F1.S.get! 0) (F3.E.get! (t+1)):=P.Wa.append Q.Wa
@@ -456,31 +494,61 @@ have RWa_Is_Path: RWa.IsPath:= by
   rcases hp1 with c1|c2
   rcases c1 with c3|c4
 
-  --
-  sorry
+  unfold Path_forest_support_until_t at c3
+  simp at c3
+  rcases c3 with ⟨ i, ⟨ hi1, hi2⟩ ⟩
+  apply hdisj11 i (t+1); exact hi1; exact Nat.lt.base (t + 1); exact hi2
+
   unfold Path_forest_support_until_t at c4
-  unfold tail_disjoint_forest at disj_F2_F1
   simp at c4
   rcases c4 with ⟨ i, ⟨ hi1, hi2⟩ ⟩
-  apply disj_F2_F1
-  have h4: F2.P.get! i∈ F2.P:= by sorry
-  exact h4
-  --F1.P.get! (t + 1) ∈ F1.P
-  sorry
-  exact hi2
+  apply hdisj21 i (t+1); exact Nat.lt_succ_of_lt hi1; exact Nat.lt_succ_of_lt hi1; exact hi2
 
+  unfold Path_forest_support_until_t at c2
+  simp at c2
+  rcases c2 with ⟨ i, ⟨ hi1, hi2⟩ ⟩
+  apply hdisj31 i (t+1); exact Nat.lt_succ_of_lt hi1; exact Nat.lt_succ_of_lt hi1; exact hi2
 
-  --
-  sorry
 
   constructor
+  rcases hp1 with c1|c1
+  rcases c1 with c1|c1
 
-  sorry
-  sorry
+  unfold Path_forest_support_until_t at c1
+  simp at c1
+  rcases c1 with ⟨ i, ⟨ hi1, hi2⟩ ⟩
+  apply hdisj12 i (t+1); exact Nat.lt_succ_of_lt hi1; exact Nat.lt_succ_of_lt hi1; exact hi2
+
+  unfold Path_forest_support_until_t at c1
+  simp at c1
+  rcases c1 with ⟨ i, ⟨ hi1, hi2⟩ ⟩
+  apply hdisj22 i (t+1); exact hi1; exact Nat.lt.base (t + 1); exact hi2
+
+  unfold Path_forest_support_until_t at c1
+  simp at c1
+  rcases c1 with ⟨ i, ⟨ hi1, hi2⟩ ⟩
+  apply hdisj32 i (t+1); exact Nat.lt_succ_of_lt hi1; exact Nat.lt_succ_of_lt hi1; exact hi2
+
+  rcases hp1 with c1|c1
+  rcases c1 with c1|c1
+
+  unfold Path_forest_support_until_t at c1
+  simp at c1
+  rcases c1 with ⟨ i, ⟨ hi1, hi2⟩ ⟩
+  apply hdisj13 i (t+1); exact Nat.lt_succ_of_lt hi1; exact Nat.lt_succ_of_lt hi1; exact hi2
+
+  unfold Path_forest_support_until_t at c1
+  simp at c1
+  rcases c1 with ⟨ i, ⟨ hi1, hi2⟩ ⟩
+  apply hdisj23 i (t+1); exact Nat.lt_succ_of_lt hi1; exact Nat.lt_succ_of_lt hi1; exact hi2
+
+  unfold Path_forest_support_until_t at c1
+  simp at c1
+  rcases c1 with ⟨ i, ⟨ hi1, hi2⟩ ⟩
+  apply hdisj33 i (t+1); exact hi1; exact Nat.lt.base (t + 1); exact hi2
 
   --(F1.P.get! (t + 1)).Pa.Wa.support ≠ []
   sorry
-  --
 
 
 
@@ -488,7 +556,7 @@ have RWa_Is_Path: RWa.IsPath:= by
   --  rw[hP1] at hp1
   --  simp at hp1
 
-  --sorry
+  --
 
 have RWa_In_H: RWa.toSubgraph≤ H:= by
   dsimp[RWa]
@@ -516,11 +584,105 @@ rw[h5]
 rw[hP1, hQ2]
 
 
-sorry--aesop
+rename_i
+  hdisj11_1
+  hdisj22_1
+  hdisj33_1
+  hdisj12_1
+  hdisj21_1
+  hdisj13_1
+  hdisj31_1
+  hdisj23_1
+  hdisj32_1
+  pos1_1
+  pos2_1
+  pos3_1
+simp_all only [gt_iff_lt,
+  List.get!_eq_getD,
+  true_implies,
+  List.append_assoc,
+  List.mem_append]
+unhygienic
+  with_reducible
+    aesop_destruct_products
+unhygienic
+  ext
+simp_all only [Set.mem_union,
+  Set.mem_setOf_eq]
+apply
+  Iff.intro
+· intro
+    a
+  unhygienic
+      aesop_cases
+        a <;>
+    [(unhygienic
+          aesop_cases
+            h_2 <;>
+        [(unhygienic
+            aesop_cases
+              h_2);
+        skip]);
+    (unhygienic
+          aesop_cases
+            h_2 <;>
+        [(unhygienic
+            aesop_cases
+              h_2);
+        skip])]
+  ·
+    simp_all only [true_or]
+  ·
+    simp_all only [true_or,
+      or_true]
+  ·
+    simp_all only [true_or,
+      or_true]
+  ·
+    simp_all only [or_true,
+      true_or]
+  ·
+    simp_all only [or_true,
+      true_or]
+  ·
+    simp_all only [or_true]
+· intro
+    a
+  unhygienic
+      aesop_cases
+        a <;>
+    [(unhygienic
+          aesop_cases
+            h_2 <;>
+        [(unhygienic
+            aesop_cases
+              h_2);
+        (unhygienic
+            aesop_cases
+              h_2)]);
+    (unhygienic
+        aesop_cases
+          h_2)]
+  ·
+    simp_all only [true_or]
+  ·
+    simp_all only [true_or,
+      or_true]
+  ·
+    simp_all only [or_true,
+      true_or]
+  ·
+    simp_all only [or_true,
+      true_or]
+  ·
+    simp_all only [or_true,
+      true_or]
+  ·
+    simp_all only [or_true]
 
 /-simp only [Walk.mem_support_append_iff]
 have h5:  {v | v ∈ P.Wa.support ∨ v ∈ Q.Wa.support}= {v | v ∈ P.Wa.support} ∪ {v | v ∈ Q.Wa.support}:= by
-  sorry
+
 rw[h5]
 rw[hP1, hQ2]
 
