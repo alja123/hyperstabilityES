@@ -1,7 +1,6 @@
 import MyProject
 
-import MyProject.path_forests_joining
-  --import MyProject.SimpleGraph
+import MyProject.path_forests_join
 
 open Classical
 open Finset
@@ -32,11 +31,68 @@ variable (iSP:Inhabited (SubgraphPath_implicit   G) )
 variable {prggp: pr≫ p}
 variable {mggpr: m≫ pr}
 
+
+
+
+lemma path_forest_specified_ends_simplified
+(H: Subgraph G)
+(S E: List V)
+(HL: List (Subgraph G))
+(k: ℕ )
+
+(SinH: vertex_list_in_graph_list iV iSub S HL (HL.length))
+(EinH: vertex_list_in_graph_list iV iSub E HL (HL.length))
+
+(SE_Disjoint : List.Disjoint S E)
+
+
+(Slength: S.length> k)
+(Elength: E.length> k)
+(HLlength: HL.length> k)
+
+
+
+(HL_in_H: ∀ (i: ℕ  ), i<k→  (HL.get! i≤ H))
+(Fb: Set V)
+
+(SoutsideFb: vertex_list_outside_set iV S Fb (k))
+(EoutsideFb: vertex_list_outside_set iV E Fb (k))
+
+(Snodup: S.Nodup)
+(Enodup: E.Nodup)
+
+
+(cutdense: cut_dense_list  HL p )--∀(i: ℕ ), (i< k)→ (cut_dense G  (HL.get! i) p))
+(Fbcard: small_intersection_list  HL Fb p (172*p*p*kmax))--∀(i: ℕ ), (i< k)→ (8*p*(((HL.get! i).verts∩ Fb).toFinset.card≤ (HL.get! i).verts.toFinset.card)))
+:
+∃ (Fo: PathForest iV iSP H),
+Fo.S=S
+∧ Fo.E=E
+∧ Fo.k=k
+∧ Fo.P.length=k
+∧ Path_forest_avoids iV iSP Fo Fb
+∧ (Path_forest_support iV iSP Fo ).toFinset.card≤ 41*p*k
+∧ Path_forest_avoids iV iSP Fo {v:V|v∈ (List.drop k S)}
+∧ Path_forest_avoids  iV iSP Fo {v:V|v∈ (List.drop k E)}
+:= by
+
+sorry
+
+def Path_forest_long
+{H: Subgraph G}
+(Fo: PathForest iV iSP H)
+(l: ℕ )
+:=
+∀ (i: ℕ ), i< Fo.k→ (Fo.P.get! i).Pa.Wa.length≥ l
+
+
 lemma long_path_forest_specified_ends
 (H: Subgraph G)
 (S E: List V)
 (HL: List (Subgraph G))
 (k kmax: ℕ )
+
+(HL_sparse: family_sparse  κ m (HL.toFinset) )
 
 (SinH: vertex_list_in_graph_list iV iSub S HL (HL.length))
 (EinH: vertex_list_in_graph_list iV iSub E HL (HL.length))
@@ -74,11 +130,237 @@ Fo.S=S
 ∧ (Path_forest_support iV iSP Fo ).toFinset.card≤ 41*p*k
 ∧ Path_forest_avoids iV iSP Fo {v:V|v∈ (List.drop k S)}
 ∧ Path_forest_avoids  iV iSP Fo {v:V|v∈ (List.drop k E)}
+∧ Path_forest_long  iV iSP Fo (m/40*p)
+:= by
+--#check clump_path_sequence_gives_path
+sorry
+
+
+
+lemma find_pairs_in_M_list
+(Ord: List (Clump G p m κ pr h))
+(Ver: List V)
+(LM: List (Subgraph G))
+(LM_in_M: M_list_in_clump_list iI LM Ord)--possibly just subgraph list??
+(k: ℕ )
+:
+∃ (S E: List V),
+(S.length=k)
+∧ (E.length=k)
+∧ (List.Disjoint S E)
+∧ (List.Disjoint Ver S )
+∧ (List.Disjoint E Ver )
+∧ (S.Nodup)
+∧ (E.Nodup)
+∧ (∀ (i: ℕ ), i<k→ (S.get! i)∈ (LM.get! i).verts)
+∧ (∀ (i: ℕ ), i<k→ (E.get! i)∈ (LM.get! i).verts)
 := by
 
 sorry
 
 
+lemma add_Ver_to_M_list
+(Ord: List (Clump G p m κ pr h))
+(Ver: List V)
+(LM: List (Subgraph G))
+(LM_in_M: M_list_in_clump_list iI LM Ord)
+(k:ℕ )
+:
+∃ (HL: List  (Subgraph G)),
+(HL.length=k)
+∧ (cut_dense_list  HL κ)
+∧ (∀ (i: ℕ ), i<k→ (LM.get! i)≤  (HL.get! i))
+∧ (∀ (i: ℕ ), i<k→ (Ver.get! i)∈ (HL.get! i).verts)
+∧ vertex_list_in_graph_list iV iSub Ver HL k
+:= by
+
+sorry
+
+
+lemma clump_path_sequence_gives_path
+(H: Subgraph G)
+(KFam: Finset (Clump G p m κ pr h))
+(Seq: ClumpPathSequence iI iV α KFam)
+(k: ℕ )
+:
+Has_length_d_path (Clump_Family_Union KFam) (h*m)
+:=by
+
+
+have ex_pairs: _:= by
+  apply find_pairs_in_M_list iI iV iSub Seq.Ord Seq.Ver Seq.LM Seq.LM_in_M k
+
+have ex_HS:_:=by
+  apply add_Ver_to_M_list iI iV iSub Seq.Ord Seq.Ver Seq.LM Seq.LM_in_M k
+
+have ex_HE:_:=by
+  apply add_Ver_to_M_list iI iV iSub Seq.Ord Seq.Ver.tail Seq.LM Seq.LM_in_M k
+
+
+rcases ex_pairs with ⟨S, E, hS, hE, hSE, hSVer, hEVer, hSNoDup, hENoDup, hSInLM, hEInLM⟩
+rcases ex_HS with ⟨HS, hHS, hcutdenseS, hLMS, hVerS, Ver_in_HS⟩
+rcases ex_HE with ⟨HE, hHE, hcutdenseE, hLME, hVerE, Ver_in_HL⟩
+
+
+
+
+have SinH: vertex_list_in_graph_list iV iSub S HS HS.length:= by
+  sorry
+
+have EinH: vertex_list_in_graph_list iV iSub E HE HE.length:= by
+  sorry
+
+have VerinHS: vertex_list_in_graph_list iV iSub Seq.Ver HS HS.length:= by
+  sorry--This should match lemma earlier
+have VerinHE: vertex_list_in_graph_list iV iSub Seq.Ver HE HE.length:= by
+  sorry--This should match lemma earlier
+
+
+
+have HS_in_H: ∀ (i: Fin (HS.length) ), (HS.get i≤ H):= by
+  sorry
+
+have HE_in_H: ∀ (i: Fin (HE.length) ), (HE.get i≤ H):= by
+  sorry
+
+
+have LM_cut_dense:  cut_dense_list  Seq.LM κ:= by
+  sorry
+have LM_in_H: ∀ (i: Fin (Seq.LM.length) ), (Seq.LM.get i≤ H):= by
+  sorry
+have SinLM: vertex_list_in_graph_list iV iSub S Seq.LM Seq.LM.length:= by
+  sorry
+have EinLM: vertex_list_in_graph_list iV iSub E Seq.LM Seq.LM.length:= by
+  sorry
+
+let Fb: Set V:= {v: V|v∈ E}
+
+have SoutsideFb: vertex_list_outside_set iV S Fb (HS.length):= by
+  sorry
+have Ver_EoutsideFb: vertex_list_outside_set iV Seq.Ver Fb (HS.length):= by
+  sorry
+
+have Fbcard: small_intersection_list  HS Fb κ (172*κ*κ*k):= by
+  sorry
+
+have VerNoDup: Seq.Ver.Nodup:= by
+  exact Seq.VerNoDup
+
+have klek: k≤ k:= by
+  exact Nat.le_refl k
+
+
+
+have hF1Ex: _:= by
+  apply path_forest_specified_ends iV iSub iSP H Seq.Ver S HS  k k _ _ _ _ _ _ _ _ _ Fb
+  repeat assumption
+  --
+  sorry; sorry; sorry; sorry; sorry; assumption
+
+rcases hF1Ex with ⟨F1, hF1a, hF1b, hF1c, hF1d, hF1e, hF1f, hF1g, hF1h⟩
+
+
+let Fb2: Set V:= {v: V|v∈ S}∪ {v:V| v∈ Path_forest_support iV iSP F1}
+
+have SoutsideFb: vertex_list_outside_set iV E Fb2 (HE.length):= by
+  sorry
+have Ver_EoutsideFb: vertex_list_outside_set iV Seq.Ver Fb2 (HE.length):= by
+  sorry
+
+have Fbcard: small_intersection_list  HE Fb2 κ (172*κ*κ*k):= by
+  sorry
+
+
+have hF2Ex: _:= by
+  apply path_forest_specified_ends iV iSub iSP H E Seq.Ver HE  k k _ _ _ _ _ _ _ _ _ Fb2
+  repeat assumption
+  --
+  sorry; sorry; sorry; sorry; sorry; assumption
+
+rcases hF2Ex with ⟨ F2, hF2a , hF2b, hF2c, hF2d, hF2e, hF2f, hF2g, hF2h⟩
+
+
+let Fb3: Set V:=  {v:V| v∈ Path_forest_support iV iSP F1}∪ {v:V| v∈ Path_forest_support iV iSP F2}
+
+have SoutsideFb: vertex_list_outside_set iV S Fb3 (Seq.LM.length):= by
+  sorry
+have EoutsideFb: vertex_list_outside_set iV E Fb3 (Seq.LM.length):= by
+  sorry
+
+have Fbcard: small_intersection_list  Seq.LM Fb3 κ (172*κ*κ*k):= by
+  sorry
+
+have LM_sparse: family_sparse k k Seq.LM.toFinset:= by
+  sorry
+
+have hF3Ex: _:= by
+  apply long_path_forest_specified_ends iV iSub iSP H S E.tail Seq.LM  k k _ _ _ _ _ _ _ _ _ _ Fb3
+  repeat assumption
+  --
+  sorry; sorry; sorry; sorry; sorry; assumption
+
+rcases hF3Ex with ⟨F3, hF3a, hF3b, hF3c, hF3d, hF3e, hF3f, hF3g, hF3h, hF3i⟩
+
+
+
+have Path_ex: _:= by
+  apply join_three_forests iV iSP H F2 F1 F3 _ _ _ k k
+  sorry;sorry;sorry;sorry;sorry;sorry;sorry;sorry;sorry;
+  sorry;sorry;sorry;sorry;sorry;
+  --F1.E = F2.S
+  rw[hF1a, hF2b]
+  rw[hF1b, hF3a]
+  rw[hF2a, hF3b]
+
+  --
+
+rcases Path_ex with ⟨P, hP1⟩
+
+sorry
+
+
+
+
+
+
+ /-
+lemma Dense_list_implies_path_sequence_with_M
+(KFam: Finset (Clump G p m κ pr h))
+(KFamNonempty: KFam.Nonempty)
+--(t: ℕ)
+--(ht: t≤ h*pr)
+--(narrow: Clump_family_narrow KFam)
+(separated: Clump_family_separated KFam)
+(has_dense_sets: family_contains_dense_list p m κ pr h α iI KFam  )
+:
+Nonempty (ClumpPathSequence iI iV κ KFam)
+:=by-/
+
+/-def family_sparse
+(β m : ℕ )(MFam: Finset (Subgraph G))
+:=
+∀ (M1 M2: Subgraph G),
+(M1∈ MFam)
+→ (M2∈ MFam)
+→ (M1≠ M2)
+→ ((β *(M1.verts∩ M2.verts).toFinset.card)≤  m)
+
+
+
+structure ClumpPathSequence
+ (β : ℕ )(KFam: Finset (Clump G p m κ pr h)) where
+  (Ord: List (Clump G p m κ pr h))
+  (Ord_eq_KFam: Ord.toFinset⊆  KFam)
+  (LM: List (Subgraph G))
+  (LM_in_M: M_list_in_clump_list iI LM Ord)
+  (LM_Sparse: family_sparse β m (LM.toFinset) )
+  (Ver: List V)
+  (VerNoDup: Ver.Nodup)
+  (VerInOrd:Vertex_list_in_clump_list_BSetPlusM iI iV Ord Ver)
+  (hlength: Ord.length ≥  h*pr)
+  (hlengthM: LM.length=Ord.length)
+  (hlengthVer: Ver.length=Ord.length-1)
+  --(LM_NoDup: LM.Nodup)-/
 
 
 /-lemma path_forest_specified_ends
