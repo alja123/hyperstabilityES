@@ -85,7 +85,7 @@ def Path_forest_long
 :=
 ∀ (i: ℕ ), i< Fo.k→ (Fo.P.get! i).Pa.Wa.length≥ l
 
-
+/-OLD::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 lemma long_path_forest_specified_ends
 (H: Subgraph G)
 (S E: List V)
@@ -136,6 +136,58 @@ Fo.S=S
 sorry
 
 
+
+NEW::::::::::::::::::::::::::::::::::::::::::::::::
+lemma long_path_forest_specified_ends
+(H: Subgraph G)
+(S E: List V)
+(HL: List (Subgraph G))
+(k kmax: ℕ )
+
+(HL_sparse: family_sparse  κ m (HL.toFinset) )
+(HL_order: HOrder_ge_m_Family (HL.toFinset) (2*m))
+
+(SinH: vertex_list_in_graph_list iV iSub S HL (HL.length))
+(EinH: vertex_list_in_graph_list iV iSub E HL (HL.length))
+
+(SE_Disjoint : List.Disjoint S E)
+
+
+(Slength: S.length> k)
+(Elength: E.length> k)
+
+(Smaxlength: S.length≤  kmax)
+(Emaxlength: E.length≤  kmax)
+
+(HLlength: HL.length> k)
+(HL_in_H: ∀ (i: Fin (HL.length) ), (HL.get i≤ H))
+(Fb: Set V)
+(HL_nodup: HL.Nodup)
+(SoutsideFb: vertex_list_outside_set iV S Fb (HL.length))
+(EoutsideFb: vertex_list_outside_set iV E Fb (HL.length))
+
+(Snodup: S.Nodup)
+(Enodup: E.Nodup)
+
+(hkMax: k≤ kmax)
+
+(cutdense: cut_dense_list  HL p )--∀(i: ℕ ), (i< k)→ (cut_dense G  (HL.get! i) p))
+(Fbcard: small_intersection_list  HL Fb p (m +8*p*(2*1*kmax)))--∀(i: ℕ ), (i< k)→ (8*p*(((HL.get! i).verts∩ Fb).toFinset.card≤ (HL.get! i).verts.toFinset.card)))
+:
+∃ (Fo: PathForest iV iSP H),
+Fo.S=S
+∧ Fo.E=E
+∧ Fo.k=k
+∧ Fo.P.length=k
+∧ Path_forest_avoids iV iSP Fo Fb
+--∧ (Path_forest_support iV iSP Fo )⊆  41*p*k
+∧ Path_forest_avoids iV iSP Fo {v:V|v∈ (List.drop k S)}
+∧ Path_forest_avoids  iV iSP Fo {v:V|v∈ (List.drop k E)}
+∧ Path_forest_long  iV iSP Fo (m/(40*p))
+∧ Path_forest_in_HL iV iSub iSP HL Fo
+:= by
+
+-/
 
 lemma find_pairs_in_M_list
 (Ord: List (Clump G p m κ pr h))
