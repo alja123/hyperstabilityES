@@ -64,12 +64,391 @@ def small_intersection_list!
 )
 
 
+def Path_forest_long!
+{H: Subgraph G}
+(Fo: PathForest iV iSP H)
+(l k: ℕ )
+:=
+∀ (i: ℕ ), i< k→ (Fo.P.get! i).Pa.Wa.length≥ l
+
+
+lemma sparse_family_monotone
+(F F': Finset (Subgraph G))
+(sparse: family_sparse  κ m F)
+(contained: F'⊆ F)
+:
+family_sparse  κ m F'
+:= by
+intro A B h1 h2 h3
+apply sparse
+exact contained h1
+exact contained h2
+repeat assumption
+
+lemma order_ge_m_family_monotone
+(F F': Finset (Subgraph G))
+(sparse: HOrder_ge_m_Family  F m)
+(contained: F'⊆ F)
+:
+HOrder_ge_m_Family  F' m
+:= by
+intro A h1
+apply sparse
+exact contained h1
+repeat assumption
+
+
+lemma long_path_forest_specified_ends_simplified
+(H: Subgraph G)
+(S E: List V)
+(HL: List (Subgraph G))
+(k: ℕ )
+
+(HL_sparse: family_sparse  κ m (HL.toFinset) )
+(HL_order: HOrder_ge_m_Family (HL.toFinset) (2*m))
+
+(SinH: vertex_list_in_graph_list iV iSub S HL (k+1))---change
+(EinH: vertex_list_in_graph_list iV iSub E HL (k+1))---change
+
+(SE_Disjoint : List.Disjoint S E)
+
+
+(Slen: S.length=k+1)
+(Elen: E.length=k+1 )
+(HLlength: HL.length> k)
+
+
+--(HLlength: HL.length> k)
+(HL_in_H: ∀ (i: ℕ  ), i<k+1→  (HL.get! i≤ H))
+(Fb: Set V)
+(HL_nodup: HL.Nodup)
+(SoutsideFb: vertex_list_outside_set iV S Fb (k+1))
+(EoutsideFb: vertex_list_outside_set iV E Fb (k+1))
+
+(Snodup: S.Nodup)
+(Enodup: E.Nodup)
+
+(hkMax: k≤ kmax)
+
+
+
+(cutdense: cut_dense_list! iSub HL p (k+1))---change--∀(i: ℕ ), (i< k)→ (cut_dense G  (HL.get! i) p))
+(Fbcard: small_intersection_list!  iSub HL Fb p m (k+1))---change--∀(i: ℕ ), (i< k)→ (8*p*(((HL.get! i).verts∩ Fb).toFinset.card≤ (HL.get! i).verts.toFinset.card)))
+
+--(Fbcard: small_intersection_list  HL Fb p (m +8*p*(2*1*kmax)))--∀(i: ℕ ), (i< k)→ (8*p*(((HL.get! i).verts∩ Fb).toFinset.card≤ (HL.get! i).verts.toFinset.card)))
+:
+∃ (Fo: PathForest iV iSP H),
+Fo.S=S
+∧ Fo.E=E
+∧ Fo.k=k
+∧ Fo.P.length=k
+--∧ Path_forest_avoids iV iSP Fo Fb
+∧ Path_forest_avoids! iV iSP Fo Fb k---change
+--∧ (Path_forest_support iV iSP Fo )⊆  41*p*k
+--∧ Path_forest_avoids iV iSP Fo {v:V|v∈ (List.drop k S)}
+--∧ Path_forest_avoids  iV iSP Fo {v:V|v∈ (List.drop k E)}
+∧ Path_forest_long  iV iSP Fo (m/(40*p))
+--∧ Path_forest_in_HL iV iSub iSP HL Fo
+:= by
+
+have Slength: S.length> k:=by rw [Slen]; exact lt_add_one k
+have Elength: E.length> k:= by rw [Elen]; exact lt_add_one k
+
+have  Smaxlength: S.length≤  k+1:= by exact Nat.le_of_eq Slen
+have Emaxlength: E.length≤  k+1:=by exact Nat.le_of_eq Elen
+
+
+let HL':= List.take (k+1) HL
+have HL'_length: HL'.length=k+1:= by
+  exact List.length_take_of_le HLlength
+let S':= List.take (k+1) S
+have S'_length: S'.length=k+1:= by
+  exact List.length_take_of_le Slength
+let E':= List.take (k+1) E
+have E'_length: E'.length=k+1:= by
+  exact List.length_take_of_le Elength
+
+
+
+
+have HLget: ∀ (i: ℕ ), (i<k+1)→ HL'.get! i= HL.get! i:= by
+  intro i hi
+  dsimp[HL']
+  have hi1: i<(List.take (k + 1) HL).length:=by
+    dsimp[HL'] at HL'_length
+    rw[HL'_length]
+    exact hi
+  have hi2: i<HL.length:=by
+    exact Nat.lt_of_lt_of_le hi HLlength
+  have hte: (List.take (k + 1) HL).get ⟨ i, hi1⟩= HL.get ⟨ i, hi2⟩:= by
+    refine List.IsPrefix.get_eq ?h hi1
+    exact List.take_prefix (k + 1) HL
+  have hte2: (List.take (k + 1) HL).get ⟨ i, hi1⟩= (List.take (k + 1) HL).get!  i:= by
+    simp
+    exact (List.getD_eq_get (List.take (k + 1) HL) default hi1).symm
+  have hte3:HL.get ⟨ i, hi2⟩= HL.get! i:= by
+    simp
+    exact (List.getD_eq_get HL default hi2).symm
+  rw[hte2.symm, hte3.symm, hte]
+
+have Sget: ∀ (i: ℕ ), (i<k+1)→ S'.get! i= S.get! i:= by
+  intro i hi
+  dsimp[S']
+  have hi1: i<(List.take (k + 1) S).length:=by
+    dsimp[S'] at S'_length
+    rw[S'_length]
+    exact hi
+  have hi2: i<S.length:=by
+    exact Nat.lt_of_lt_of_le hi Slength
+  have hte: (List.take (k + 1) S).get ⟨ i, hi1⟩= S.get ⟨ i, hi2⟩:= by
+    apply List.IsPrefix.get_eq
+    exact List.take_prefix (k + 1) S
+  have hte2: (List.take (k + 1) S).get ⟨ i, hi1⟩= (List.take (k + 1) S).get!  i:= by
+    simp
+    exact (List.getD_eq_get (List.take (k + 1) S) default hi1).symm
+  have hte3:S.get ⟨ i, hi2⟩= S.get! i:= by
+    simp
+    exact (List.getD_eq_get S default hi2).symm
+  rw[hte2.symm, hte3.symm, hte]
+
+
+have Eget: ∀ (i: ℕ ), (i<k+1)→ E'.get! i= E.get! i:= by
+  intro i hi
+  dsimp[E']
+  have hi1: i<(List.take (k + 1) E).length:=by
+    dsimp[E'] at E'_length
+    rw[E'_length]
+    exact hi
+  have hi2: i<E.length:=by
+    exact Nat.lt_of_lt_of_le hi Elength
+  have hte: (List.take (k + 1) E).get ⟨ i, hi1⟩= E.get ⟨ i, hi2⟩:= by
+    apply List.IsPrefix.get_eq
+    exact List.take_prefix (k + 1) E
+  have hte2: (List.take (k + 1) E).get ⟨ i, hi1⟩= (List.take (k + 1) E).get!  i:= by
+    simp
+    exact (List.getD_eq_get (List.take (k + 1) E) default hi1).symm
+  have hte3:E.get ⟨ i, hi2⟩= E.get! i:= by
+    simp
+    exact (List.getD_eq_get E default hi2).symm
+  rw[hte2.symm, hte3.symm, hte]
+
+
+have HLget2: ∀ (i: Fin (HL'.length) ),  HL'.get i=HL.get! i:= by
+  intro i
+  have h2: i.1<k+1:= by
+    rw[HL'_length.symm]
+    exact i.2
+
+  have h1:HL'.get i=HL'.get! i:= by
+    simp
+    symm
+    apply List.getD_eq_get
+  rw[h1]
+  rw[HLget i.1 h2]
+
+
+
+
+have Esublist: E' ⊆ E:= by
+  dsimp[E']
+  exact List.take_subset (k + 1) E
+have Ssublist:  S' ⊆ S:= by
+  dsimp[S']
+  exact List.take_subset (k + 1) S
+have Hsublist:  HL' ⊆ HL:= by
+  dsimp[HL']
+  exact List.take_subset (k + 1) HL
+
+
+have Esublist2: List.Sublist E' E  := by
+  dsimp[E']
+  apply List.IsPrefix.sublist
+  exact List.take_prefix (k + 1) E
+have Ssublist2: List.Sublist S' S  := by
+  dsimp[S']
+  apply List.IsPrefix.sublist
+  exact List.take_prefix (k + 1) S
+have HLsublist2: List.Sublist HL' HL  := by
+  dsimp[HL']
+  apply List.IsPrefix.sublist
+  exact List.take_prefix (k + 1) HL
+
+have happly:_:= by
+  apply long_path_forest_specified_ends iV iSub iSP H S' E' HL' k (k+1) --_ _ _ _ _ _ _ _ _ --Fb
+
+  apply sparse_family_monotone
+  exact HL_sparse
+  intro x hx
+  simp
+  simp at hx
+  exact Hsublist hx
+  --exact HL_sparse. prove monoinicity
+  apply order_ge_m_family_monotone
+  exact HL_order
+  intro x hx
+  simp
+  simp at hx
+  exact Hsublist hx
+  ---also for gem families
+
+
+  --vertex_list_in_graph_list iV iSub S HL HL.length
+  dsimp[HL', S']
+  intro i hi
+  have ilk: i<k+1:= by
+    dsimp[HL'] at HL'_length
+    rw[HL'_length] at hi
+    exact hi
+  rw[HLget i ilk]
+  rw[Sget i ilk]
+  apply SinH i ilk
+
+  --vertex_list_in_graph_list iV iSub E' HL' HL'.length
+  dsimp[HL', E']
+  intro i hi
+  have ilk: i<k+1:= by
+    dsimp[HL'] at HL'_length
+    rw[HL'_length] at hi
+    exact hi
+  rw[HLget i ilk]
+  rw[Eget i ilk]
+  apply EinH i ilk
+
+  --S E disjoint
+  apply List.disjoint_of_subset_left
+  exact Ssublist
+  apply List.disjoint_of_subset_right
+  exact Esublist
+  exact SE_Disjoint
+
+  ---------lengths------
+  rw[S'_length]; exact lt_add_one k
+  rw[E'_length]; exact lt_add_one k
+  rw[S'_length];
+  rw[E'_length];
+  rw[HL'_length]; exact lt_add_one k
+
+
+
+  ----HL in H-----------
+  intro i
+  rw[HLget2 i]
+  apply HL_in_H i
+  calc
+    _<HL'.length:= by exact i.2
+    _=k+1:= by exact HL'_length
+
+
+  exact List.Nodup.sublist HLsublist2 HL_nodup
+
+  rw[HL'_length]
+  intro i hi
+  rw[Sget i]
+  apply SoutsideFb
+  exact hi
+  exact hi
+
+  rw[HL'_length]
+  intro i hi
+  rw[Eget i]
+  apply EoutsideFb
+  exact hi
+  exact hi
+
+  exact List.Nodup.sublist Ssublist2 Snodup
+  exact List.Nodup.sublist Esublist2 Enodup
+
+  exact Nat.le_add_right k 1
+  intro i
+  rw[HLget2]
+  apply cutdense
+  calc
+    _<HL'.length:= by exact i.2
+    _=k+1:= by exact HL'_length
+
+  intro i
+  rw[HLget2]
+  calc
+    8 * p * (Fb ∩ (HL.get! ↑i).verts).toFinset.card
+    + (m+8*p*(2*1*(k+1)))
+    =
+    8*p*
+    (Fb∩ (HL.get! i).verts).toFinset.card+(m +8*p*(2*(k+1)))
+    := by
+      exact rfl
+      --172 * p * p * (k + 1) ≤ m + 8 * p * (2 * (k + 1))
+
+    _≤ (HL.get! i).verts.toFinset.card
+    := by
+      apply Fbcard i.1
+      calc
+        _<HL'.length:= by exact i.2
+        _=k+1:= by exact HL'_length
+
+
+  exact pPositive
+
+
+rcases happly with ⟨Fo, hFoa, hFob, hFoc, hFod, hFoe, hFof, hFog, hFoh, hFoi⟩
+let F:PathForest iV iSP H:= ⟨S, E,  Fo.P, k, ?_, ?_, ?_, ?_, ?_⟩
+
+use F
+
+constructor
+exact rfl
+constructor
+exact rfl
+constructor
+exact rfl
+constructor
+exact hFod
+constructor
+intro i hi
+apply hFoe
+exact Nat.lt_of_lt_of_eq hi (id hFoc.symm)
+intro i hi
+apply hFoh
+rw[hFoc]
+exact hi
+
+intro i hi
+rw[hFoc.symm] at hi
+rw[(Fo.Starts_equal i hi).symm]
+rw[hFoa]
+rw [Sget i]
+rw[hFoc.symm]
+exact Nat.lt_add_right 1 hi
+
+intro i hi
+rw[hFoc.symm] at hi
+rw[(Fo.Ends_equal i hi).symm]
+rw[hFob]
+rw [Eget i]
+rw[hFoc.symm]
+exact Nat.lt_add_right 1 hi
+
+rw[hFoc.symm]
+exact Fo.Graphs_equal
+
+rw[hFoc.symm]
+exact Fo.Paths_disjoint
+
+exact hFod
+
+    --
+
+
+
+
+
+
+
 
 lemma path_forest_specified_ends_simplified
 (H: Subgraph G)
 (S E: List V)
 (HL: List (Subgraph G))
-(k kmax: ℕ )
+(k  : ℕ )
 
 (SinH: vertex_list_in_graph_list iV iSub S HL (k+1))---change
 (EinH: vertex_list_in_graph_list iV iSub E HL (k+1))---change
@@ -103,9 +482,11 @@ Fo.S=S
 ∧ Fo.P.length=k
 ∧ Path_forest_avoids! iV iSP Fo Fb k---change
 ∧ (Path_forest_support iV iSP Fo ).toFinset.card≤ 41*p*k
-∧ Path_forest_avoids! iV iSP Fo {v:V|v∈ (List.drop k S)} k---change
-∧ Path_forest_avoids!  iV iSP Fo {v:V|v∈ (List.drop k E)} k---change
+--∧ Path_forest_avoids! iV iSP Fo {v:V|v∈ (List.drop k S)} k---change
+--∧ Path_forest_avoids!  iV iSP Fo {v:V|v∈ (List.drop k E)} k---change
 := by
+
+
 
 let HL':= List.take (k+1) HL
 have HL'_length: HL'.length=k+1:= by
@@ -328,28 +709,34 @@ constructor
 intro i hi
 apply hFoe
 exact Nat.lt_of_lt_of_eq hi (id hFoc.symm)
-constructor
 exact hFof
-constructor
-intro i hi
-
-have h78: {v | v ∈ List.drop k S}⊆ {v | v ∈ List.drop k S}
-apply Set.disjoint_of_subset_left
-apply hFog
-exact Nat.lt_of_lt_of_eq hi (id hFoc.symm)
-
-exact fun ⦃a⦄ a ↦ a
 
 intro i hi
-apply hFoh
-exact Nat.lt_of_lt_of_eq hi (id hFoc.symm)
+rw[hFoc.symm] at hi
+rw[(Fo.Starts_equal i hi).symm]
+rw[hFoa]
+rw [Sget i]
+rw[hFoc.symm]
+exact Nat.lt_add_right 1 hi
 
+intro i hi
+rw[hFoc.symm] at hi
+rw[(Fo.Ends_equal i hi).symm]
+rw[hFob]
+rw [Eget i]
+rw[hFoc.symm]
+exact Nat.lt_add_right 1 hi
 
+rw[hFoc.symm]
+exact Fo.Graphs_equal
 
+rw[hFoc.symm]
+exact Fo.Paths_disjoint
 
+exact hFod
 
     --
-sorry
+
 
 
 /-
