@@ -102,7 +102,8 @@ lemma long_path_forest_specified_ends_simplified
 (H: Subgraph G)
 (S E: List V)
 (HL: List (Subgraph G))
-(k : ℕ )
+(k m p: ℕ )
+(Fb: Set V)
 
 (HL_sparse: family_sparse  κ m (HL.toFinset) )
 (HL_order: HOrder_ge_m_Family (HL.toFinset) (2*m))
@@ -120,7 +121,7 @@ lemma long_path_forest_specified_ends_simplified
 
 --(HLlength: HL.length> k)
 (HL_in_H: ∀ (i: ℕ  ), i<k+1→  (HL.get! i≤ H))
-(Fb: Set V)
+
 (SoutsideFb: vertex_list_outside_set iV S Fb (k+1))
 (EoutsideFb: vertex_list_outside_set iV E Fb (k+1))
 
@@ -133,7 +134,7 @@ lemma long_path_forest_specified_ends_simplified
 
 (cutdense: cut_dense_list! iSub HL p (k+1))---change--∀(i: ℕ ), (i< k)→ (cut_dense G  (HL.get! i) p))
 (Fbcard: small_intersection_list!  iSub HL Fb p m (k+1))---change--∀(i: ℕ ), (i< k)→ (8*p*(((HL.get! i).verts∩ Fb).toFinset.card≤ (HL.get! i).verts.toFinset.card)))
-
+(pPositive: p>0)
 --(Fbcard: small_intersection_list  HL Fb p (m +8*p*(2*1*kmax)))--∀(i: ℕ ), (i< k)→ (8*p*(((HL.get! i).verts∩ Fb).toFinset.card≤ (HL.get! i).verts.toFinset.card)))
 :
 ∃ (Fo: PathForest iV iSP H),
@@ -447,7 +448,8 @@ lemma path_forest_specified_ends_simplified
 (H: Subgraph G)
 (S E: List V)
 (HL: List (Subgraph G))
-(k  : ℕ )
+(k m : ℕ )
+(Fb: Set V)
 
 (SinH: vertex_list_in_graph_list iV iSub S HL (k+1))---change
 (EinH: vertex_list_in_graph_list iV iSub E HL (k+1))---change
@@ -462,7 +464,7 @@ lemma path_forest_specified_ends_simplified
 
 
 (HL_in_H: ∀ (i: ℕ  ), i<k+1→  (HL.get! i≤ H))
-(Fb: Set V)
+
 
 (SoutsideFb: vertex_list_outside_set iV S Fb (k+1))
 (EoutsideFb: vertex_list_outside_set iV E Fb (k+1))

@@ -9,7 +9,7 @@ open scoped BigOperators
 namespace SimpleGraph
 
 
-set_option maxHeartbeats  50000
+set_option maxHeartbeats  100000
 
 universe u
 variable {V : Type u} {G : SimpleGraph V}
@@ -33,339 +33,64 @@ variable {mggpr: m≫ pr}
 
 
 
-
-
-
-lemma clump_path_sequence_gives_path
-(H: Subgraph G)
-(KFam: Finset (Clump G p m κ pr h))
-(Seq: ClumpPathSequence iI iV α KFam)
-(k: ℕ )
+lemma set_disjoint_left
+(v: V)
+(T S: Set V)
+(disj: Disjoint S T)
+(hv: v∈ S)
 :
-Has_length_d_path (Clump_Family_Union KFam) (h*m)
-:=by
+v∉ T:= by
+by_contra cont
+have h2: ¬ (Disjoint S T):= by
+  refine Set.not_disjoint_iff.mpr ?_
+  use v
+exact h2 disj
 
-
-have ex_pairs: _:= by
-  apply find_pairs_in_M_list iI iV iSub Seq.Ord Seq.Ver Seq.LM Seq.LM_in_M k
-
-have ex_HS:_:=by
-  apply add_Ver_to_M_list iI iV iSub Seq.Ord Seq.Ver Seq.LM Seq.LM_in_M k
-
-have ex_HE:_:=by
-  apply add_Ver_to_M_list iI iV iSub Seq.Ord Seq.Ver.tail Seq.LM Seq.LM_in_M k
-
-
-rcases ex_pairs with ⟨S, E, hS, hE, hSE, hSVer, hEVer, hSNoDup, hENoDup, hSInLM, hEInLM⟩
-rcases ex_HS with ⟨HS, hHS, hcutdenseS, hLMS, hVerS, Ver_in_HS⟩
-rcases ex_HE with ⟨HE, hHE, hcutdenseE, hLME, hVerE, Ver_in_HL⟩
-
-
-
-
-have SinH: vertex_list_in_graph_list iV iSub S HS HS.length:= by
-  sorry
-
-have EinH: vertex_list_in_graph_list iV iSub E HE HE.length:= by
-  sorry
-
-have VerinHS: vertex_list_in_graph_list iV iSub Seq.Ver HS HS.length:= by
-  sorry--This should match lemma earlier--no?
-have VerinHE: vertex_list_in_graph_list iV iSub Seq.Ver HE HE.length:= by
-  sorry--This should match lemma earlier
-
-
-
-have HS_in_H: ∀ (i: Fin (HS.length) ), (HS.get i≤ H):= by
-  sorry
-
-have HE_in_H: ∀ (i: Fin (HE.length) ), (HE.get i≤ H):= by
-  sorry
-
-
-have LM_cut_dense:  cut_dense_list  Seq.LM κ:= by
-  sorry
-have LM_in_H: ∀ (i: Fin (Seq.LM.length) ), (Seq.LM.get i≤ H):= by
-  sorry
-have SinLM: vertex_list_in_graph_list iV iSub S Seq.LM Seq.LM.length:= by
-  sorry
-have EinLM: vertex_list_in_graph_list iV iSub E Seq.LM Seq.LM.length:= by
-  sorry
-
-let Fb: Set V:= {v: V|v∈ E}
-
-have SoutsideFb: vertex_list_outside_set iV S Fb (HS.length):= by
-  sorry
-have Ver_EoutsideFb: vertex_list_outside_set iV Seq.Ver Fb (HS.length):= by
-  sorry
-
-have Fbcard: small_intersection_list  HS Fb κ (172*κ*κ*k):= by
-  sorry
-
-have VerNoDup: Seq.Ver.Nodup:= by
-  exact Seq.VerNoDup
-
-have klek: k≤ k:= by
-  exact Nat.le_refl k
-
-
-
-have hF1Ex: _:= by
-  apply path_forest_specified_ends iV iSub iSP H Seq.Ver S HS  k k _ _ _ _ _ _ _ _ _ Fb
-  repeat assumption
-  --
-  sorry; sorry; sorry; sorry; sorry; assumption
-
-rcases hF1Ex with ⟨F1, hF1a, hF1b, hF1c, hF1d, hF1e, hF1f, hF1g, hF1h⟩
-
-
-let Fb2: Set V:= {v: V|v∈ S}∪ {v:V| v∈ Path_forest_support iV iSP F1}
-
-have SoutsideFb: vertex_list_outside_set iV E Fb2 (HE.length):= by
-  sorry
-have Ver_EoutsideFb: vertex_list_outside_set iV Seq.Ver Fb2 (HE.length):= by
-  sorry
-
-have Fbcard: small_intersection_list  HE Fb2 κ (172*κ*κ*k):= by
-  sorry
-
-
-have hF2Ex: _:= by
-  apply path_forest_specified_ends iV iSub iSP H E Seq.Ver HE  k k _ _ _ _ _ _ _ _ _ Fb2
-  repeat assumption
-  --
-  sorry; sorry; sorry; sorry; sorry; assumption
-
-rcases hF2Ex with ⟨ F2, hF2a , hF2b, hF2c, hF2d, hF2e, hF2f, hF2g, hF2h⟩
-
-
-let Fb3: Set V:=  {v:V| v∈ Path_forest_support iV iSP F1}∪ {v:V| v∈ Path_forest_support iV iSP F2}
-
-have SoutsideFb: vertex_list_outside_set iV S Fb3 (Seq.LM.length):= by
-  sorry
-have EoutsideFb: vertex_list_outside_set iV E Fb3 (Seq.LM.length):= by
-  sorry
-
-have Fbcard: small_intersection_list  Seq.LM Fb3 κ (172*κ*κ*k):= by
-  sorry
-
-have LM_sparse: family_sparse k k Seq.LM.toFinset:= by
-  sorry
-
-have hF3Ex: _:= by
-  apply long_path_forest_specified_ends iV iSub iSP H S E.tail Seq.LM  k k _ _ _ _ _ _ _ _ _ _ Fb3
-  repeat assumption
-  --
-  sorry; sorry; sorry; sorry; sorry; assumption
-
-rcases hF3Ex with ⟨F3, hF3a, hF3b, hF3c, hF3d, hF3e, hF3f, hF3g, hF3h, hF3i⟩
-
-
-
-have Path_ex: _:= by
-  apply join_three_forests iV iSP H F2 F1 F3 _ _ _ k k
-  sorry;sorry;sorry;sorry;sorry;sorry;sorry;sorry;sorry;
-  sorry;sorry;sorry;sorry;sorry;
-  --F1.E = F2.S
-  rw[hF1a, hF2b]
-  rw[hF1b, hF3a]
-  rw[hF2a, hF3b]
-
-  --
-
-rcases Path_ex with ⟨P, hP1⟩
-
-sorry
-
-
+lemma set_disjoint_right
+(v: V)
+(S T: Set V)
+(disj: Disjoint S T)
+(hv: v∈ T)
+:
+v∉ S:= by
+by_contra cont
+have h2: ¬ (Disjoint S T):= by
+  refine Set.not_disjoint_iff.mpr ?_
+  use v
+exact h2 disj
 /-
-lemma Dense_list_implies_path_sequence_with_M
-(KFam: Finset (Clump G p m κ pr h))
-(KFamNonempty: KFam.Nonempty)
---(t: ℕ)
---(ht: t≤ h*pr)
---(narrow: Clump_family_narrow KFam)
-(separated: Clump_family_separated KFam)
-(has_dense_sets: family_contains_dense_list p m κ pr h α iI KFam  )
+
+lemma finset_disjoint_left_list
+(v: V)
+(T: List V)
+(S: Finset V)
+(disj: Disjoint S T.toFinset)
+(hv: v∈ S)
 :
-Nonempty (ClumpPathSequence iI iV κ KFam)
-:=by
-
-def family_sparse
-(β m : ℕ )(MFam: Finset (Subgraph G))
-:=
-∀ (M1 M2: Subgraph G),
-(M1∈ MFam)
-→ (M2∈ MFam)
-→ (M1≠ M2)
-→ ((β *(M1.verts∩ M2.verts).toFinset.card)≤  m)
+v∉ T:= by
+have h1: v∉ T.toFinset:= by exact   finset_disjoint_right v T.toFinset S (id (Disjoint.symm disj)) hv
+by_contra cont
+have h2: v∈ T.toFinset:= by exact List.mem_toFinset.mpr cont
+exact h1 h2
 
 
-
-structure ClumpPathSequence
- (β : ℕ )(KFam: Finset (Clump G p m κ pr h)) where
-  (Ord: List (Clump G p m κ pr h))
-  (Ord_eq_KFam: Ord.toFinset⊆  KFam)
-  (LM: List (Subgraph G))
-  (LM_in_M: M_list_in_clump_list iI LM Ord)
-  (LM_Sparse: family_sparse β m (LM.toFinset) )
-  (Ver: List V)
-  (VerNoDup: Ver.Nodup)
-  (VerInOrd:Vertex_list_in_clump_list_BSetPlusM iI iV Ord Ver)
-  (hlength: Ord.length ≥  h*pr)
-  (hlengthM: LM.length=Ord.length)
-  (hlengthVer: Ver.length=Ord.length-1)
-  --(LM_NoDup: LM.Nodup)
-
-
-
-
-
-def Path_forest_avoids!
-{H: Subgraph G}
-(Fo: PathForest iV iSP H)
-(Fb: Set V)
-(k : ℕ )
-:=
-∀ (i: ℕ ), i< k→ (Disjoint {v:V|v∈ (Fo.P.get! i).Pa.Wa.support} Fb)
-
-
-
-
-def cut_dense_list!
-(HL: List (Subgraph G))
-(p k: ℕ )
-:=∀(i: ℕ ), (i<k)→  (cut_dense G  (HL.get! i) p)
-
-def small_intersection_list!
-(HL: List (Subgraph G))
-(Fb: Set V)
-(p m k: ℕ )
---(k: ℕ )
-:=∀(i: ℕ ), (i<k)→
-(8*p*
-(Fb∩ (HL.get! i).verts).toFinset.card+(m +8*p*(2*(k)))≤ (HL.get! i).verts.toFinset.card
-)
-
-
-def Path_forest_long!
-{H: Subgraph G}
-(Fo: PathForest iV iSP H)
-(l k: ℕ )
-:=
-∀ (i: ℕ ), i< k→ (Fo.P.get! i).Pa.Wa.length≥ l
-
-
-lemma long_path_forest_specified_ends_simplified
-(H: Subgraph G)
-(S E: List V)
-(HL: List (Subgraph G))
-(k : ℕ )
-(HL_sparse: family_sparse  κ m (HL.toFinset) )
-(HL_order: HOrder_ge_m_Family (HL.toFinset) (2*m))
-(SinH: vertex_list_in_graph_list iV iSub S HL (k+1))
-(EinH: vertex_list_in_graph_list iV iSub E HL (k+1))
-(SE_Disjoint : List.Disjoint S E)
-(Slength: S.length> k)
-(Elength: E.length> k )
-(HLlength: HL.length> k)
-(HL_in_H: ∀ (i: ℕ  ), i<k+1→  (HL.get! i≤ H))
-(Fb: Set V)
-(SoutsideFb: vertex_list_outside_set iV S Fb (k+1))
-(EoutsideFb: vertex_list_outside_set iV E Fb (k+1))
-(Snodup: S.Nodup)
-(Enodup: E.Nodup)
-(HL_nodup: HL.Nodup)
-(cutdense: cut_dense_list! iSub HL p (k+1))
-(Fbcard: small_intersection_list!  iSub HL Fb p m (k+1))
+lemma finset_disjoint_right_list
+(v: V)
+(T: List V)
+(S: Finset V)
+(disj: Disjoint T.toFinset S )
+(hv: v∈ S)
 :
-∃ (Fo: PathForest iV iSP H),
-Fo.S=S
-∧ Fo.E=E
-∧ Fo.k=k
-∧ Fo.P.length=k
-∧ Path_forest_avoids! iV iSP Fo Fb k
-∧ Path_forest_long  iV iSP Fo (m/(40*p))
-:= by
+v∉ T:= by
+have h1: v∉ T.toFinset:= by exact finset_disjoint_right v T.toFinset S disj hv
+by_contra cont
+have h2: v∈ T.toFinset:= by exact List.mem_toFinset.mpr cont
+exact h1 h2
 
 
+-/
 
-
-
-
-lemma path_forest_specified_ends_simplified
-(H: Subgraph G)
-(S E: List V)
-(HL: List (Subgraph G))
-(k  : ℕ )
-(SinH: vertex_list_in_graph_list iV iSub S HL (k+1))---change
-(EinH: vertex_list_in_graph_list iV iSub E HL (k+1))---change
-(SE_Disjoint : List.Disjoint S E)
-(Slength: S.length> k)
-(Elength: E.length> k)
-(HLlength: HL.length> k)
-(HL_in_H: ∀ (i: ℕ  ), i<k+1→  (HL.get! i≤ H))
-(Fb: Set V)
-(SoutsideFb: vertex_list_outside_set iV S Fb (k+1))
-(EoutsideFb: vertex_list_outside_set iV E Fb (k+1))
-(Snodup: S.Nodup)
-(Enodup: E.Nodup)
-(cutdense: cut_dense_list! iSub HL p (k+1))---change--∀(i: ℕ ), (i< k)→ (cut_dense G  (HL.get! i) p))
-(Fbcard: small_intersection_list!  iSub HL Fb p m (k+1))---change--∀(i: ℕ ), (i< k)→ (8*p*(((HL.get! i).verts∩ Fb).toFinset.card≤ (HL.get! i).verts.toFinset.card)))
-:
-∃ (Fo: PathForest iV iSP H),
-Fo.S=S
-∧ Fo.E=E
-∧ Fo.k=k
-∧ Fo.P.length=k
-∧ Path_forest_avoids! iV iSP Fo Fb k---change
-∧ (Path_forest_support iV iSP Fo ).toFinset.card≤ 41*p*k
-:= by
-
-
-
-structure PathForest (H: Subgraph G)--(G: SimpleGraph V)(iSP:Inhabited (SubgraphPath_implicit G))
-where
-  (S E: List V)
-  (P: List (SubgraphPath_implicit G))
-  (k: ℕ )
-  (Starts_equal: starts_equal iV iSP S P k)--∀ (i: ℕ ), i< k→ ((S.get! i)=(P.get! i).s))
-  (Ends_equal: ends_equal iV iSP E P k)--∀ (i: ℕ ), i< k→ ((S.get! i)=(P.get! i).e))
-  (Graphs_equal: graphs_equal iSP H P k)--∀ (i: ℕ ), i< k→ (P.get! i).H=H)
-  (Paths_disjoint: paths_disjoint iSP  P k)  --(disjoint: ∀ (i j: ℕ ), i< k→ j< k→ i≠ j→ (List.Disjoint ((P.get! i).Pa.Wa.support) ((P.get! j).Pa.Wa.support)))
-  (P_length: P.length=k)-/
-
---def Path_forest_long
---{H: Subgraph G}
---(Fo: PathForest iV iSP H)
---(l: ℕ )
---:=
---∀ (i: ℕ ), i< Fo.k→ (Fo.P.get! i).Pa.Wa.length≥ l
-
-
-lemma find_pairs_in_M_list
-(Ord: List (Clump G p m κ pr h))
-(Ver: List V)
-(LM: List (Subgraph G))
-(LM_in_M: M_list_in_clump_list iI LM Ord)--possibly just subgraph list??
-(k: ℕ )
-(LM_length: LM.length≥ k)
-(Ord_length: Ord.length≥ k)
-(hk: 2*k+Ver.length+2≤ m/pr)
-:
-∃ (S E: List V),
-(S.length=k)
-∧ (E.length=k)
-∧ (List.Disjoint S E)
-∧ (List.Disjoint Ver S )
-∧ (List.Disjoint E Ver )
-∧ (S.Nodup)
-∧ (E.Nodup)
-∧ (∀ (i: ℕ ), i<k→ (S.get! i)∈ (LM.get! i).verts)
-∧ (∀ (i: ℕ ), i<k→ (E.get! i)∈ (LM.get! i).verts)
-:= by
-
-lemma add_Ver_to_M_list
+lemma add_Ver_to_M_list_starts
 (Ord: List (Clump G p m κ pr h))
 (Ver S: List V)
 
@@ -385,197 +110,610 @@ lemma add_Ver_to_M_list
 (HL.length=k)
 ∧ (cut_dense_list! iSub HL γ k)
 ∧ (∀ (i: ℕ ), i<k→ (Ver.get! i)∈ (HL.get! i).verts)
-∧ (∀ (i: ℕ ), i<k→ (S.get! i)∈ (HL.get! i).verts)
+∧ (∀ (i: ℕ ), i<k→ (S.tail.get! i)∈ (HL.get! i).verts)
 
 
 := by
+sorry
+
+/-structure ClumpPathSequence
+ (β : ℕ )(KFam: Finset (Clump G p m κ pr h)) where
+  (Ord: List (Clump G p m κ pr h))
+  (Ord_eq_KFam: Ord.toFinset⊆  KFam)
+  (LM: List (Subgraph G))
+  (LM_in_M: M_list_in_clump_list iI LM Ord)
+  (LM_Sparse: family_sparse β m (LM.toFinset) )
+  (Ver: List V)
+  (VerNoDup: Ver.Nodup)
+  (VerInOrd:Vertex_list_in_clump_list_BSetPlusM iI iV Ord Ver)
+  (hlength: Ord.length ≥  h*pr)
+  (hlengthM: LM.length=Ord.length)
+  (hlengthVer: Ver.length=Ord.length-1)
+  --(LM_NoDup: LM.Nodup)
+-/
+
+
+
+lemma path_forest_support_iff
+(F1: PathForest iV iSP H)
+(x: V)
+:
+x∈  {v | ∃ Pi ∈ F1.P, v ∈ Pi.Pa.Wa.support}
+↔
+∃  (i :ℕ ), i< F1.P.length ∧  x∈  {v | v ∈ (F1.P.get! i).Pa.Wa.support}
+:= by
+constructor
+intro h
+simp at h
+simp
+rcases h with ⟨Pi, hPi, hx⟩
+have hjex: ∃ (j: Fin (F1.P.length)), F1.P.get j=Pi:= by
+  exact List.mem_iff_get.mp hPi
+rcases hjex with ⟨j, hj⟩
+use j
+constructor
+exact j.isLt
+have h4: F1.P.get! ↑j=F1.P.get j:= by
+  simp
+  apply List.getD_eq_get
+rw[h4]
+rw[hj]
+exact hx
+
+intro h
+simp at h
+simp
+rcases h with ⟨i, hi, hx⟩
+use (F1.P.get! i)
+constructor
+have h4: F1.P.getD i default=F1.P.get ⟨i, ?_⟩ := by
+  apply List.getD_eq_get
+simp
+rw[h4]
+refine List.get_mem F1.P i ?h.left.refine_1
+exact hi
+exact hx
+
+
+
+lemma path_forest_support_iff_neg
+(F1: PathForest iV iSP H)
+(x: V)
+:
+x∉   {v | ∃ Pi ∈ F1.P, v ∈ Pi.Pa.Wa.support}
+↔
+∀   (i :ℕ ), i< F1.P.length →   x∉   {v | v ∈ (F1.P.get! i).Pa.Wa.support}
+:= by
+have h1:_:=by exact path_forest_support_iff iV iSP F1 x
+by_contra cont
+simp at cont
+push_neg at cont
+simp at h1
+simp_all only [gt_iff_lt]
+unhygienic
+  aesop_cases
+    cont
+· simp_all only [iff_true]
+  unhygienic
+    with_reducible
+      aesop_destruct_products
+  simp_all only
+· simp_all only [iff_true]
+  unhygienic
+    with_reducible
+      aesop_destruct_products
+  simp_all only
+
+
+lemma clump_path_sequence_gives_path
+(H: Subgraph G)
+(KFam: Finset (Clump G p m κ pr h))
+(Seq: ClumpPathSequence iI iV α KFam)
+(k: ℕ )
+(Ord_length: Seq.Ord.length>k+1)
+:
+∃  (u v: V), ∃  (P: SubgraphPath H u v), P.Wa.length ≥  (k*m)
+
+--Has_length_d_path (Clump_Family_Union KFam) (h*m)
+:=by
+
+have Ord_length2: Seq.Ord.length>k:= by
+  exact Nat.lt_of_succ_lt Ord_length
+
+have LM_length: Seq.LM.length>k:= by
+  rw[Seq.hlengthM]
+  exact Nat.lt_of_succ_lt Ord_length
+have Ver_length: Seq.Ver.length> k:= by
+  rw[Seq.hlengthVer]
+  exact Nat.lt_sub_of_add_lt Ord_length
+have LM_length_ge: Seq.LM.length≥ k:= by
+  exact Nat.le_of_succ_le LM_length
+have Ord_length_ge: Seq.Ord.length≥ k:= by
+  calc
+  Seq.Ord.length ≥ k+1:=by exact Nat.le_of_succ_le Ord_length
+  _≥  k:= by exact Nat.le_add_right k 1
+
+
+have ex_pairs: _:= by
+  apply find_pairs_in_M_list iI iV iSub Seq.Ord Seq.Ver Seq.LM Seq.LM_in_M (k+1)
+  sorry--exact LM_length_ge
+  sorry--exact Ord_length_ge
+  --2 * k + Seq.Ver.length + 2 ≤ m / pr
+  sorry
+  --
+
+rcases ex_pairs with ⟨S, E, hS, hE, hSE, hSVer, hEVer, hSNoDup, hENoDup, hSInLM, hEInLM⟩
+
+
+have ex_HS:_:=by
+  apply add_Ver_to_M_list_starts iI iV iSub Seq.Ord Seq.Ver S Seq.LM Seq.LM_in_M Seq.VerInOrd (k+1)
+  exact fun i a ↦ hSInLM i a
+  sorry--exact LM_length
+  sorry--exact Ord_length2
+  sorry--exact Ver_length
+  sorry
+  exact γ
+  --exact κPositive
+  --exact pPositive
+  --exact mPositive
+
+
+
+have ex_HE:_:=by
+  apply add_Ver_to_M_list iI iV iSub Seq.Ord Seq.Ver E Seq.LM Seq.LM_in_M Seq.VerInOrd (k+1)
+  exact fun i a ↦ hEInLM i a
+  sorry--exact LM_length
+  sorry--exact Ord_length2
+  sorry--exact Ver_length
+  sorry
+  exact γ
+  exact κPositive
+  exact pPositive
+  exact mPositive
+
+
+rcases ex_HS with ⟨HS, hHS_length, hcutdenseS, hVer_in_HS, hS_in_HS⟩
+
+rcases ex_HE with ⟨HE, hHE, hcutdenseE, hVer_in_HE, hE_in_HE⟩
+
+
+let Fb: Set V:= {v: V|v∈ E}
+
+
+have Ver_get_ineq: ∀ (i: ℕ ), i< k+1→i<Seq.Ver.length:= by
+  intro i hi
+  exact Nat.lt_of_lt_of_le hi Ver_length
+
+have Ver_get: ∀ (i: ℕ ), (hi:i< k+1)→Seq.Ver.get! i=Seq.Ver.get ⟨i, Ver_get_ineq i hi⟩:= by
+  intro i hi
+  simp
+  apply List.getD_eq_get
+
+have Ver_get_in_Ver:∀ (i: ℕ ), (hi:i< k+1)→Seq.Ver.get! i∈ Seq.Ver:= by
+  intro i hi
+  rw[Ver_get i hi]
+  exact List.get_mem Seq.Ver i (Ver_get_ineq i hi)
+
+have Ver_get_in_Ver_set:∀ (i: ℕ ), (hi:i< k+1)→Seq.Ver.get! i∈ {v:V|v∈ Seq.Ver}:= by
+  sorry
+
+
+
+have S_get_ineq: ∀ (i: ℕ ), i< k+1→i<S.length:= by
+  intro i hi
+  sorry
+
+have S_get: ∀ (i: ℕ ), (hi:i< k+1)→S.get! i=S.get ⟨i, S_get_ineq i hi⟩:= by
+  intro i hi
+  simp
+  apply List.getD_eq_get
+
+have S_get_in_S:∀ (i: ℕ ), (hi:i< k+1)→S.get! i∈ S:= by
+  intro i hi
+  rw[S_get i hi]
+  exact List.get_mem S i (S_get_ineq i hi)
+
+
+
+have Stail_get_ineq: ∀ (i: ℕ ), i< k+1→i<S.tail.length:= by
+  intro i hi
+  sorry
+
+have Stail_get: ∀ (i: ℕ ), (hi:i< k+1)→S.tail.get! i=S.tail.get ⟨i, Stail_get_ineq i hi⟩:= by
+  intro i hi
+  simp
+  apply List.getD_eq_get
+
+have Stail_get_in_Stail:∀ (i: ℕ ), (hi:i< k+1)→S.tail.get! i∈ S.tail:= by
+  intro i hi
+  rw[Stail_get i hi]
+  exact List.get_mem S.tail i (Stail_get_ineq i hi)
+
+have Stail_get_in_S:∀ (i: ℕ ), (hi:i< k+1)→S.tail.get! i∈ S:= by
+  intro i hi
+  have h1: S.tail⊆ S:=by
+    exact List.tail_subset S
+  exact h1 (Stail_get_in_Stail i hi)
 
 
 
 
-lemma set_disjoint_to_tail_disjoint
+have E_get_ineq: ∀ (i: ℕ ), i< k+1→i<E.length:= by
+  intro i hi
+  sorry
+
+have E_get: ∀ (i: ℕ ), (hi:i< k+1)→E.get! i=E.get ⟨i, E_get_ineq i hi⟩:= by
+  intro i hi
+  simp
+  apply List.getD_eq_get
+
+have E_get_in_S:∀ (i: ℕ ), (hi:i< k+1)→E.get! i∈ E:= by
+  intro i hi
+  rw[E_get i hi]
+  exact List.get_mem E i (E_get_ineq i hi)
+
+
+have LM_get: ∀ (i: ℕ ), (hi:i< k+1)→  (Seq.LM.get! i)∈ (Seq.Ord.get! i).M:= by
+    intro i hi
+    have hi': i< Seq.Ord.length:= by
+      sorry
+    have h34:_:=by exact Seq.LM_in_M i hi'
+    simp
+    simp at h34
+    have h12: Seq.LM.getD i default=Seq.LM.get ⟨i, ?_⟩ := by
+      refine List.getD_eq_get Seq.LM default ?_
+    have h13: Seq.LM.getD i ⊥=Seq.LM.get ⟨i, ?_⟩:= by
+      refine List.getD_eq_get Seq.LM ⊥ ?_
+    rw[h13] at h34
+    rw[h12]
+    exact h34
+    sorry
+
+
+
+have hF1Ex: _:= by
+  apply path_forest_specified_ends_simplified iV iSub iSP H Seq.Ver S.tail HS  k  m Fb _ _ _ _ _ _ _
+  --vertex_list_outside_set iV Seq.Ver Fb (k + 1)
+  intro i hi
+  dsimp[Fb]
+  exact id (List.Disjoint.symm hEVer) (Ver_get_in_Ver i hi)
+  --vertex_list_outside_set iV S Fb (k + 1)
+  intro i hi
+  dsimp[Fb]
+  exact hSE (Stail_get_in_S i hi)
+  --Ver.Nodup
+  exact Seq.VerNoDup
+  --S.Nodup
+  have subl: List.Sublist S.tail S:= by
+    exact List.tail_sublist S
+  exact List.Nodup.sublist subl hSNoDup
+  --cut_dense
+  exact hcutdenseS
+  --small_intersection_list
+  intro i hi
+  --simp
+  calc
+    _
+    =
+    8 * γ * (Fb ∩ (HS.get! i).verts).toFinset.card + (m + 8 * γ * (2 * (k + 1)))
+    :=by
+      simp
+    _≤
+    8 * γ * (Fb).toFinset.card + (m + 8 * γ * (2 * (k + 1))):= by
+      gcongr
+      simp
+    _≤ 8 * γ * (k+1)+ (m + 8 * γ * (2 * (k + 1))):= by
+      gcongr
+      dsimp[Fb]
+      have h1: {v | v ∈ E}.toFinset= E.toFinset:= by
+        ext v
+        simp
+      rw[h1]
+      simp
+      rw [← hE]
+      exact List.toFinset_card_le E
+    _≤ (HS.get! i).verts.toFinset.card:=by sorry
+
+  exact γPositive
+  --vertex_list_in_graph_list iV iSub Seq.Ver HS (k + 1)
+  intro i hi
+  apply hVer_in_HS i hi
+  --vertex_list_in_graph_list iV iSub S HS (k + 1)
+  intro i hi
+  apply hS_in_HS i hi
+  --Disjointness
+  have h23: S.tail⊆ S:= by exact List.tail_subset S
+  exact
+    List.Disjoint.symm
+      ((fun {α} {l₁ l₂} ↦ List.disjoint_left.mpr) fun ⦃a⦄ a_1 ↦
+        id (List.Disjoint.symm hSVer) (h23 a_1))
+  --lengths
+  exact Ver_length
+  sorry
+  sorry
+  --∀ i < k + 1, HS.get! i ≤ H (add this to lemma giving HS)
+  sorry
+
+
+
+
+
+
+
+
+rcases hF1Ex with ⟨F1, hF1S, hF1E, hF1k, hF1P_length, hF1_avoids, hFcard⟩
+
+
+let Fb2: Set V:= /-{v: V|v∈ S}∪-/ ({v:V| v∈ Path_forest_support iV iSP F1}\ {v: V| v∈ Seq.Ver})
+
+
+have hF2Ex: _:= by
+  apply path_forest_specified_ends_simplified iV iSub iSP H E Seq.Ver HE  k  m Fb2 _ _ _ _ _ _ _
+  --vertex_list_outside_set iV Seq.Ver Fb (k + 1)
+  intro i hi
+  dsimp[Fb2]
+  have h43: E.get! i ∉ Path_forest_support iV iSP F1 := by
+    unfold Path_forest_avoids! at hF1_avoids
+    dsimp [Fb] at hF1_avoids
+    unfold Path_forest_support
+    rw[path_forest_support_iff_neg iV iSP F1]
+    intro j hj
+
+    have hdisj1: Disjoint {v | v ∈ (F1.P.get! j).Pa.Wa.support} {v | v ∈ E}:= by
+      apply hF1_avoids j
+      rw[hF1P_length.symm]
+      exact hj
+    have Eget_set:E.get! i∈ {v:V|v∈ E}:= by
+      simp only [ Set.mem_setOf_eq]
+      exact E_get_in_S i hi
+    exact
+      set_disjoint_right (E.get! i) {v | v ∈ (F1.P.get! j).Pa.Wa.support} {v | v ∈ E} hdisj1
+        (E_get_in_S i hi)
+  have h65: Path_forest_support iV iSP F1 \ {v | v ∈ Seq.Ver}⊆ Path_forest_support iV iSP F1 := by
+    exact  Set.diff_subset (Path_forest_support iV iSP F1) {v | v ∈ Seq.Ver}
+  exact fun a ↦ h43 (h65 a)
+  --vertex_list_outside_set iV S Fb (k + 1)
+  intro i hi
+  dsimp[Fb2]
+  simp only [Set.mem_diff, Set.mem_setOf_eq, not_and, Decidable.not_not]
+  intro h99
+  exact Ver_get_in_Ver i hi
+  --E.Nodup
+  exact hENoDup
+  --Ver.Nodup
+  exact Seq.VerNoDup
+
+  --cut_dense
+  exact hcutdenseE
+  --small_intersection_list
+  intro i hi
+  calc
+    _
+    =
+    8 * γ * (Fb2 ∩ (HE.get! i).verts).toFinset.card + (m + 8 * γ * (2 * (k + 1)))
+    :=by
+      simp
+    _≤
+    8 * γ * (Fb2).toFinset.card + (m + 8 * γ * (2 * (k + 1))):= by
+      gcongr
+      simp
+    _≤ 8 * γ * (41 * γ * k)+ (m + 8 * γ * (2 * (k + 1))):= by
+      gcongr
+      dsimp[Fb2]
+      calc
+        (Path_forest_support iV iSP F1 \ {v | v ∈ Seq.Ver}).toFinset.card
+        ≤ (Path_forest_support iV iSP F1).toFinset.card:=by
+          gcongr
+          simp
+          exact Set.diff_subset (Path_forest_support iV iSP F1) {x | x ∈ Seq.Ver}
+        _≤ 41 * γ * k:= by exact hFcard
+    _≤ (HE.get! i).verts.toFinset.card:=by sorry
+
+  exact γPositive
+  --vertex_list_in_graph_list iV iSub S HS (k + 1)
+  intro i hi
+  apply hE_in_HE i hi
+  --vertex_list_in_graph_list iV iSub Seq.Ver HS (k + 1)
+  intro i hi
+  apply hVer_in_HE i hi
+
+  --Disjointness
+  exact hEVer
+  --lengths
+  sorry
+  sorry
+  sorry
+  --∀ i < k + 1, HS.get! i ≤ H (add this to lemma giving HS)
+  sorry
+
+rcases hF2Ex with ⟨F2, hF2S, hF2E, hF2k, hF2P_length, hF2_avoids, hF2card⟩
+
+
+
+
+let Fb3: Set V:=  ({v:V| v∈ Path_forest_support iV iSP F1}∪ {v:V| v∈ Path_forest_support iV iSP F2})\ ({v: V| v∈ S∨ v∈ E})
+
+
+
+
+have hF3Ex: _:= by
+  apply long_path_forest_specified_ends_simplified iV iSub iSP H S E Seq.LM  k  m γ Fb3
+  --LMSparse
+  exact Seq.LM_Sparse
+  --LMgeMfamily
+  unfold HOrder_ge_m_Family
+  intro M hM
+  have h123: _:= by exact Seq.LM_in_M
+  simp at hM
+  unfold M_list_in_clump_list at h123
+  have jex: ∃ (j: Fin (Seq.LM.length)), Seq.LM.get j=M:= by
+    exact List.mem_iff_get.mp hM
+  rcases jex with ⟨j, hj⟩
+  have hget!: Seq.LM.getD ↑j ⊥=Seq.LM.get j:= by
+    apply List.getD_eq_get
+  have h78: M∈  (Seq.Ord.get! j).M:= by
+    rw[hj.symm, hget!.symm]
+    have h:_:= by exact h123 j
+    simp at h
+    simp
+    apply h
+    rw[Seq.hlengthM.symm]
+    exact j.isLt
+  sorry -- using lower bound on size of graphs in M here (which is m/pr) currently
+  --vertex_list_in_graph_list iV iSub S HS (k + 1)
+  intro i hi
+  apply hSInLM i hi
+  --vertex_list_in_graph_list iV iSub S HS (k + 1)
+  intro i hi
+  apply hEInLM i hi  --
+  --Disjointness
+  exact hSE
+  --lengths
+  sorry
+  sorry
+  sorry
+  -- ∀ i < k + 1, Seq.LM.get! i ≤ H
+  sorry
+  --vertex_list_outside_set iV S Fb3 (k + 1)
+  intro i hi
+  dsimp[Fb3]
+  simp only [ Set.mem_union, Set.mem_diff, Set.mem_setOf_eq, not_or, not_and,
+    Decidable.not_not]
+  intro h99 h87
+  exact (h87 (S_get_in_S i hi)).elim
+  --vertex_list_outside_set iV E Fb3 (k + 1)
+  intro i hi
+  dsimp[Fb3]
+  simp only [ Set.mem_union, Set.mem_diff, Set.mem_setOf_eq, not_or, not_and,
+    Decidable.not_not]
+  intro h99 h87
+  exact E_get_in_S i hi
+  --Snodup
+  exact hSNoDup
+  --Enodup
+  exact hENoDup
+  --LMnodup
+  sorry --- should be part of path sequence definition
+  --cut_dense
+  intro i hi
+  have h23: (Seq.LM.get! i)∈ (Seq.Ord.get! i).M:= by
+    apply LM_get i hi
+  --now apply that M graphs are gut dense
+  sorry
+
+  --small_intersection_list
+  intro i hi
+  calc
+    _
+    =
+    8 * γ * (Fb3 ∩ (Seq.LM.get!  i).verts).toFinset.card + (m + 8 * γ * (2 * (k + 1)))
+    :=by
+      simp
+    _≤
+    8 * γ * (Fb3).toFinset.card + (m + 8 * γ * (2 * (k + 1))):= by
+      gcongr
+      simp
+    _≤ 8 * γ * (82 * γ * k)+ (m + 8 * γ * (2 * (k + 1))):= by
+      gcongr
+      dsimp[Fb3]
+      calc
+        ((Path_forest_support iV iSP F1 ∪ Path_forest_support iV iSP F2) \ {v | v ∈ S ∨ v ∈ E}).toFinset.card
+        ≤ ((Path_forest_support iV iSP F1 ∪ Path_forest_support iV iSP F2)).toFinset.card:=by
+          gcongr
+          simp
+        _= ((Path_forest_support iV iSP F1).toFinset ∪ (Path_forest_support iV iSP F2).toFinset).card:= by
+          congr
+          simp
+        _≤ (Path_forest_support iV iSP F1).toFinset.card+ (Path_forest_support iV iSP F2).toFinset.card:= by
+          exact
+            card_union_le (Path_forest_support iV iSP F1).toFinset
+              (Path_forest_support iV iSP F2).toFinset
+
+        _≤ 41 * γ * k+41 * γ * k:= by
+          gcongr
+        _=82 * γ * k:= by ring_nf
+    _≤ (Seq.LM.get! i).verts.toFinset.card:=by
+      have h23: (Seq.LM.get! i)∈ (Seq.Ord.get! i).M:= by
+        apply LM_get i hi        --now use that M-graphs are big
+      sorry
+  exact γPositive
+
+
+
+
+
+
+
+
+  --
+
+--rcases hF3Ex with ⟨F3, hF3a, hF3b, hF3c, hF3d, hF3e⟩
+rcases hF3Ex with ⟨F3, hF3S, hF3E, hF3k, hF3P_length, hF3_avoids, hF3card⟩
+
+
+
+
+have Path_ex: _:= by
+  apply join_three_forests iV iSP H F3 F2 F1 _ _ _ k k
+  sorry;sorry;sorry;sorry;sorry;sorry;sorry;sorry;sorry;
+  sorry;sorry;sorry;sorry;sorry;
+  --F1.E = F2.S
+  rw[hF3E, hF2S]
+  rw[hF2E, hF1S]
+  rw[hF1E, hF3S]
+
+  --
+
+rcases Path_ex with ⟨P, hP1⟩
+
+sorry
+
+
+
+
+
+lemma set_disjoint_to_tail_disjoint_fixed
 (F1  F2: PathForest iV iSP H)
 (Fb: Set V)
 (k: ℕ )
 (F1k: F1.k≥ k)
 (F2_avoids_Fb: Path_forest_avoids! iV iSP F2 Fb k)
-(F1_in_Fb: {v:V| v∈ Path_forest_support iV iSP F1}⊆ Fb)
+(F1_in_Fb: {v:V| v∈ Path_forest_support iV iSP F1}\ {v:V|v∈ F2.S}⊆ Fb)
 :
 ∀(i j: ℕ ), (i< k)→ (j<k)→ (tail_disjoint_imp (F1.P.get! i) (F2.P.get! j))
 := by
 
-
-lemma single_path_forest_tail_disjoint
-(F1 : PathForest iV iSP H)
-(k: ℕ )
-(F1k: F1.k≥ k)
-:
-( ∀(i j: ℕ ), (i< j)→ (j<k)→ (tail_disjoint_imp (F1.P.get! i) (F1.P.get! j)))
-:= by
 intro i j hi hj
-have hpathsdisjoint:_:=by exact F1.Paths_disjoint
-unfold paths_disjoint at hpathsdisjoint
 unfold tail_disjoint_imp
-have hj': j<F1.k:= by
-  exact Nat.lt_of_lt_of_le hj F1k
-have h2:_:= by exact hpathsdisjoint i j hi hj'
-simp at h2
-intro x hx hx2
-have hh2: x∈ {v | v ∈ (F1.P.get! j).Pa.Wa.support}:= by
-  simp
-  exact List.mem_of_mem_tail hx2
-have hh3: x∈ {v | v ∈ (F1.P.get! i).Pa.Wa.support}:= by
-  simp
-  exact hx
-have neg: ¬ (Disjoint {v | v ∈ (F1.P.get! i).Pa.Wa.support} {v | v ∈ (F1.P.get! j).Pa.Wa.support}):= by
-  refine Set.Nonempty.not_disjoint ?_
-  refine Set.inter_nonempty.mpr ?_
-  use x
-exact neg (hpathsdisjoint i j hi hj')
 
+apply Fb_disj_to_tail_disj
 
+exact (F2.P.get! j).Pa.Wa_Is_Path
+calc
+  {v | v ∈ (F1.P.get! i).Pa.Wa.support} \ {(F2.P.get! j).s}
+  --⊆ {v | v ∈ (F1.P.get! i).Pa.Wa.support} := by
+    --exact Set.diff_subset {v | v ∈ (F1.P.get! i).Pa.Wa.support} {(F2.P.get! j).s}
+  ⊆ {v:V| v∈ Path_forest_support iV iSP F1}\ {v:V|v∈ F2.S}:= by
+    simp
+    unfold Path_forest_support
 
+    intro a ha
+    have h78:F1.P.get! i ∈ F1.P:= by
+      simp
+      have h2: F1.P.getD i default=F1.P.get ⟨ i,_⟩:= by
+        refine List.getD_eq_get F1.P default ?_
+        rw[F1.P_length ]
+        exact Nat.lt_of_lt_of_le hi F1k
+      rw[h2]
+      exact
+        List.get_mem F1.P i
+          (Eq.mpr (id (congrArg (fun _a ↦ i < _a) F1.P_length)) (Nat.lt_of_lt_of_le hi F1k))
+    simp
+    simp at ha
+    
+    use F1.P.get! i
+  _⊆ Fb:= by
+    exact F1_in_Fb
 
-
-
-lemma join_three_forests
-(H: Subgraph G)
-(F1 F2 F3: PathForest iV iSP H)
-(hF1_F2: F1.E=F2.S)
-(hF2_F3: F2.E=F3.S)
-(hF3_F1: F3.E=F1.S.tail)
-
-(t tmax: ℕ )
-
-( hdisj11: ∀(i j: ℕ ), (i< j)→ (j<tmax)→ (tail_disjoint_imp (F1.P.get! i) (F1.P.get! j)))
-( hdisj22: ∀(i j: ℕ ), (i< j)→ (j<tmax)→ (tail_disjoint_imp (F2.P.get! i) (F2.P.get! j)))
-( hdisj33: ∀(i j: ℕ ), (i< j)→ (j<tmax)→ (tail_disjoint_imp (F3.P.get! i) (F3.P.get! j)))
-( hdisj12: ∀(i j: ℕ ), (i< tmax)→ (i<tmax)→ (tail_disjoint_imp (F1.P.get! i) (F2.P.get! j)))
-( hdisj21: ∀(i j: ℕ ), (i< tmax)→ (i<tmax)→ (tail_disjoint_imp (F2.P.get! i) (F1.P.get! j)))
-( hdisj13: ∀(i j: ℕ ), (i< tmax)→ (i<tmax)→ (tail_disjoint_imp (F1.P.get! i) (F3.P.get! j)))
-( hdisj31: ∀(i j: ℕ ), (i< tmax)→ (i<tmax)→ (tail_disjoint_imp (F3.P.get! i) (F1.P.get! j)))
-( hdisj23: ∀(i j: ℕ ), (i< tmax)→ (i<tmax)→ (tail_disjoint_imp (F2.P.get! i) (F3.P.get! j)))
-( hdisj32: ∀(i j: ℕ ), (i< tmax)→ (i<tmax)→ (tail_disjoint_imp (F3.P.get! i) (F2.P.get! j)))
-
-(Slength: tmax < F1.S.length)
-
-(ht: t<tmax)
-(pos1: tmax<F1.k)
-(pos2: tmax<F2.k)
-(pos3: tmax<F3.k)
-
-
-:
-∃ (P: SubgraphPath H (F1.S.get! 0) (F3.E.get! (t))),
-{v:V|v∈ P.Wa.support}=Path_forest_support_until_t iV iSP  F1 (t+1)∪ Path_forest_support_until_t iV iSP  F2 (t+1)∪ Path_forest_support_until_t iV iSP  F3 (t+1)
-
-structure SubgraphPath_implicit
-(G: SimpleGraph V) where
-  H: Subgraph G
-  s: V
-  e: V
-  Pa: SubgraphPath H s e
-
-
-
-def starts_equal
-(S : List V)
-(P: List (SubgraphPath_implicit G))
-(k: ℕ )
-:=∀ (i: ℕ ), i< k→ ((S.get! i)=(P.get! i).s)
-
-
-def ends_equal
-(E : List V)
-(P: List (SubgraphPath_implicit G))
-(k: ℕ )
-:=∀ (i: ℕ ), i< k→ ((E.get! i)=(P.get! i).e)
-
-def graphs_equal
-(H : Subgraph G)
-(P: List (SubgraphPath_implicit G))
-(k: ℕ )
-:=∀ (i: ℕ ), i< k→ ((P.get! i).H≤ H)
-
-
-def paths_disjoint
- (P: List (SubgraphPath_implicit G))
-(k: ℕ )
-:=∀ (i j: ℕ ), i< j→ j< k→ (Disjoint {v:V|v∈ (P.get! i).Pa.Wa.support} {v:V|v∈ (P.get! j).Pa.Wa.support})
-
-
-structure PathForest (H: Subgraph G)--(G: SimpleGraph V)(iSP:Inhabited (SubgraphPath_implicit G))
-where
-  (S E: List V)
-  (P: List (SubgraphPath_implicit G))
-  (k: ℕ )
-  (Starts_equal: starts_equal iV iSP S P k)--∀ (i: ℕ ), i< k→ ((S.get! i)=(P.get! i).s))
-  (Ends_equal: ends_equal iV iSP E P k)--∀ (i: ℕ ), i< k→ ((S.get! i)=(P.get! i).e))
-  (Graphs_equal: graphs_equal iSP H P k)--∀ (i: ℕ ), i< k→ (P.get! i).H=H)
-  (Paths_disjoint: paths_disjoint iSP  P k)  --(disjoint: ∀ (i j: ℕ ), i< k→ j< k→ i≠ j→ (List.Disjoint ((P.get! i).Pa.Wa.support) ((P.get! j).Pa.Wa.support)))
-  (P_length: P.length=k)
-
-def Path_forest_support
-{H: Subgraph G}
-(Fo: PathForest iV iSP H)
-: Set V
-:={v: V| ∃ (Pi: SubgraphPath_implicit G), Pi∈ Fo.P∧  (v∈ Pi.Pa.Wa.support)}
-
-
-
-
-
-def Path_forest_avoids
-{H: Subgraph G}
-(Fo: PathForest iV iSP H)
-(Fb: Set V)
-:=
-∀ (i: ℕ ), i< Fo.k→ (Disjoint {v:V|v∈ (Fo.P.get! i).Pa.Wa.support} Fb)
-
-def Path_forest_avoids_list
-{H: Subgraph G}
-(Fo: PathForest iV iSP H)
-(Fb: List V)
-:=
-∀ (i: ℕ ), i< Fo.k→ (List.Disjoint ((Fo.P.get! i).Pa.Wa.support) Fb)
-
-
-def cut_dense_list
-(HL: List (Subgraph G))
-(p: ℕ )
-:=∀(i: Fin (HL.length)),  (cut_dense G  (HL.get i) p)
-
-def small_intersection_list
-(HL: List (Subgraph G))
-(Fb: Set V)
-(p e: ℕ )
---(k: ℕ )
-:=∀(i: Fin (HL.length)),
-(8*p*
-(Fb∩ (HL.get i).verts).toFinset.card+e≤ (HL.get i).verts.toFinset.card
-)
-
-def vertex_list_in_graph_list
-(S: List V)
-(HL: List (Subgraph G))
-(k: ℕ )
-:=∀ (i: ℕ ), i< k→ (S.get! i)∈ (HL.get! i).verts
-
-
-def vertex_list_outside_set
-(S: List V)
-(Fb: Set V)
-(k: ℕ )
-:=∀ (i: ℕ ), i< k→ (S.get! i)∉ Fb
-
-structure SubgraphWalk
-(H: Subgraph G) (u v: V) where
-  Wa: G.Walk u v
-  Wa_In_H: Wa.toSubgraph≤ H
-
-structure SubgraphPath
-(H: Subgraph G) (u v: V) where
-  Wa: G.Walk u v
-  Wa_Is_Path: Wa.IsPath
-  Wa_In_H: Wa.toSubgraph≤ H
--/
+apply F2_avoids_Fb
+exact hj

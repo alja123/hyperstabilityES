@@ -588,7 +588,7 @@ have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.l
           congr
           simp
 
-        _≤(∑  (x∈ Finset.Ico 0 k), (m))/kmax:= by
+        _≤(∑  (x∈ Finset.Ico 0 k), (m))/kmax:= by--change m/kmax to m/4*kmax*pr
           gcongr with j hj
 
           have h91: j< HL.length:= by
