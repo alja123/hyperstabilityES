@@ -138,8 +138,8 @@ lemma long_path_forest_specified_ends_simplified
 --(Fbcard: small_intersection_list  HL Fb p (m +8*p*(2*1*kmax)))--∀(i: ℕ ), (i< k)→ (8*p*(((HL.get! i).verts∩ Fb).toFinset.card≤ (HL.get! i).verts.toFinset.card)))
 :
 ∃ (Fo: PathForest iV iSP H),
-Fo.S=S
-∧ Fo.E=E
+(Fo.S= S.take k)
+∧  (Fo.E=  E.take k)
 ∧ Fo.k=k
 ∧ Fo.P.length=k
 --∧ Path_forest_avoids iV iSP Fo Fb
@@ -148,6 +148,9 @@ Fo.S=S
 --∧ Path_forest_avoids iV iSP Fo {v:V|v∈ (List.drop k S)}
 --∧ Path_forest_avoids  iV iSP Fo {v:V|v∈ (List.drop k E)}
 ∧ Path_forest_long  iV iSP Fo (m/(40*p))
+
+∧ Fo.S.length=k
+∧ Fo.E.length=k
 --∧ Path_forest_in_HL iV iSub iSP HL Fo
 := by
 
@@ -389,15 +392,16 @@ have happly:_:= by
   exact pPositive
 
 
+
 rcases happly with ⟨Fo, hFoa, hFob, hFoc, hFod, hFoe, hFof, hFog, hFoh, hFoi⟩
-let F:PathForest iV iSP H:= ⟨S, E,  Fo.P, k, ?_, ?_, ?_, ?_, ?_⟩
+let F:PathForest iV iSP H:= ⟨ S.take k, E.take k,  Fo.P, k, ?_, ?_, ?_, ?_, ?_⟩
 
 use F
 
 constructor
-exact rfl
+exact rfl--sorry --
 constructor
-exact rfl
+dsimp[F]
 constructor
 exact rfl
 constructor
@@ -406,10 +410,14 @@ constructor
 intro i hi
 apply hFoe
 exact Nat.lt_of_lt_of_eq hi (id hFoc.symm)
+
+constructor
 intro i hi
 apply hFoh
 rw[hFoc]
 exact hi
+
+sorry
 
 intro i hi
 rw[hFoc.symm] at hi
@@ -417,7 +425,8 @@ rw[(Fo.Starts_equal i hi).symm]
 rw[hFoa]
 rw [Sget i]
 rw[hFoc.symm]
-exact Nat.lt_add_right 1 hi
+sorry --exact Nat.lt_add_right 1 hi
+sorry
 
 intro i hi
 rw[hFoc.symm] at hi
@@ -425,8 +434,8 @@ rw[(Fo.Ends_equal i hi).symm]
 rw[hFob]
 rw [Eget i]
 rw[hFoc.symm]
-exact Nat.lt_add_right 1 hi
-
+sorry--
+sorry
 rw[hFoc.symm]
 exact Fo.Graphs_equal
 
@@ -441,6 +450,53 @@ exact hFod
 
 
 
+
+
+lemma path_forest_specified_ends_simplified_prefix
+(H: Subgraph G)
+(S E: List V)
+(HL: List (Subgraph G))
+(k m : ℕ )
+(Fb: Set V)
+
+(SinH: vertex_list_in_graph_list iV iSub S HL (k+1))---change
+(EinH: vertex_list_in_graph_list iV iSub E HL (k+1))---change
+
+(SE_Disjoint : List.Disjoint S E)
+
+
+(Slength: S.length> k)
+(Elength: E.length> k)
+(HLlength: HL.length> k)
+
+
+
+(HL_in_H: ∀ (i: ℕ  ), i<k+1→  (HL.get! i≤ H))
+
+
+(SoutsideFb: vertex_list_outside_set iV S Fb (k+1))
+(EoutsideFb: vertex_list_outside_set iV E Fb (k+1))
+
+(Snodup: S.Nodup)
+(Enodup: E.Nodup)
+
+
+(cutdense: cut_dense_list! iSub HL p (k+1))---change--∀(i: ℕ ), (i< k)→ (cut_dense G  (HL.get! i) p))
+(Fbcard: small_intersection_list!  iSub HL Fb p m (k+1))---change--∀(i: ℕ ), (i< k)→ (8*p*(((HL.get! i).verts∩ Fb).toFinset.card≤ (HL.get! i).verts.toFinset.card)))
+:
+∃ (Fo: PathForest iV iSP H),
+Fo.S= S.take k
+∧ Fo.E= E.take k
+∧ Fo.k=k
+∧ Fo.P.length=k
+∧ Path_forest_avoids! iV iSP Fo Fb k---change
+∧ (Path_forest_support iV iSP Fo ).toFinset.card≤ 41*p*k
+--∧ Path_forest_avoids! iV iSP Fo {v:V|v∈ (List.drop k S)} k---change
+--∧ Path_forest_avoids!  iV iSP Fo {v:V|v∈ (List.drop k E)} k---change
+∧ Fo.S.length=k
+∧ Fo.E.length=k
+:= by
+sorry
 
 
 
@@ -1532,6 +1588,321 @@ have neg: ¬ (Disjoint {v | v ∈ (F1.P.get! i).Pa.Wa.support} {v | v ∈ (F1.P.
   use x
 exact neg (hpathsdisjoint i j hi hj')
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+lemma add_Ver_to_M_list_starts
+(Ord: List (Clump G p m κ pr h))
+(Ver S: List V)
+
+(LM: List (Subgraph G))
+(LM_in_M: M_list_in_clump_list iI LM Ord)
+(VerInOrd:Vertex_list_in_clump_list_BSetPlusM iI iV Ord Ver)
+(k:ℕ )
+
+(hSML: ∀ (i: ℕ ), i<k+1→ (S.get! i)∈ (LM.get! i).verts)
+
+(LM_length: LM.length> k+1)
+(Ord_length: Ord.length> k+1)
+(Ver_length: Ver.length> k)
+(S_length: S.length> k+1)
+:
+∃ (HL: List  (Subgraph G)),
+(HL.length=k+1)
+∧ (cut_dense_list! iSub HL γ (k+1))
+∧ (∀ (i: ℕ ), i<k→ (Ver.get! i)∈ (HL.get! (i+1)).verts)
+∧ (∀ (i: ℕ ), i<k+1→ (S.get! (i))∈ (HL.get! i).verts)
+
+
+:= by
+unfold Vertex_list_in_clump_list_BSetPlusM at VerInOrd
+
+
+induction' k with k IH
+let K:Subgraph G:= (Ord.get! 0).C
+use [K]
+constructor
+exact rfl
+constructor
+intro i hi
+--cutdense
+sorry
+constructor
+intro i hi
+
+sorry
+sorry
+-----------induction-------------
+
+have LM_length'': LM.length> k+1:= by
+  exact Nat.lt_of_succ_lt LM_length
+have LM_length': LM.length> k:= by
+  exact Nat.lt_of_succ_lt LM_length''
+have Ord_length'': Ord.length> k+1:= by
+  exact Nat.lt_of_succ_lt Ord_length
+have Ord_length': Ord.length> k:= by
+  exact Nat.lt_of_succ_lt Ord_length''
+have Ver_length': Ver.length> k:= by
+  exact Nat.lt_of_succ_lt Ver_length
+have S_length'': S.length> k+1:= by
+  exact Nat.lt_of_succ_lt S_length
+have S_length': S.length> k:= by
+  exact Nat.lt_of_succ_lt S_length''
+have hSinLM: ∀ i < k+1, S.get! (i) ∈ (LM.get! i).verts:= by
+  intro i hi
+  apply hSML i
+  exact Nat.lt_add_right 1 hi
+have ind: _:= by exact IH hSinLM LM_length'' Ord_length'' Ver_length' S_length''
+
+rcases ind with ⟨HL, HLl, Hcd,VerHL,SHL  ⟩
+
+
+have hkl: k<Ord.length:= by exact Ord_length'
+have hkm: k<LM.length:= by exact LM_length'
+have hkm': k+1<LM.length:= by exact LM_length''
+
+
+
+
+have MinOrd:LM.get! k ∈ (Ord.get! k).M:= by
+  unfold M_list_in_clump_list at LM_in_M
+  have h2:_:= by exact  LM_in_M k  hkl
+  simp at h2
+  simp
+  have h3: LM.getD k default=LM.get ⟨k, hkm ⟩:= by
+    exact List.getD_eq_get LM default hkm
+  have h4: LM.getD k ⊥=LM.get ⟨k, hkm ⟩:= by
+    exact List.getD_eq_get LM ⊥ hkm
+  rw[h3]
+  rw[h4] at h2
+  exact h2
+
+
+have MinOrd:Ver.get! k ∈  BSetPlusM (Ord.get! k) ∩ BSetPlusM (Ord.get! (k + 1)):= by
+  apply VerInOrd
+  exact Nat.lt_sub_of_add_lt Ord_length''
+have MinOrd2:Ver.get! k ∈  BSetPlusM (Ord.get! (k+1)):= by
+  exact Set.mem_of_mem_inter_right MinOrd
+
+have Hi_ex: ∃ (Hi: Subgraph G), Hi∈  (Ord.get! (k+1)).H ∧ Ver.get! k∈ Hi.verts:= by
+  sorry
+rcases Hi_ex with ⟨Hi, hHi, hVerHi⟩
+
+
+let K:Subgraph G:= (Ord.get! (k+1)).C ⊔Hi
+have Kcut_dense: cut_dense G K γ:= by
+  apply clump_add_Hi_cut_dense
+  exact mPositive
+  exact pPositive
+  exact κPositive
+  --γ ≥ 16 * κ ^ (2 * (100 * (Ord.get! k).k).factorial)
+  sorry
+  exact hHi
+
+let HL':List (Subgraph G):= HL++[K]
+use HL'
+
+constructor
+dsimp[HL']
+simp
+exact HLl
+
+
+-----cutdense
+constructor
+dsimp[HL']
+intro i hi
+by_cases case: i<k+1
+have h1: (HL ++ [K]).get! i =HL.get! i := by
+  simp
+  apply List.getD_append
+  exact Nat.lt_of_lt_of_eq case (id HLl.symm)
+rw[h1]
+apply   Hcd i case
+
+have hi2: i=k+1:= by exact Nat.eq_of_lt_succ_of_not_lt hi case
+rw[hi2]
+
+have h1: (HL ++ [K]).get! (k+1) =[K].get! ((k+1)-HL.length) := by
+  simp only [List.get!_eq_getD]
+  apply List.getD_append_right HL [K] default (k+1)
+  exact Nat.le_of_eq HLl
+rw[HLl] at h1
+simp only [ge_iff_le, le_refl, tsub_eq_zero_of_le, List.getD_cons_zero] at h1
+rw [@List.get!_cons_zero] at h1
+rw[h1]
+exact Kcut_dense
+
+constructor
+----Ver in HL
+dsimp[HL']
+intro i hi
+by_cases case: i<k
+have h1: (HL ++ [K]).get! (i+1) =HL.get! (i+1) := by
+  simp
+  apply List.getD_append
+  calc
+    i+1 < k+1:= by
+      exact Nat.add_lt_add_right case 1
+    _= HL.length:= by
+      exact HLl.symm
+rw[h1]
+exact VerHL i case
+
+have hi2: i=k:= by exact Nat.eq_of_lt_succ_of_not_lt hi case
+rw[hi2]
+
+have h1: (HL ++ [K]).get! (k+1) =[K].get! ((k+1)-HL.length) := by
+  simp only [List.get!_eq_getD]
+  apply List.getD_append_right HL [K] default (k+1)
+  exact Nat.le_of_eq HLl
+rw[HLl] at h1
+simp only [ge_iff_le, le_refl, tsub_eq_zero_of_le, List.getD_cons_zero] at h1
+rw [@List.get!_cons_zero] at h1
+rw[h1]
+dsimp[K]
+exact Set.mem_union_right (Ord.get! (k + 1)).C.verts hVerHi
+
+----S in HL
+dsimp[HL']
+intro i hi
+by_cases case: i<k+1
+have h1: (HL ++ [K]).get! i =HL.get! i := by
+  simp
+  apply List.getD_append
+  exact Nat.lt_of_lt_of_eq case (id HLl.symm)
+rw[h1]
+exact SHL i case
+
+have hi2: i=k+1:= by exact Nat.eq_of_lt_succ_of_not_lt hi case
+rw[hi2]
+
+have h1: (HL ++ [K]).get! (k+1) =[K].get! ((k+1)-HL.length) := by
+  simp only [List.get!_eq_getD]
+  apply List.getD_append_right HL [K] default (k+1)
+  exact Nat.le_of_eq HLl
+rw[HLl] at h1
+simp only [ge_iff_le, le_refl, tsub_eq_zero_of_le, List.getD_cons_zero] at h1
+rw [@List.get!_cons_zero] at h1
+rw[h1]
+dsimp[K]
+
+have hSinMM: S.get! (k+1) ∈(LM.get! (k+1)).verts:= by
+  apply hSML (k+1)
+  exact lt_add_one (k + 1)
+
+unfold M_list_in_clump_list at LM_in_M
+have hMM: LM.get! (k + 1) ∈ (Ord.get! (k + 1)).M:= by
+  have h55:_:=by
+    apply LM_in_M (k + 1)
+    exact Ord_length''
+  simp at h55
+  simp
+  have h3: LM.getD (k + 1) default=LM.get ⟨(k + 1), hkm' ⟩:= by
+    exact List.getD_eq_get LM default hkm'
+  have h4: LM.getD (k + 1) ⊥=LM.get ⟨(k + 1), hkm' ⟩:= by
+    exact List.getD_eq_get LM ⊥ hkm'
+  rw[h3]
+  rw[h4] at h55
+  exact h55
+have In_C:(LM.get! (k + 1)).verts⊆ (Ord.get! (k + 1)).C.verts:= by
+  sorry
+exact Set.mem_union_left Hi.verts (In_C hSinMM)
+
+
+
+
+
+
+
+
+lemma add_Ver_to_M_list_starts_alt
+(Ord: List (Clump G p m κ pr h))
+(Ver S: List V)
+
+(LM: List (Subgraph G))
+(LM_in_M: M_list_in_clump_list iI LM Ord)
+(VerInOrd:Vertex_list_in_clump_list_BSetPlusM iI iV Ord Ver)
+(k:ℕ )
+
+(hSML: ∀ (i: ℕ ), i<k+1+1→ (S.get! i)∈ (LM.get! i).verts)
+
+(LM_length: LM.length> k+1+1)
+(Ord_length: Ord.length> k+1+1)
+(Ver_length: Ver.length> k+1)
+(S_length: S.length> k+1+1)
+:
+∃ (HL: List  (Subgraph G)),
+(HL.length=k)
+∧ (cut_dense_list! iSub HL γ (k))
+∧ (∀ (i: ℕ ), i<k→ (Ver.get! i)∈ (HL.get! (i)).verts)
+∧ (∀ (i: ℕ ), i<k→ (S.tail.get! (i))∈ (HL.get! i).verts)
+
+
+:=by
+have hex:_:= by
+  apply add_Ver_to_M_list_starts _  _ iSub  Ord Ver S LM LM_in_M VerInOrd (k+1) _ LM_length Ord_length Ver_length S_length
+  use γ
+  exact κPositive
+  exact pPositive
+  exact mPositive
+  exact hSML
+
+
+
+
+rcases hex with ⟨HL, HLl, Hcd,VerHL,SHL  ⟩
+use HL.tail
+
+have htail_get: ∀ i < k, (HL.tail).get! i = HL.get! (i+1):= by
+  intro i hi
+  simp
+  sorry
+have stail_get: ∀ i < k, (S.tail).get! i = S.get! (i+1):= by
+  intro i hi
+  simp
+  sorry
+
+constructor
+sorry
+constructor
+intro i hi
+rw[htail_get i hi]
+apply Hcd
+simp
+exact Nat.lt_add_right 1 hi
+
+constructor
+intro i hi
+rw[htail_get i hi]
+apply VerHL
+exact Nat.lt_add_right 1 hi
+
+intro i hi
+rw[htail_get i hi]
+rw[stail_get i hi]
+apply SHL (i+1)
+simp
+exact Nat.lt_add_right 1 hi
 
 
 /-lemma Fb_disj_to_tail_disj

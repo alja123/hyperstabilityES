@@ -58,63 +58,6 @@ have h2: ¬ (Disjoint S T):= by
   refine Set.not_disjoint_iff.mpr ?_
   use v
 exact h2 disj
-/-
-
-lemma finset_disjoint_left_list
-(v: V)
-(T: List V)
-(S: Finset V)
-(disj: Disjoint S T.toFinset)
-(hv: v∈ S)
-:
-v∉ T:= by
-have h1: v∉ T.toFinset:= by exact   finset_disjoint_right v T.toFinset S (id (Disjoint.symm disj)) hv
-by_contra cont
-have h2: v∈ T.toFinset:= by exact List.mem_toFinset.mpr cont
-exact h1 h2
-
-
-lemma finset_disjoint_right_list
-(v: V)
-(T: List V)
-(S: Finset V)
-(disj: Disjoint T.toFinset S )
-(hv: v∈ S)
-:
-v∉ T:= by
-have h1: v∉ T.toFinset:= by exact finset_disjoint_right v T.toFinset S disj hv
-by_contra cont
-have h2: v∈ T.toFinset:= by exact List.mem_toFinset.mpr cont
-exact h1 h2
-
-
--/
-
-lemma add_Ver_to_M_list_starts
-(Ord: List (Clump G p m κ pr h))
-(Ver S: List V)
-
-(LM: List (Subgraph G))
-(LM_in_M: M_list_in_clump_list iI LM Ord)
-(VerInOrd:Vertex_list_in_clump_list_BSetPlusM iI iV Ord Ver)
-(k:ℕ )
-
-(hSML: ∀ (i: ℕ ), i<k→ (S.get! i)∈ (LM.get! i).verts)
-
-(LM_length: LM.length> k)
-(Ord_length: Ord.length> k)
-(Ver_length: Ver.length> k)
-(S_length: S.length> k)
-:
-∃ (HL: List  (Subgraph G)),
-(HL.length=k)
-∧ (cut_dense_list! iSub HL γ k)
-∧ (∀ (i: ℕ ), i<k→ (Ver.get! i)∈ (HL.get! i).verts)
-∧ (∀ (i: ℕ ), i<k→ (S.tail.get! i)∈ (HL.get! i).verts)
-
-
-:= by
-sorry
 
 /-structure ClumpPathSequence
  (β : ℕ )(KFam: Finset (Clump G p m κ pr h)) where
@@ -131,6 +74,7 @@ sorry
   (hlengthVer: Ver.length=Ord.length-1)
   --(LM_NoDup: LM.Nodup)
 -/
+
 
 
 
@@ -246,16 +190,16 @@ rcases ex_pairs with ⟨S, E, hS, hE, hSE, hSVer, hEVer, hSNoDup, hENoDup, hSInL
 
 
 have ex_HS:_:=by
-  apply add_Ver_to_M_list_starts iI iV iSub Seq.Ord Seq.Ver S Seq.LM Seq.LM_in_M Seq.VerInOrd (k+1)
-  exact fun i a ↦ hSInLM i a
+  apply add_Ver_to_M_list_starts_alt iI iV iSub Seq.Ord Seq.Ver S Seq.LM Seq.LM_in_M Seq.VerInOrd (k+1)
+  sorry --exact fun i a ↦ hSInLM i a
   sorry--exact LM_length
   sorry--exact Ord_length2
   sorry--exact Ver_length
   sorry
   exact γ
-  --exact κPositive
-  --exact pPositive
-  --exact mPositive
+  exact κPositive
+  exact pPositive
+  exact mPositive
 
 
 
@@ -372,7 +316,7 @@ have LM_get: ∀ (i: ℕ ), (hi:i< k+1)→  (Seq.LM.get! i)∈ (Seq.Ord.get! i).
 
 
 have hF1Ex: _:= by
-  apply path_forest_specified_ends_simplified iV iSub iSP H Seq.Ver S.tail HS  k  m Fb _ _ _ _ _ _ _
+  apply path_forest_specified_ends_simplified_prefix iV iSub iSP H Seq.Ver S.tail HS  k  m Fb _ _ _ _ _ _ _
   --vertex_list_outside_set iV Seq.Ver Fb (k + 1)
   intro i hi
   dsimp[Fb]
@@ -414,7 +358,7 @@ have hF1Ex: _:= by
       exact List.toFinset_card_le E
     _≤ (HS.get! i).verts.toFinset.card:=by sorry
 
-  exact γPositive
+  --exact γPositive
   --vertex_list_in_graph_list iV iSub Seq.Ver HS (k + 1)
   intro i hi
   apply hVer_in_HS i hi
@@ -441,14 +385,14 @@ have hF1Ex: _:= by
 
 
 
-rcases hF1Ex with ⟨F1, hF1S, hF1E, hF1k, hF1P_length, hF1_avoids, hFcard⟩
+rcases hF1Ex with ⟨F1, hF1S, hF1E, hF1k, hF1P_length, hF1_avoids, hFcard, S1length, E1length⟩
 
 
-let Fb2: Set V:= /-{v: V|v∈ S}∪-/ ({v:V| v∈ Path_forest_support iV iSP F1}\ {v: V| v∈ Seq.Ver})
+let Fb2: Set V:= /-{v: V|v∈ S}∪-/ ({v:V| v∈ Path_forest_support iV iSP F1}\ {v: V| v∈ Seq.Ver.take k})
 
 
 have hF2Ex: _:= by
-  apply path_forest_specified_ends_simplified iV iSub iSP H E Seq.Ver HE  k  m Fb2 _ _ _ _ _ _ _
+  apply path_forest_specified_ends_simplified_prefix iV iSub iSP H E Seq.Ver HE  k  m Fb2 _ _ _ _ _ _ _
   --vertex_list_outside_set iV Seq.Ver Fb (k + 1)
   intro i hi
   dsimp[Fb2]
@@ -471,13 +415,13 @@ have hF2Ex: _:= by
         (E_get_in_S i hi)
   have h65: Path_forest_support iV iSP F1 \ {v | v ∈ Seq.Ver}⊆ Path_forest_support iV iSP F1 := by
     exact  Set.diff_subset (Path_forest_support iV iSP F1) {v | v ∈ Seq.Ver}
-  exact fun a ↦ h43 (h65 a)
+  sorry--reduce k by 1--exact fun a ↦ h43 (h65 a)
   --vertex_list_outside_set iV S Fb (k + 1)
   intro i hi
   dsimp[Fb2]
   simp only [Set.mem_diff, Set.mem_setOf_eq, not_and, Decidable.not_not]
   intro h99
-  exact Ver_get_in_Ver i hi
+  sorry -- reduce k by 1--exact Ver_get_in_Ver i hi
   --E.Nodup
   exact hENoDup
   --Ver.Nodup
@@ -501,15 +445,15 @@ have hF2Ex: _:= by
       gcongr
       dsimp[Fb2]
       calc
-        (Path_forest_support iV iSP F1 \ {v | v ∈ Seq.Ver}).toFinset.card
+        (Path_forest_support iV iSP F1 \ {v | v ∈ Seq.Ver.take k}).toFinset.card
         ≤ (Path_forest_support iV iSP F1).toFinset.card:=by
           gcongr
           simp
-          exact Set.diff_subset (Path_forest_support iV iSP F1) {x | x ∈ Seq.Ver}
+          exact Set.diff_subset (Path_forest_support iV iSP F1) _
         _≤ 41 * γ * k:= by exact hFcard
     _≤ (HE.get! i).verts.toFinset.card:=by sorry
 
-  exact γPositive
+  --exact γPositive
   --vertex_list_in_graph_list iV iSub S HS (k + 1)
   intro i hi
   apply hE_in_HE i hi
@@ -526,12 +470,12 @@ have hF2Ex: _:= by
   --∀ i < k + 1, HS.get! i ≤ H (add this to lemma giving HS)
   sorry
 
-rcases hF2Ex with ⟨F2, hF2S, hF2E, hF2k, hF2P_length, hF2_avoids, hF2card⟩
+rcases hF2Ex with ⟨F2, hF2S, hF2E, hF2k, hF2P_length, hF2_avoids, hF2card, S2lenght, E2length⟩
 
 
 
 
-let Fb3: Set V:=  ({v:V| v∈ Path_forest_support iV iSP F1}∪ {v:V| v∈ Path_forest_support iV iSP F2})\ ({v: V| v∈ S∨ v∈ E})
+let Fb3: Set V:=  ({v:V| v∈ Path_forest_support iV iSP F1}∪ {v:V| v∈ Path_forest_support iV iSP F2})\ ({v: V| v∈ (S.take k)∨ v∈ (E.take k)})
 
 
 
@@ -580,14 +524,14 @@ have hF3Ex: _:= by
   simp only [ Set.mem_union, Set.mem_diff, Set.mem_setOf_eq, not_or, not_and,
     Decidable.not_not]
   intro h99 h87
-  exact (h87 (S_get_in_S i hi)).elim
+  sorry--exact (h87 (S_get_in_S i hi)).elim
   --vertex_list_outside_set iV E Fb3 (k + 1)
   intro i hi
   dsimp[Fb3]
   simp only [ Set.mem_union, Set.mem_diff, Set.mem_setOf_eq, not_or, not_and,
     Decidable.not_not]
   intro h99 h87
-  exact E_get_in_S i hi
+  sorry--exact E_get_in_S i hi
   --Snodup
   exact hSNoDup
   --Enodup
@@ -617,7 +561,7 @@ have hF3Ex: _:= by
       gcongr
       dsimp[Fb3]
       calc
-        ((Path_forest_support iV iSP F1 ∪ Path_forest_support iV iSP F2) \ {v | v ∈ S ∨ v ∈ E}).toFinset.card
+        ((Path_forest_support iV iSP F1 ∪ Path_forest_support iV iSP F2) \ {v | v ∈ (S.take k) ∨ v ∈ (E.take k)}).toFinset.card
         ≤ ((Path_forest_support iV iSP F1 ∪ Path_forest_support iV iSP F2)).toFinset.card:=by
           gcongr
           simp
@@ -648,7 +592,7 @@ have hF3Ex: _:= by
   --
 
 --rcases hF3Ex with ⟨F3, hF3a, hF3b, hF3c, hF3d, hF3e⟩
-rcases hF3Ex with ⟨F3, hF3S, hF3E, hF3k, hF3P_length, hF3_avoids, hF3card⟩
+rcases hF3Ex with ⟨F3, hF3S, hF3E, hF3k, hF3P_length, hF3_avoids, hF3card, S3length, E3length⟩
 
 
 
@@ -661,6 +605,7 @@ have Path_ex: _:= by
   rw[hF3E, hF2S]
   rw[hF2E, hF1S]
   rw[hF1E, hF3S]
+  sorry
 
   --
 
@@ -672,6 +617,32 @@ sorry
 
 
 
+/-lemma add_Ver_to_M_list_starts_alt
+(Ord: List (Clump G p m κ pr h))
+(Ver S: List V)
+
+(LM: List (Subgraph G))
+(LM_in_M: M_list_in_clump_list iI LM Ord)
+(VerInOrd:Vertex_list_in_clump_list_BSetPlusM iI iV Ord Ver)
+(k:ℕ )
+
+(hSML: ∀ (i: ℕ ), i<k+1+1→ (S.get! i)∈ (LM.get! i).verts)
+
+(LM_length: LM.length> k+1+1)
+(Ord_length: Ord.length> k+1+1)
+(Ver_length: Ver.length> k+1)
+(S_length: S.length> k+1+1)
+:
+∃ (HL: List  (Subgraph G)),
+(HL.length=k)
+∧ (cut_dense_list! iSub HL γ (k))
+∧ (∀ (i: ℕ ), i<k→ (Ver.get! i)∈ (HL.get! (i)).verts)
+∧ (∀ (i: ℕ ), i<k→ (S.tail.get! (i))∈ (HL.get! i).verts)
+
+-/
+
+
+/-
 lemma set_disjoint_to_tail_disjoint_fixed
 (F1  F2: PathForest iV iSP H)
 (Fb: Set V)
@@ -710,10 +681,11 @@ calc
           (Eq.mpr (id (congrArg (fun _a ↦ i < _a) F1.P_length)) (Nat.lt_of_lt_of_le hi F1k))
     simp
     simp at ha
-    
+
     use F1.P.get! i
   _⊆ Fb:= by
     exact F1_in_Fb
 
 apply F2_avoids_Fb
 exact hj
+-/
