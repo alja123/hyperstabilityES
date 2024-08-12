@@ -512,6 +512,7 @@ exact ⟨A'Nonemp, B'Nonemp ⟩
 
 theorem cut_dense_negation2
 (H: Subgraph G)
+
 (hlarge: H.verts.toFinset.card≥ 20)
 (not_cut_dense : ¬cut_dense G H p)
 :∃(A B: Finset V),
