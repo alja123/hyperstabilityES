@@ -51,6 +51,25 @@ variable {mggpr: m≫ pr}
   --(LM_NoDup: LM.Nodup)
 -/
 
+lemma set_disjoint_to_internal_disjoint_reverse_taildisj_symm2_tailaligned2
+(F1  F2: PathForest iV iSP H)
+(Fb: Set V)
+(k: ℕ )
+(F1k: F1.k≥ k)
+(F2k: F2.k≥ k)
+(F2k2: F2.k = F2.S.length)
+(F1k2: F1.k = F1.E.length)
+(Ends_eq:F1.E=F2.S.tail)
+(F2SNodup: F2.E.Nodup)
+(F2_avoids_Fb: Path_forest_avoids! iV iSP F2 Fb k)
+(F1_in_Fb: {v:V| v∈ Path_forest_support iV iSP F1∧ v∉ F2.S}= Fb)
+(hk: F1.k=F1.S.length)
+:
+∀(j i: ℕ ), (j< k)→ (i<k)→ j≠ i+1→  (tail_disjoint_imp  (F2.P.get! j) (F1.P.get! i))
+:= by
+sorry
+
+
 
 
 
@@ -59,7 +78,7 @@ lemma clump_path_sequence_gives_path2
 (KFam: Finset (Clump G p m κ pr h))
 (Seq: ClumpPathSequence iI iV α KFam)
 (k: ℕ )
-(Ord_length: Seq.Ord.length>k+1)
+(Ord_length: Seq.Ord.length>k+3)
 :
 ∃  (u v: V), ∃  (P: SubgraphPath H u v), P.Wa.length ≥  (k*m)
 
@@ -385,6 +404,7 @@ let Fb3: Set V:=  ({v:V| v∈ Path_forest_support iV iSP F1}∪ {v:V| v∈ Path_
 
 
 
+
 have hF3Ex: _:= by
   apply long_path_forest_specified_ends_simplified iV iSub iSP H S E Seq.LM  k  m γ Fb3
   --LMSparse
@@ -510,6 +530,149 @@ have F2_ge_k:F2.k≥ k:= by
     F2.k = k:= by exact hF2k
     _≥ k:= by exact Nat.le_refl k
 
+have F1_ge_k:F1.k≥ k:= by
+  calc
+    F1.k = k:= by exact hF1k
+    _≥ k:= by exact Nat.le_refl k
+
+
+have F2avoids': Path_forest_avoids! iV iSP F1 {v:V|v∈ Path_forest_support iV iSP F2 ∧ v∉ F1.S} k:= by
+
+  apply Fb_disj_symm2
+  exact hF1k
+  sorry
+  sorry
+  exact hF2_avoids
+  sorry
+  exact rfl
+
+
+have Fb3Cont1: {v:V| v∈ Path_forest_support iV iSP F1}\ {v: V| v∈ (S.take k)}⊆ Fb3:= by
+  dsimp[Fb3]
+  intro x hx
+  simp
+  simp at hx
+  constructor
+  left
+  exact hx.1
+  constructor
+  exact hx.2
+  dsimp[Fb] at hF1_avoids
+  unfold Path_forest_avoids! at hF1_avoids
+  unfold Path_forest_support at hx
+  simp at hx
+  rcases hx.1 with ⟨P2, hP2a, hP2b⟩
+  have jex: ∃ (j: Fin (F1.P.length) ),  F1.P.get j=P2:= by
+    apply List.mem_iff_get.1
+    exact hP2a
+  rcases jex with ⟨j, hj⟩
+  have jget: F1.P.get j =F1.P.get! j:= by
+    simp
+    symm
+    apply List.getD_eq_get
+  rw[hj.symm, jget] at hP2b
+  have hdis: Disjoint {v | v ∈ (F1.P.get! j).Pa.Wa.support} {v | v ∈ E}:= by
+    apply hF1_avoids
+    calc
+      j< F1.P.length:= by exact j.isLt
+      _= k:= by exact hF1P_length
+  have xin: x∈ {v | v ∈ (F1.P.get! ↑j).Pa.Wa.support}:= by
+    simp
+    exact hP2b
+  have  hxnin: x ∉ {v | v ∈ E}:= by
+    by_contra cont
+    have h5:¬ (Disjoint {v | v ∈ (F1.P.get! ↑j).Pa.Wa.support} {v | v ∈ E}):= by
+      apply Set.not_disjoint_iff.mpr
+      use x
+      repeat assumption
+    exact h5 hdis
+  simp at hxnin
+  have hcont: List.take k E⊆ E:= by
+    exact List.take_subset k E
+  exact fun a ↦ hxnin (hcont a)
+let Fb3_1:Set V:={v:V| v∈ Path_forest_support iV iSP F1}\ {v: V| v∈ (S.take k)}
+have hF3_avoids1 : Path_forest_avoids! iV iSP F3 Fb3_1 k:= by
+  unfold Path_forest_avoids!
+  intro i hi
+  apply Set.disjoint_of_subset_right
+  exact Fb3Cont1
+  apply hF3_avoids
+  exact hi
+
+
+
+
+
+have Fb3Cont2: {v:V| v∈ Path_forest_support iV iSP F2}\ {v: V| v∈ (E.take k)}⊆ Fb3:= by
+  dsimp[Fb3]
+  intro x hx
+  simp
+  simp at hx
+  constructor
+  right
+  exact hx.1
+  constructor
+  dsimp[Fb] at hF1_avoids
+  unfold Path_forest_avoids! at hF2_avoids
+  unfold Path_forest_support at hx
+  simp at hx
+  rcases hx.1 with ⟨P2, hP2a, hP2b⟩
+  have jex: ∃ (j: Fin (F2.P.length) ),  F2.P.get j=P2:= by
+    apply List.mem_iff_get.1
+    exact hP2a
+  rcases jex with ⟨j, hj⟩
+  have jget: F2.P.get j =F2.P.get! j:= by
+    simp
+    symm
+    apply List.getD_eq_get
+  rw[hj.symm, jget] at hP2b
+  have hdis: Disjoint {v | v ∈ (F2.P.get! j).Pa.Wa.support} Fb2:= by
+    apply hF2_avoids
+    calc
+      j< F2.P.length:= by exact j.isLt
+      _= k:= by exact hF2P_length
+  have xin: x∈ {v | v ∈ (F2.P.get! ↑j).Pa.Wa.support}:= by
+    simp
+    exact hP2b
+  have  hxnin: x ∉ {v | v ∈ S}:= by
+    sorry
+  simp at hxnin
+  have hcont: List.take k S⊆ S:= by
+    exact List.take_subset k S
+  exact fun a ↦ hxnin (hcont a)
+  exact hx.2
+let Fb3_2:Set V:={v:V| v∈ Path_forest_support iV iSP F2}\ {v: V| v∈ (E.take k)}
+have hF3_avoids2 : Path_forest_avoids! iV iSP F3 Fb3_2 k:= by
+  unfold Path_forest_avoids!
+  intro i hi
+  apply Set.disjoint_of_subset_right
+  exact Fb3Cont2
+  apply hF3_avoids
+  exact hi
+
+
+have F2avoids'': Path_forest_avoids! iV iSP F2 {v:V|v∈ Path_forest_support iV iSP F3 ∧ v∉ F2.S} k:= by
+
+  apply Fb_disj_symm2
+  exact hF2k
+  sorry
+  sorry
+  exact hF3_avoids2
+  sorry
+  exact rfl
+
+
+have VerTakeNodup:(List.take k Seq.Ver).Nodup:= by
+  have subl: List.Sublist (List.take k Seq.Ver) Seq.Ver:= by
+    exact List.take_sublist k Seq.Ver
+  have nd: Seq.Ver.Nodup:= by
+    exact Seq.VerNoDup
+  exact List.Nodup.sublist subl nd
+
+
+
+
+
 have Path_ex: _:= by
   apply join_three_forests_tail_disjoint iV iSP H F3 F2 F1 _ _ _ k k
   --∀ (i j : ℕ), i < j → j < k → tail_disjoint_imp (F3.P.get! i) (F3.P.get! j)
@@ -528,13 +691,73 @@ have Path_ex: _:= by
   exact F3_ge_k
   exact F2_ge_k
   sorry
-  exact hF2_avoids
-  dsimp[Fb2]
-  sorry
+  exact F2avoids''
+  exact rfl
   sorry
   -- ∀ (i j : ℕ), i < k → j < k → tail_disjoint_imp (F2.P.get! i) (F1.P.get! j)
+  apply set_disjoint_to_tail_disjoint_forward
+  exact F2_ge_k
+  exact F1_ge_k
+  sorry
+  exact F2avoids'
+  exact rfl
+  sorry
 
-  sorry;sorry;sorry;sorry;sorry;
+
+
+
+  --∀ (i j : ℕ), i < k → j < k → tail_disjoint_imp (F1.P.get! i) (F3.P.get! j)
+  apply set_disjoint_to_tail_disjoint_forward
+  exact F1_ge_k
+  exact F3_ge_k
+  sorry
+  exact hF3_avoids1
+  sorry
+  sorry
+
+  --∀ (i j : ℕ), i < k → j < k → i ≠ j → tail_disjoint_imp (F2.P.get! i) (F3.P.get! j)
+  apply set_disjoint_to_internal_disjoint_reverse_taildisj_symm2
+  exact F3_ge_k
+  exact F2_ge_k
+  sorry
+  sorry
+  rw[hF3E, hF2S]
+  rw[hF2S]
+  sorry
+  exact F2avoids''
+  exact rfl
+  sorry
+  --∀ (i j : ℕ), i < k → j < k → i ≠ j + 1 → tail_disjoint_imp (F3.P.get! i) (F1.P.get! j)
+  apply set_disjoint_to_internal_disjoint_reverse_taildisj_symm2_tailaligned2
+  exact F1_ge_k
+  exact F3_ge_k
+  sorry
+  sorry
+  rw[hF1E, hF3S]
+  sorry
+  --rw[hF3S]
+  sorry
+  exact hF3_avoids1
+  --exact rfl
+  sorry
+  sorry
+
+  --∀ (i j : ℕ), i < k → j < k → i ≠ j → tail_disjoint_imp (F1.P.get! i) (F2.P.get! j)
+  apply set_disjoint_to_internal_disjoint_reverse_taildisj_symm2
+  exact F2_ge_k
+  exact F1_ge_k
+  sorry
+  sorry
+  rw[hF2E, hF1S]
+  rw[hF1S]
+  exact VerTakeNodup
+  exact F2avoids'
+  exact rfl
+  sorry
+
+
+
+
   sorry;sorry;sorry;sorry;sorry;
   --F1.E = F2.S
   rw[hF3E, hF2S]
@@ -545,6 +768,15 @@ have Path_ex: _:= by
   --
 
 rcases Path_ex with ⟨P, hP1⟩
+
+
+
+
+
+
+
+  --
+
 
 sorry
 

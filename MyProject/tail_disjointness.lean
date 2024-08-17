@@ -447,6 +447,124 @@ exact nin inn
 
 
 
+lemma set_disjoint_to_internal_disjoint_reverse2
+(F1  F2: PathForest iV iSP H)
+(Fb: Set V)
+(k: ℕ )
+(F1k: F1.k≥ k)
+(F2k: F2.k≥ k)
+(F2k2: F2.k = F2.S.length)
+(F1k2: F1.k = F1.E.length)
+(Ends_eq:F1.E=F2.S)
+(F2SNodup: F2.S.Nodup)
+(F2_avoids_Fb: Path_forest_avoids! iV iSP F2 Fb k)
+(F1_in_Fb: {v:V| v∈ Path_forest_support iV iSP F1∧ v∉ F2.S}= Fb)
+(hk: F1.k=F1.S.length)
+:
+∀(i j: ℕ ), (j< k)→ (i<j)→  (List.Disjoint (F2.P.get! i).Pa.Wa.support (F1.P.get! j).Pa.Wa.support)
+:= by
+intro i j hj hj2
+have hi: i<k:= by
+  calc
+    i<j:= by exact hj2
+    _< k:= by exact hj
+unfold Path_forest_avoids! at F2_avoids_Fb
+rw [F1_in_Fb.symm] at F2_avoids_Fb
+refine List.disjoint_left.mpr ?_
+intro a ha
+
+by_contra cont0
+
+have hF1: a∉ {v | v ∈ Path_forest_support iV iSP F1 ∧ v ∉ F2.S}:= by
+  by_contra cont2
+  have h1: ¬( ∀ (i: ℕ ), i < k→  Disjoint {v | v ∈ (F2.P.get! i).Pa.Wa.support} {v | v ∈ Path_forest_support iV iSP F1 ∧ v ∉ F2.S}):= by
+    push_neg
+    use i
+    constructor
+    exact hi
+    rw [@Set.not_disjoint_iff]
+    use a
+    constructor
+    exact ha
+    simp at cont2
+    simp
+    exact cont2
+
+  exact h1 F2_avoids_Fb
+simp at hF1
+have nin: a∉ F2.S:= by
+  by_contra cont
+  have h1:a=F2.S.get! i:= by
+    apply Path_forest_get_start2
+    calc
+      i<k:= by exact hi
+      _≤ F2.k:= by exact F2k
+    exact ha
+    exact cont
+    exact F2k2
+  have h2:a=F1.E.get! j:= by
+    rw [Ends_eq.symm] at cont
+    apply Path_forest_get_end2
+    calc
+      j<k:= by exact hj
+      _≤ F1.k:= by exact F1k
+    exact cont0
+    exact cont
+    exact F1k2
+  rw [Ends_eq, h1] at h2
+  have dup: ¬ (F2.S.Nodup):= by
+    rw [← @List.exists_duplicate_iff_not_nodup]
+    use F2.S.get! i
+    refine List.duplicate_iff_exists_distinct_get.mpr ?h.a
+
+    use ⟨ i, ?_⟩
+    use ⟨  j, ?_⟩
+    simp only [exists_and_left, exists_prop]
+    constructor
+
+
+
+    simp
+    apply List.getD_eq_get
+    constructor
+    exact hj2
+    rw[h2]
+    simp
+    apply List.getD_eq_get
+    calc
+      j<k:= by exact hj
+      _≤ F2.k:= by exact F2k
+      _=F2.S.length:= by exact F2k2
+
+    calc
+      i<k:= by exact hi
+      _≤ F2.k:= by exact F2k
+      _=F2.S.length:= by exact F2k2
+  have nodup: F2.S.Nodup:= by
+    exact F2SNodup
+  exact dup F2SNodup
+have inn: a∈ F2.S:= by
+  apply hF1
+  unfold Path_forest_support
+  simp
+  use  (F1.P.get! j)
+  constructor
+  have h3: F1.P.get! j =F1.P.get ⟨ j, _⟩:= by
+    simp
+    refine List.getD_eq_get F1.P default ?_
+    calc
+      j<k:= by exact hj
+      _≤ F1.k:= by exact F1k
+      _=F1.P.length:= by exact F1.P_length.symm
+  rw[h3]
+  exact List.get_mem F1.P j (Trans.trans (Trans.trans hj F1k) F1.P_length.symm)
+  exact cont0
+exact nin inn
+
+
+
+
+
 
 
 
@@ -527,6 +645,331 @@ rw[h6]
 exact List.get_mem F1.P i (Trans.trans (Trans.trans hi F1k.symm) F1.P_length.symm)
 exact ha
 
+
+
+
+lemma Fb_disj_symm2
+(F1  F2: PathForest iV iSP H)
+(k: ℕ )
+(F1k: F1.k= k)
+(F2k: F2.k= k)
+(Fb1: Set V)
+(Fb2: Set V)
+(Ends_equal: F1.S=F2.E)
+(F2_avoids_Fb: Path_forest_avoids! iV iSP F2 Fb1 k)
+(Fb1Def: {v:V| v∈ Path_forest_support iV iSP F1∧ v∉ F2.E}= Fb1)
+(Fb2Def: {v:V| v∈ Path_forest_support iV iSP F2∧ v∉ F1.S}= Fb2)
+:
+Path_forest_avoids! iV iSP F1 Fb2 k
+:= by
+unfold Path_forest_avoids!
+rw[Fb2Def.symm]
+intro i hi
+
+rw [@Set.disjoint_left]
+intro a ha
+simp
+simp only [Set.mem_setOf_eq] at ha
+intro ha2
+unfold Path_forest_avoids! at F2_avoids_Fb
+unfold Path_forest_support at ha2
+
+simp at ha2
+rcases ha2 with ⟨P2, hP2a, hP2b⟩
+have jex: ∃ (j: Fin (F2.P.length) ),  F2.P.get j=P2:= by
+  apply List.mem_iff_get.1
+  exact hP2a
+rcases jex with ⟨j, hj⟩
+have jget: F2.P.get j =F2.P.get! j:= by
+  simp
+  symm
+  apply List.getD_eq_get
+
+have hdis: Disjoint {v | v ∈ (F2.P.get! j).Pa.Wa.support} Fb1:= by
+  apply F2_avoids_Fb
+  calc
+    _ < F2.P.length:= by exact j.isLt
+    _= F2.k:= by exact F2.P_length
+    _= k:= by exact F2k
+
+have hain: a∈ {v | v ∈ (F2.P.get! ↑j).Pa.Wa.support} :=by
+  simp
+  rw[jget.symm]
+  rw[hj]
+  exact hP2b
+have anin: a∉ Fb1:= by
+  refine Set.disjoint_singleton_left.mp ?_
+  apply Set.disjoint_of_subset_left
+  simp
+  exact hain
+  exact hdis
+rw [Fb1Def.symm] at anin
+simp at anin
+rw[Ends_equal]
+apply anin
+unfold Path_forest_support
+simp
+use F1.P.get! i
+constructor
+have h6:F1.P.get! i=F1.P.get ⟨ i, _⟩:= by
+  simp
+  refine List.getD_eq_get F1.P default ?_
+  calc
+    i<k:= by exact hi
+    _= F1.k:= by exact F1k.symm
+    _=F1.P.length:= by exact F1.P_length.symm
+rw[h6]
+exact List.get_mem F1.P i (Trans.trans (Trans.trans hi F1k.symm) F1.P_length.symm)
+exact ha
+
+
+lemma set_disjoint_to_internal_disjoint_reverse_neq
+(F1  F2: PathForest iV iSP H)
+(Fb: Set V)
+(k: ℕ )
+(F1k: F1.k≥ k)
+(F2k: F2.k≥ k)
+(F2k2: F2.k = F2.S.length)
+(F1k2: F1.k = F1.E.length)
+(Ends_eq:F1.E=F2.S)
+(F2SNodup: F2.S.Nodup)
+(F2_avoids_Fb: Path_forest_avoids! iV iSP F2 Fb k)
+(F1_in_Fb: {v:V| v∈ Path_forest_support iV iSP F1∧ v∉ F2.S}= Fb)
+(hk: F1.k=F1.S.length)
+:
+∀(i j: ℕ ), (i< k)→ (j<k)→ i≠ j→  (List.Disjoint (F2.P.get! i).Pa.Wa.support (F1.P.get! j).Pa.Wa.support)
+:= by
+intro i j hi hj hneq
+by_cases case: j<i
+apply set_disjoint_to_internal_disjoint_reverse
+exact F1k
+repeat assumption
+
+simp at case
+have hl: i<j:= by exact Nat.lt_of_le_of_ne case hneq
+apply set_disjoint_to_internal_disjoint_reverse2
+exact F1k
+repeat assumption
+
+
+
+
+lemma set_disjoint_to_internal_disjoint_reverse_taildisj
+(F1  F2: PathForest iV iSP H)
+(Fb: Set V)
+(k: ℕ )
+(F1k: F1.k≥ k)
+(F2k: F2.k≥ k)
+(F2k2: F2.k = F2.S.length)
+(F1k2: F1.k = F1.E.length)
+(Ends_eq:F1.E=F2.S)
+(F2SNodup: F2.S.Nodup)
+(F2_avoids_Fb: Path_forest_avoids! iV iSP F2 Fb k)
+(F1_in_Fb: {v:V| v∈ Path_forest_support iV iSP F1∧ v∉ F2.S}= Fb)
+(hk: F1.k=F1.S.length)
+:
+∀(i j: ℕ ), (i< k)→ (j<k)→ i≠ j→  (tail_disjoint_imp (F1.P.get! i) (F2.P.get! j))
+:= by
+intro i j hi hj hneq
+unfold tail_disjoint_imp
+have h1: (F1.P.get! i).Pa.Wa.support.Disjoint (F2.P.get! j).Pa.Wa.support:= by
+  rw [@List.disjoint_comm]
+  apply set_disjoint_to_internal_disjoint_reverse_neq
+  exact F1k
+  exact F2k
+  repeat assumption
+  exact id (Ne.symm hneq)
+
+
+have h2: (F2.P.get! j).Pa.Wa.support.tail⊆(F2.P.get! j).Pa.Wa.support:= by
+  exact List.tail_subset (F2.P.get! j).Pa.Wa.support
+exact  List.Disjoint.symm    ((fun {α} {l₁ l₂} ↦ List.disjoint_left.mpr) fun ⦃a⦄ a_1 ↦ id (List.Disjoint.symm h1) (h2 a_1))
+
+
+
+
+lemma set_disjoint_to_internal_disjoint_reverse_taildisj_symm
+(F1  F2: PathForest iV iSP H)
+(Fb: Set V)
+(k: ℕ )
+(F1k: F1.k≥ k)
+(F2k: F2.k≥ k)
+(F2k2: F2.k = F2.S.length)
+(F1k2: F1.k = F1.E.length)
+(Ends_eq:F1.E=F2.S)
+(F2SNodup: F2.S.Nodup)
+(F2_avoids_Fb: Path_forest_avoids! iV iSP F2 Fb k)
+(F1_in_Fb: {v:V| v∈ Path_forest_support iV iSP F1∧ v∉ F2.S}= Fb)
+(hk: F1.k=F1.S.length)
+:
+∀(i j: ℕ ), (i< k)→ (j<k)→ i≠ j→  (tail_disjoint_imp  (F2.P.get! j) (F1.P.get! i))
+:= by
+intro i j hi hj hneq
+unfold tail_disjoint_imp
+have h1: (F2.P.get! j).Pa.Wa.support.Disjoint (F1.P.get! i).Pa.Wa.support:= by
+  --rw [@List.disjoint_comm]
+  apply set_disjoint_to_internal_disjoint_reverse_neq
+  exact F1k
+  exact F2k
+  repeat assumption
+  exact id (Ne.symm hneq)
+
+
+have h2: (F1.P.get! i).Pa.Wa.support.tail⊆(F1.P.get! i).Pa.Wa.support:= by
+  exact List.tail_subset (F1.P.get! i).Pa.Wa.support
+exact  List.Disjoint.symm    ((fun {α} {l₁ l₂} ↦ List.disjoint_left.mpr) fun ⦃a⦄ a_1 ↦ id (List.Disjoint.symm h1) (h2 a_1))
+
+
+
+
+lemma set_disjoint_to_internal_disjoint_reverse_taildisj_symm2
+(F1  F2: PathForest iV iSP H)
+(Fb: Set V)
+(k: ℕ )
+(F1k: F1.k≥ k)
+(F2k: F2.k≥ k)
+(F2k2: F2.k = F2.S.length)
+(F1k2: F1.k = F1.E.length)
+(Ends_eq:F1.E=F2.S)
+(F2SNodup: F2.S.Nodup)
+(F2_avoids_Fb: Path_forest_avoids! iV iSP F2 Fb k)
+(F1_in_Fb: {v:V| v∈ Path_forest_support iV iSP F1∧ v∉ F2.S}= Fb)
+(hk: F1.k=F1.S.length)
+:
+∀(j i: ℕ ), (j< k)→ (i<k)→ j≠ i→  (tail_disjoint_imp  (F2.P.get! j) (F1.P.get! i))
+:= by
+intro j i hj hi hneq
+apply set_disjoint_to_internal_disjoint_reverse_taildisj_symm
+repeat assumption
+exact id (Ne.symm hneq)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+lemma set_disjoint_to_internal_disjoint_reverse_tailalign
+(F1  F2: PathForest iV iSP H)
+(Fb: Set V)
+(k: ℕ )
+(F1k: F1.k≥ k)
+(F2k: F2.k≥ k)
+(F2k2: F2.k = F2.S.length)
+(F1k2: F1.k = F1.E.length)
+(Ends_eq:F1.E=F2.S.tail)
+(F2SNodup: F2.S.Nodup)
+(F2_avoids_Fb: Path_forest_avoids! iV iSP F2 Fb k)
+(F1_in_Fb: {v:V| v∈ Path_forest_support iV iSP F1∧ v∉ F2.S}= Fb)
+(hk: F1.k=F1.S.length)
+:
+∀(i j: ℕ ), (i< k)→ (j<i+1)→  (List.Disjoint (F2.P.get! i).Pa.Wa.support (F1.P.get! j).Pa.Wa.support)
+:= by
+intro i j hi hj2
+have hj: j<k:= by
+  sorry
+unfold Path_forest_avoids! at F2_avoids_Fb
+rw [F1_in_Fb.symm] at F2_avoids_Fb
+refine List.disjoint_left.mpr ?_
+intro a ha
+
+by_contra cont0
+
+have hF1: a∉ {v | v ∈ Path_forest_support iV iSP F1 ∧ v ∉ F2.S}:= by
+  by_contra cont2
+  have h1: ¬( ∀ (i: ℕ ), i < k→  Disjoint {v | v ∈ (F2.P.get! i).Pa.Wa.support} {v | v ∈ Path_forest_support iV iSP F1 ∧ v ∉ F2.S}):= by
+    push_neg
+    use i
+    constructor
+    exact hi
+    rw [@Set.not_disjoint_iff]
+    use a
+    constructor
+    exact ha
+    simp at cont2
+    simp
+    exact cont2
+
+  exact h1 F2_avoids_Fb
+simp at hF1
+have nin: a∉ F2.S:= by
+  by_contra cont
+  have h1:a=F2.S.get! i:= by
+    apply Path_forest_get_start2
+    calc
+      i<k:= by exact hi
+      _≤ F2.k:= by exact F2k
+    exact ha
+    exact cont
+    exact F2k2
+  have h2:a=F1.E.get! j:= by
+    rw [Ends_eq.symm] at cont
+    apply Path_forest_get_end2
+    calc
+      j<k:= by exact hj
+      _≤ F1.k:= by exact F1k
+    exact cont0
+    exact cont
+    exact F1k2
+  rw [Ends_eq, h1] at h2
+  have dup: ¬ (F2.S.Nodup):= by
+    rw [← @List.exists_duplicate_iff_not_nodup]
+    use F2.S.get! i
+    refine List.duplicate_iff_exists_distinct_get.mpr ?h.a
+
+    use ⟨ j, ?_⟩
+    use ⟨  i, ?_⟩
+    simp only [exists_and_left, exists_prop]
+    constructor
+    rw[h2]
+    simp
+    apply List.getD_eq_get
+    calc
+      j<k:= by exact hj
+      _≤ F2.k:= by exact F2k
+      _=F2.S.length:= by exact F2k2
+    constructor
+    exact hj2
+    simp
+    apply List.getD_eq_get
+    calc
+      i<k:= by exact hi
+      _≤ F2.k:= by exact F2k
+      _=F2.S.length:= by exact F2k2
+  have nodup: F2.S.Nodup:= by
+    exact F2SNodup
+  exact dup F2SNodup
+have inn: a∈ F2.S:= by
+  apply hF1
+  unfold Path_forest_support
+  simp
+  use  (F1.P.get! j)
+  constructor
+  have h3: F1.P.get! j =F1.P.get ⟨ j, _⟩:= by
+    simp
+    refine List.getD_eq_get F1.P default ?_
+    calc
+      j<k:= by exact hj
+      _≤ F1.k:= by exact F1k
+      _=F1.P.length:= by exact F1.P_length.symm
+  rw[h3]
+  exact List.get_mem F1.P j (Trans.trans (Trans.trans hj F1k) F1.P_length.symm)
+  exact cont0
+exact nin inn
 
 
 --simp at ha
