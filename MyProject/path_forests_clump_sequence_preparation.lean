@@ -98,6 +98,65 @@ exact contained h1
 repeat assumption
 
 
+
+lemma long_path_forest_specified_ends_simplified_altnum
+(H: Subgraph G)
+(S E: List V)
+(HL: List (Subgraph G))
+(k m p: ℕ )
+(Fb: Set V)
+
+(HL_sparse: family_sparse  κ m (HL.toFinset) )
+(HL_order: HOrder_ge_m_Family (HL.toFinset) (2*m))
+
+(SinH: vertex_list_in_graph_list iV iSub S HL (k))---change
+(EinH: vertex_list_in_graph_list iV iSub E HL (k))---change
+
+(SE_Disjoint : List.Disjoint S E)
+
+
+(Slength: S.length≥  k)
+(Elength: E.length≥  k )
+(HLlength: HL.length≥  k)
+
+
+--(HLlength: HL.length> k)
+(HL_in_H: ∀ (i: ℕ  ), i<k→  (HL.get! i≤ H))
+
+(SoutsideFb: vertex_list_outside_set iV S Fb (k))
+(EoutsideFb: vertex_list_outside_set iV E Fb (k))
+
+(Snodup: S.Nodup)
+(Enodup: E.Nodup)
+(HL_nodup: HL.Nodup)
+
+
+
+
+(cutdense: cut_dense_list! iSub HL p (k))---change--∀(i: ℕ ), (i< k)→ (cut_dense G  (HL.get! i) p))
+(Fbcard: small_intersection_list!  iSub HL Fb p m (k))---change--∀(i: ℕ ), (i< k)→ (8*p*(((HL.get! i).verts∩ Fb).toFinset.card≤ (HL.get! i).verts.toFinset.card)))
+(pPositive: p>0)
+--(Fbcard: small_intersection_list  HL Fb p (m +8*p*(2*1*kmax)))--∀(i: ℕ ), (i< k)→ (8*p*(((HL.get! i).verts∩ Fb).toFinset.card≤ (HL.get! i).verts.toFinset.card)))
+:
+∃ (Fo: PathForest iV iSP H),
+(Fo.S= S.take k)
+∧  (Fo.E=  E.take k)
+∧ Fo.k=k
+∧ Fo.P.length=k
+--∧ Path_forest_avoids iV iSP Fo Fb
+∧ Path_forest_avoids! iV iSP Fo Fb k---change
+--∧ (Path_forest_support iV iSP Fo )⊆  41*p*k
+--∧ Path_forest_avoids iV iSP Fo {v:V|v∈ (List.drop k S)}
+--∧ Path_forest_avoids  iV iSP Fo {v:V|v∈ (List.drop k E)}
+∧ Path_forest_long  iV iSP Fo (m/(40*p))
+
+∧ Fo.S.length=k
+∧ Fo.E.length=k
+--∧ Path_forest_in_HL iV iSub iSP HL Fo
+:= by
+sorry
+
+
 lemma long_path_forest_specified_ends_simplified
 (H: Subgraph G)
 (S E: List V)
@@ -459,30 +518,30 @@ lemma path_forest_specified_ends_simplified_prefix
 (k m : ℕ )
 (Fb: Set V)
 
-(SinH: vertex_list_in_graph_list iV iSub S HL (k+1))---change
-(EinH: vertex_list_in_graph_list iV iSub E HL (k+1))---change
+(SinH: vertex_list_in_graph_list iV iSub S HL (k))---change
+(EinH: vertex_list_in_graph_list iV iSub E HL (k))---change
 
 (SE_Disjoint : List.Disjoint S E)
 
 
-(Slength: S.length> k)
-(Elength: E.length> k)
-(HLlength: HL.length> k)
+(Slength: S.length≥ k)
+(Elength: E.length≥  k)
+(HLlength: HL.length≥  k)
 
 
 
-(HL_in_H: ∀ (i: ℕ  ), i<k+1→  (HL.get! i≤ H))
+(HL_in_H: ∀ (i: ℕ  ), i<k→  (HL.get! i≤ H))
 
 
-(SoutsideFb: vertex_list_outside_set iV S Fb (k+1))
-(EoutsideFb: vertex_list_outside_set iV E Fb (k+1))
+(SoutsideFb: vertex_list_outside_set iV S Fb (k))
+(EoutsideFb: vertex_list_outside_set iV E Fb (k))
 
 (Snodup: S.Nodup)
 (Enodup: E.Nodup)
 
 
-(cutdense: cut_dense_list! iSub HL p (k+1))---change--∀(i: ℕ ), (i< k)→ (cut_dense G  (HL.get! i) p))
-(Fbcard: small_intersection_list!  iSub HL Fb p m (k+1))---change--∀(i: ℕ ), (i< k)→ (8*p*(((HL.get! i).verts∩ Fb).toFinset.card≤ (HL.get! i).verts.toFinset.card)))
+(cutdense: cut_dense_list! iSub HL p (k))---change--∀(i: ℕ ), (i< k)→ (cut_dense G  (HL.get! i) p))
+(Fbcard: small_intersection_list!  iSub HL Fb p m (k))---change--∀(i: ℕ ), (i< k)→ (8*p*(((HL.get! i).verts∩ Fb).toFinset.card≤ (HL.get! i).verts.toFinset.card)))
 :
 ∃ (Fo: PathForest iV iSP H),
 Fo.S= S.take k
@@ -1945,7 +2004,7 @@ have h2: ¬ (Disjoint S T):= by
   refine Set.not_disjoint_iff.mpr ?_
   use v
 exact h2 disj
- 
+
 
 
 lemma path_forest_support_iff
