@@ -11,7 +11,7 @@ open scoped BigOperators
 namespace SimpleGraph
 
 
-set_option maxHeartbeats  100000
+set_option maxHeartbeats  50000
 
 universe u
 variable {V : Type u} {G : SimpleGraph V}
@@ -78,34 +78,72 @@ lemma clump_path_sequence_gives_path2
 (KFam: Finset (Clump G p m κ pr h))
 (Seq: ClumpPathSequence iI iV α KFam)
 (k: ℕ )
-(Ord_length: Seq.Ord.length>k+3)
+(Ord_length: Seq.Ord.length>k+8)
 :
 ∃  (u v: V), ∃  (P: SubgraphPath H u v), P.Wa.length ≥  (k*m)
 
 --Has_length_d_path (Clump_Family_Union KFam) (h*m)
 :=by
 
+have Ord_length3: Seq.Ord.length>k+1:= by
+  calc
+    Seq.Ord.length>k+8:= by exact Ord_length
+    _>k+1:= by gcongr; exact Nat.one_lt_succ_succ 6
+
+have Ord_length4: Seq.Ord.length>k+3:= by
+  calc
+    Seq.Ord.length>k+8:= by exact Ord_length
+    _>k+3:= by gcongr; exact Nat.lt_of_sub_eq_succ rfl
+
+have Ord_length5: Seq.Ord.length>k+4:= by
+  calc
+    Seq.Ord.length>k+8:= by exact Ord_length
+    _>k+4:= by gcongr; exact Nat.lt_of_sub_eq_succ rfl
+
+
+
 have Ord_length2: Seq.Ord.length>k:= by
-  exact Nat.lt_of_succ_lt Ord_length
+  exact Nat.lt_of_succ_lt Ord_length3
+
+
+have LM_length4: Seq.LM.length>k+4:= by
+  rw[Seq.hlengthM]
+  exact Ord_length5
+
+have LM_length3: Seq.LM.length>k+3:= by
+  rw[Seq.hlengthM]
+  exact Ord_length4
+
+have LM_length2: Seq.LM.length>k+1:= by
+  rw[Seq.hlengthM]
+  exact Ord_length3
 
 have LM_length: Seq.LM.length>k:= by
   rw[Seq.hlengthM]
-  exact Nat.lt_of_succ_lt Ord_length
+  exact Ord_length2
+
+have Ver_length2: Seq.Ver.length> k+2:= by
+  rw[Seq.hlengthVer]
+  exact Nat.lt_sub_of_add_lt Ord_length4
+have Ver_length1: Seq.Ver.length> k+1:= by
+  exact Nat.lt_of_succ_lt Ver_length2
 have Ver_length: Seq.Ver.length> k:= by
   rw[Seq.hlengthVer]
-  exact Nat.lt_sub_of_add_lt Ord_length
+  exact Nat.lt_sub_of_add_lt Ord_length3
 have LM_length_ge: Seq.LM.length≥ k:= by
   exact Nat.le_of_succ_le LM_length
+have LM_length_ge2: Seq.LM.length≥ k+4:= by
+  exact LM_length3
+have Ord_length_ge2: Seq.Ord.length≥ k+4:= by
+  exact Ord_length4
 have Ord_length_ge: Seq.Ord.length≥ k:= by
-  calc
-  Seq.Ord.length ≥ k+1:=by exact Nat.le_of_succ_le Ord_length
-  _≥  k:= by exact Nat.le_add_right k 1
+  exact Nat.le_of_succ_le Ord_length2
 
 
 have ex_pairs: _:= by
-  apply find_pairs_in_M_list iI iV iSub Seq.Ord Seq.Ver Seq.LM Seq.LM_in_M (k+1)
-  sorry--exact LM_length_ge
-  sorry--exact Ord_length_ge
+  apply find_pairs_in_M_list iI iV iSub Seq.Ord Seq.Ver Seq.LM Seq.LM_in_M (k+4)
+  exact LM_length_ge2
+  exact Ord_length_ge2
   --2 * k + Seq.Ver.length + 2 ≤ m / pr
   sorry
   --
@@ -115,11 +153,16 @@ rcases ex_pairs with ⟨S, E, hS, hE, hSE, hSVer, hEVer, hSNoDup, hENoDup, hSInL
 
 have ex_HS:_:=by
   apply add_Ver_to_M_list_starts_alt iI iV iSub Seq.Ord Seq.Ver S Seq.LM Seq.LM_in_M Seq.VerInOrd (k+1)
-  sorry --exact fun i a ↦ hSInLM i a
-  sorry--exact LM_length
-  sorry--exact Ord_length2
-  sorry--exact Ver_length
-  sorry
+  intro i hi
+  apply hSInLM
+  exact Nat.lt_succ_of_lt hi
+  exact LM_length3--exact LM_length
+  exact Ord_length4--exact Ord_length2
+  exact Ver_length2--exact Ver_length
+  rw[hS]
+  ring_nf
+  gcongr
+  apply Nat.lt_of_sub_eq_succ;  simp;  exact rfl
   exact γ
   exact κPositive
   exact pPositive
@@ -129,11 +172,18 @@ have ex_HS:_:=by
 
 have ex_HE:_:=by
   apply add_Ver_to_M_list iI iV iSub Seq.Ord Seq.Ver E Seq.LM Seq.LM_in_M Seq.VerInOrd (k+1)
-  exact fun i a ↦ hEInLM i a
-  sorry--exact LM_length
-  sorry--exact Ord_length2
-  sorry--exact Ver_length
-  sorry
+  intro i hi
+  apply hEInLM
+  calc
+    i < k+1:= by exact hi
+    _< k+4:= by gcongr; exact Nat.one_lt_succ_succ 2
+  exact LM_length2--exact LM_length
+  exact Ord_length3--exact Ord_length2
+  exact Ver_length1--exact Ver_length
+  rw[hE]
+  ring_nf
+  gcongr
+  apply Nat.lt_of_sub_eq_succ;  simp;  exact rfl
   exact γ
   exact κPositive
   exact pPositive
@@ -163,13 +213,20 @@ have Ver_get_in_Ver:∀ (i: ℕ ), (hi:i< k+1)→Seq.Ver.get! i∈ Seq.Ver:= by
   exact List.get_mem Seq.Ver i (Ver_get_ineq i hi)
 
 have Ver_get_in_Ver_set:∀ (i: ℕ ), (hi:i< k+1)→Seq.Ver.get! i∈ {v:V|v∈ Seq.Ver}:= by
-  sorry
+  intro i hi
+  simp only [Set.mem_setOf_eq]
+  apply Ver_get_in_Ver i hi
+
 
 
 
 have S_get_ineq: ∀ (i: ℕ ), i< k+1→i<S.length:= by
   intro i hi
-  sorry
+  rw[hS]
+  calc
+    i < k+1:= by exact hi
+    _< k+4:= by gcongr; exact Nat.one_lt_succ_succ 2
+
 
 have S_get: ∀ (i: ℕ ), (hi:i< k+1)→S.get! i=S.get ⟨i, S_get_ineq i hi⟩:= by
   intro i hi
@@ -185,7 +242,12 @@ have S_get_in_S:∀ (i: ℕ ), (hi:i< k+1)→S.get! i∈ S:= by
 
 have Stail_get_ineq: ∀ (i: ℕ ), i< k+1→i<S.tail.length:= by
   intro i hi
-  sorry
+  rw [@List.length_tail]
+  rw[hS]
+  simp
+  calc
+    i < k+1:= by exact hi
+    _< k+3:= by gcongr; exact Nat.one_lt_succ_succ 1
 
 have Stail_get: ∀ (i: ℕ ), (hi:i< k+1)→S.tail.get! i=S.tail.get ⟨i, Stail_get_ineq i hi⟩:= by
   intro i hi
@@ -208,7 +270,10 @@ have Stail_get_in_S:∀ (i: ℕ ), (hi:i< k+1)→S.tail.get! i∈ S:= by
 
 have E_get_ineq: ∀ (i: ℕ ), i< k+1→i<E.length:= by
   intro i hi
-  sorry
+  rw[hE]
+  calc
+    i < k+1:= by exact hi
+    _< k+4:= by gcongr; exact Nat.one_lt_succ_succ 2
 
 have E_get: ∀ (i: ℕ ), (hi:i< k+1)→E.get! i=E.get ⟨i, E_get_ineq i hi⟩:= by
   intro i hi
@@ -224,7 +289,10 @@ have E_get_in_S:∀ (i: ℕ ), (hi:i< k+1)→E.get! i∈ E:= by
 have LM_get: ∀ (i: ℕ ), (hi:i< k+1)→  (Seq.LM.get! i)∈ (Seq.Ord.get! i).M:= by
     intro i hi
     have hi': i< Seq.Ord.length:= by
-      sorry
+      calc
+        i< k+1:= by exact hi
+        _<  Seq.Ord.length:= by exact Ord_length3
+
     have h34:_:=by exact Seq.LM_in_M i hi'
     simp
     simp at h34
@@ -235,7 +303,9 @@ have LM_get: ∀ (i: ℕ ), (hi:i< k+1)→  (Seq.LM.get! i)∈ (Seq.Ord.get! i).
     rw[h13] at h34
     rw[h12]
     exact h34
-    sorry
+    calc
+        i< k+1:= by exact hi
+        _<  Seq.LM.length:= by exact LM_length2
 
 
 
@@ -270,7 +340,7 @@ have hF1Ex: _:= by
     8 * γ * (Fb).toFinset.card + (m + 8 * γ * (2 * (k + 1))):= by
       gcongr
       simp
-    _≤ 8 * γ * (k+1)+ (m + 8 * γ * (2 * (k + 1))):= by
+    _≤ 8 * γ * (k+4)+ (m + 8 * γ * (2 * (k + 1))):= by
       gcongr
       dsimp[Fb]
       have h1: {v | v ∈ E}.toFinset= E.toFinset:= by
@@ -278,8 +348,9 @@ have hF1Ex: _:= by
         simp
       rw[h1]
       simp
-      rw [← hE]
-      exact List.toFinset_card_le E
+      calc
+        E.toFinset.card≤  E.length:= by exact List.toFinset_card_le E
+        _= k+4:= by exact hE
     _≤ (HS.get! i).verts.toFinset.card:=by sorry
 
   --exact γPositive
@@ -297,8 +368,8 @@ have hF1Ex: _:= by
         id (List.Disjoint.symm hSVer) (h23 a_1))
   --lengths
   exact Ver_length
-  sorry
-  sorry
+  simp;  rw[hS]; simp;
+  rw[hHS_length]; exact lt_add_one k
   --∀ i < k + 1, HS.get! i ≤ H (add this to lemma giving HS)
   sorry
 
@@ -339,7 +410,10 @@ have hF2Ex: _:= by
         (E_get_in_S i hi)
   have h65: Path_forest_support iV iSP F1 \ {v | v ∈ Seq.Ver}⊆ Path_forest_support iV iSP F1 := by
     exact  Set.diff_subset (Path_forest_support iV iSP F1) {v | v ∈ Seq.Ver}
-  sorry--reduce k by 1--exact fun a ↦ h43 (h65 a)
+  simp only [Set.mem_diff, Set.mem_setOf_eq, not_and, Decidable.not_not]
+  intro h99
+  exfalso
+  exact h43 h99
   --vertex_list_outside_set iV S Fb (k + 1)
   intro i hi
   dsimp[Fb2]
@@ -396,7 +470,7 @@ have hF2Ex: _:= by
 
 rcases hF2Ex with ⟨F2, hF2S, hF2E, hF2k, hF2P_length, hF2_avoids, hF2card, S2lenght, E2length⟩
 
-
+/-
 
 
 let Fb3: Set V:=  ({v:V| v∈ Path_forest_support iV iSP F1}∪ {v:V| v∈ Path_forest_support iV iSP F2})\ ({v: V| v∈ (S.take k)∨ v∈ (E.take k)})
@@ -855,4 +929,7 @@ calc
 
 apply F2_avoids_Fb
 exact hj
+-/
+
+
 -/
