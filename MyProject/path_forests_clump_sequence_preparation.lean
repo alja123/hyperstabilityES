@@ -1294,6 +1294,7 @@ exact ein3
 
 
 lemma add_Ver_to_M_list
+(H: Subgraph G)
 (Ord: List (Clump G p m κ pr h))
 (Ver S: List V)
 
@@ -1314,6 +1315,7 @@ lemma add_Ver_to_M_list
 ∧ (cut_dense_list! iSub HL γ k)
 ∧ (∀ (i: ℕ ), i<k→ (Ver.get! i)∈ (HL.get! i).verts)
 ∧ (∀ (i: ℕ ), i<k→ (S.get! i)∈ (HL.get! i).verts)
+∧ (∀ (i: ℕ ), i<k→ (HL.get! i)≤ H)
 
 
 := by
@@ -1336,12 +1338,14 @@ exfalso
 have h : ¬ (i<0):= by
   exact Nat.not_lt_zero i
 exact h hi
+constructor
 intro i hi
 exfalso
 have h : ¬ (i<0):= by
   exact Nat.not_lt_zero i
 exact h hi
 
+sorry
 -----------induction-------------
 
 
@@ -1359,7 +1363,7 @@ have hSinLM: ∀ i < k, S.get! i ∈ (LM.get! i).verts:= by
   exact Nat.lt_add_right 1 hi
 have ind: _:= by exact IH hSinLM LM_length' Ord_length' Ver_length' S_length'
 
-rcases ind with ⟨HL, HLl, Hcd,VerHL,SHL  ⟩
+rcases ind with ⟨HL, HLl, Hcd,VerHL,SHL, InH  ⟩
 
 
 have hkl: k<Ord.length:= by exact Ord_length'
@@ -1464,6 +1468,7 @@ dsimp[K]
 exact Set.mem_union_right (Ord.get! k).C.verts hVerHi
 
 ----S in HL
+constructor
 dsimp[HL']
 intro i hi
 by_cases case: i<k
@@ -1509,6 +1514,7 @@ have In_C:(LM.get! k).verts⊆ (Ord.get! k).C.verts:= by
   sorry
 exact Set.mem_union_left Hi.verts (In_C hSinMM)
 
+sorry
 --exact Set.mem_union_right (Ord.get! k).C.verts hVerHi
 
 
@@ -1611,6 +1617,7 @@ exact neg (hpathsdisjoint i j hi hj')
 
 
 lemma add_Ver_to_M_list_starts
+(H: Subgraph G)
 (Ord: List (Clump G p m κ pr h))
 (Ver S: List V)
 
@@ -1631,7 +1638,7 @@ lemma add_Ver_to_M_list_starts
 ∧ (cut_dense_list! iSub HL γ (k+1))
 ∧ (∀ (i: ℕ ), i<k→ (Ver.get! i)∈ (HL.get! (i+1)).verts)
 ∧ (∀ (i: ℕ ), i<k+1→ (S.get! (i))∈ (HL.get! i).verts)
-
+∧ (∀ i < k + 1, HL.get! i ≤ H)--need to add extra assumptions for this
 
 := by
 unfold Vertex_list_in_clump_list_BSetPlusM at VerInOrd
@@ -1673,7 +1680,7 @@ have hSinLM: ∀ i < k+1, S.get! (i) ∈ (LM.get! i).verts:= by
   exact Nat.lt_add_right 1 hi
 have ind: _:= by exact IH hSinLM LM_length'' Ord_length'' Ver_length' S_length''
 
-rcases ind with ⟨HL, HLl, Hcd,VerHL,SHL  ⟩
+rcases ind with ⟨HL, HLl, Hcd,VerHL,SHL , InH ⟩
 
 
 have hkl: k<Ord.length:= by exact Ord_length'
@@ -1783,6 +1790,7 @@ dsimp[K]
 exact Set.mem_union_right (Ord.get! (k + 1)).C.verts hVerHi
 
 ----S in HL
+constructor
 dsimp[HL']
 intro i hi
 by_cases case: i<k+1
@@ -1827,8 +1835,8 @@ have hMM: LM.get! (k + 1) ∈ (Ord.get! (k + 1)).M:= by
 have In_C:(LM.get! (k + 1)).verts⊆ (Ord.get! (k + 1)).C.verts:= by
   sorry
 exact Set.mem_union_left Hi.verts (In_C hSinMM)
-
-
+--in H
+sorry
 
 
 
@@ -1836,9 +1844,9 @@ exact Set.mem_union_left Hi.verts (In_C hSinMM)
 
 
 lemma add_Ver_to_M_list_starts_alt
+(H: Subgraph G)
 (Ord: List (Clump G p m κ pr h))
 (Ver S: List V)
-
 (LM: List (Subgraph G))
 (LM_in_M: M_list_in_clump_list iI LM Ord)
 (VerInOrd:Vertex_list_in_clump_list_BSetPlusM iI iV Ord Ver)
@@ -1856,11 +1864,11 @@ lemma add_Ver_to_M_list_starts_alt
 ∧ (cut_dense_list! iSub HL γ (k))
 ∧ (∀ (i: ℕ ), i<k→ (Ver.get! i)∈ (HL.get! (i)).verts)
 ∧ (∀ (i: ℕ ), i<k→ (S.tail.get! (i))∈ (HL.get! i).verts)
-
+∧ (∀ i < k , HL.get! i ≤ H)
 
 :=by
 have hex:_:= by
-  apply add_Ver_to_M_list_starts _  _ iSub  Ord Ver S LM LM_in_M VerInOrd (k+1) _ LM_length Ord_length Ver_length S_length
+  apply add_Ver_to_M_list_starts _  _ iSub  H Ord Ver S LM LM_in_M VerInOrd (k+1) _ LM_length Ord_length Ver_length S_length
   use γ
   exact κPositive
   exact pPositive
@@ -1870,7 +1878,7 @@ have hex:_:= by
 
 
 
-rcases hex with ⟨HL, HLl, Hcd,VerHL,SHL  ⟩
+rcases hex with ⟨HL, HLl, Hcd,VerHL,SHL , InH ⟩
 use HL.tail
 
 have htail_get: ∀ i < k, (HL.tail).get! i = HL.get! (i+1):= by
@@ -1897,6 +1905,7 @@ rw[htail_get i hi]
 apply VerHL
 exact Nat.lt_add_right 1 hi
 
+constructor
 intro i hi
 rw[htail_get i hi]
 rw[stail_get i hi]
@@ -1904,6 +1913,110 @@ apply SHL (i+1)
 simp
 exact Nat.lt_add_right 1 hi
 
+sorry
+
+
+
+
+
+
+lemma set_disjoint_left
+(v: V)
+(T S: Set V)
+(disj: Disjoint S T)
+(hv: v∈ S)
+:
+v∉ T:= by
+by_contra cont
+have h2: ¬ (Disjoint S T):= by
+  refine Set.not_disjoint_iff.mpr ?_
+  use v
+exact h2 disj
+
+lemma set_disjoint_right
+(v: V)
+(S T: Set V)
+(disj: Disjoint S T)
+(hv: v∈ T)
+:
+v∉ S:= by
+by_contra cont
+have h2: ¬ (Disjoint S T):= by
+  refine Set.not_disjoint_iff.mpr ?_
+  use v
+exact h2 disj
+ 
+
+
+lemma path_forest_support_iff
+(F1: PathForest iV iSP H)
+(x: V)
+:
+x∈  {v | ∃ Pi ∈ F1.P, v ∈ Pi.Pa.Wa.support}
+↔
+∃  (i :ℕ ), i< F1.P.length ∧  x∈  {v | v ∈ (F1.P.get! i).Pa.Wa.support}
+:= by
+constructor
+intro h
+simp at h
+simp
+rcases h with ⟨Pi, hPi, hx⟩
+have hjex: ∃ (j: Fin (F1.P.length)), F1.P.get j=Pi:= by
+  exact List.mem_iff_get.mp hPi
+rcases hjex with ⟨j, hj⟩
+use j
+constructor
+exact j.isLt
+have h4: F1.P.get! ↑j=F1.P.get j:= by
+  simp
+  apply List.getD_eq_get
+rw[h4]
+rw[hj]
+exact hx
+
+intro h
+simp at h
+simp
+rcases h with ⟨i, hi, hx⟩
+use (F1.P.get! i)
+constructor
+have h4: F1.P.getD i default=F1.P.get ⟨i, ?_⟩ := by
+  apply List.getD_eq_get
+simp
+rw[h4]
+refine List.get_mem F1.P i ?h.left.refine_1
+exact hi
+exact hx
+
+
+
+lemma path_forest_support_iff_neg
+(F1: PathForest iV iSP H)
+(x: V)
+:
+x∉   {v | ∃ Pi ∈ F1.P, v ∈ Pi.Pa.Wa.support}
+↔
+∀   (i :ℕ ), i< F1.P.length →   x∉   {v | v ∈ (F1.P.get! i).Pa.Wa.support}
+:= by
+have h1:_:=by exact path_forest_support_iff iV iSP F1 x
+by_contra cont
+simp at cont
+push_neg at cont
+simp at h1
+simp_all only [gt_iff_lt]
+unhygienic
+  aesop_cases
+    cont
+· simp_all only [iff_true]
+  unhygienic
+    with_reducible
+      aesop_destruct_products
+  simp_all only
+· simp_all only [iff_true]
+  unhygienic
+    with_reducible
+      aesop_destruct_products
+  simp_all only
 
 /-lemma Fb_disj_to_tail_disj
 (Fb: Set V)

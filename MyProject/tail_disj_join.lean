@@ -371,4 +371,3 @@ have h5:  {v | v ∈ P.Wa.support ∨ v ∈ Q.Wa.support}= {v | v ∈ P.Wa.suppo
 rw[h5]
 rw[hP1, hQ2]
 aesop
- 
