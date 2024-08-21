@@ -10,7 +10,7 @@ open scoped BigOperators
 namespace SimpleGraph
 
 
-set_option maxHeartbeats  270000
+set_option maxHeartbeats  450000
 
 universe u
 variable {V : Type u} {G : SimpleGraph V}
@@ -31,6 +31,8 @@ variable (iSP:Inhabited (SubgraphPath_implicit   G) )
 
 variable {prggp: pr≫ p}
 variable {mggpr: m≫ pr}
+
+
 
 
 
@@ -72,6 +74,28 @@ lemma small_inequality
 a/A^2≥ (h/H^2)*(H/A)
 -/
 
+lemma order_strict_decrease
+(H: Subgraph G)
+(A B: Finset V)
+(h: vv H= v A+v B)
+(hpos: v A>0)
+:
+H.verts.toFinset.card>B.card
+:= by
+unfold v at h
+unfold vv at h
+unfold v at hpos
+have h1: (H.verts.toFinset.card :ℚ )> (B.card:ℚ):= by
+  calc
+    (H.verts.toFinset.card :ℚ )= (A.card :ℚ )+ (B.card:ℚ ):= by exact h
+    _> 0+(B.card:ℚ ):= by
+      gcongr
+    _= B.card:= by
+      ring_nf
+simp at h1
+simp
+exact h1
+
 
 lemma combined_inequality
 (a b h A B H p ε : ℚ )
@@ -106,8 +130,7 @@ lemma combined_inequality
 b/B^2≥ (h/H^2)*(H/B)*(1-ε *A/B)
 )
 := by
-sorry
-/-
+
 have ple3: p≤ 3:= by
   calc
     p≤ 1:= by
@@ -234,10 +257,13 @@ constructor
 apply le_of_lt
 exact hAc
 exact case
--/
+
 
 
 noncomputable def dens (H: Subgraph G):ℚ := (ee H)/(vv H)^2--(H.edgeSet.toFinset.card: ℚ )/(H.verts.toFinset.card:ℚ )^2
+
+
+
 
 lemma combined_inequality_graph
 (H: Subgraph G)
@@ -264,8 +290,7 @@ lemma combined_inequality_graph
 (dens K≥ (dens H)*(vv H / vv K)*(1-ε *(vv H-vv K)/ (vv K)))
 )
 := by
-sorry
-/-
+
 have Exnotcutdense:∃(A B: Finset V),(Disjoint A B) ∧ (H.verts.toFinset= A ∪ B)∧ (vv H= v A+v B)∧(p'*eBip H A B≤  16*(v A)*(v B))∧v A>0∧v B>0
 :=by
   apply cut_dense_negationRat
@@ -492,7 +517,7 @@ exact caseB.2
 
 
 
--/
+
 
 
 
@@ -504,6 +529,7 @@ lemma combined_inequality_graph_alt
 (not_cut_dense: ¬ cut_dense G H p')
 (ε: ℚ)
 (q: ℚ )
+(qPositive: q>0)
 (hq: q≥ (32/(p'*ε) ))
 (qUpper: q≤ 1)
 (εPositive: ε>0)
@@ -520,8 +546,10 @@ lemma combined_inequality_graph_alt
 (
 (dens K≥ (dens H)*(vv H / vv K)*(1-ε *(vv H-vv K)/ (vv K)))
 )
+∧
+(K.verts.toFinset.card< H.verts.toFinset.card)
 := by
-sorry/-
+
 have Exnotcutdense:∃(A B: Finset V),(Disjoint A B) ∧ (H.verts.toFinset= A ∪ B)∧ (vv H= v A+v B)∧(p'*eBip H A B≤  16*(v A)*(v B))∧v A>0∧v B>0
 :=by
   apply cut_dense_negationRat
@@ -571,8 +599,8 @@ have cutdenseinequality3:  e H AS + e H BS + ε *q* v AS * v BS ≥ ee H:= by
   _≥ ee H:= by
     exact cutdenseinequality2
 
-have qPositive: q>0:= by
-  sorry
+--have qPositive: q>0:= by
+  --
   /-rw[hq]
   apply div_pos
   exact rfl
@@ -726,7 +754,15 @@ exact caseA.1
 unfold dens
 rw[vv2]
 rw[vvA, eeA]
+constructor
 exact caseA.2
+
+simp only [Subgraph.induce_verts, toFinset_coe]
+apply order_strict_decrease
+rw[add_comm] at ABcard
+exact ABcard
+simp
+exact Bnonempty
 
 ----caseB
 
@@ -744,8 +780,14 @@ exact caseB.1
 unfold dens
 rw[vv2B]
 rw[vvB, eeB]
+constructor
 exact caseB.2
--/
+
+simp only [Subgraph.induce_verts, toFinset_coe]
+apply order_strict_decrease
+exact ABcard
+simp
+exact Anonempty
 
 
 structure density_improving_list
@@ -754,12 +796,17 @@ structure density_improving_list
   Nested: ∀ (i: ℕ ), i+1< L.length→ L.get! (i)≥ L.get! (i+1)
   Density_Increase: ∀ (i: ℕ ), i+1< L.length→
     dens (L.get! (i+1))≥ (dens (L.get! (i)))*(vv (L.get! (i)) / vv (L.get! (i+1)))*(1-ε *(vv (L.get! (i))-vv (L.get! (i+1)))/ (vv (L.get! (i+1))))
-  Strictily_Decreasing:  ∀ (i: ℕ ), i+1< L.length→ vv (L.get! (i))> vv (L.get! (i+1))
+  --Strictily_Decreasing:  ∀ (i: ℕ ), i+1< L.length→ vv (L.get! (i))> vv (L.get! (i+1))
+  Strictily_Decreasing:  ∀ (i: ℕ ), i+1< L.length→ (L.get! (i)).verts.toFinset.card>  (L.get! (i+1)).verts.toFinset.card
   Order_decrease:  ∀ (i: ℕ ), i+1< L.length→ vv (L.get! (i+1))≥  q*(vv (L.get! (i))/4)
   --LargeLimit: ℕ
   --DenseLimit: ℕ
   Large: ∀ (i: ℕ ), i+1<L.length→  vv (L.get! i)≥ β  * n
   Dense: ∀ (i: ℕ ), i+1<L.length→  dens (L.get! i)≥ q
+
+
+
+
 
 def large {iSub: Inhabited (Subgraph G)}{ε β  n q : ℚ } (Li: density_improving_list iSub ε β  n q)
 :=
@@ -774,9 +821,12 @@ lemma LiLarge
 (ε β  n q : ℚ  )
 (βPositive: β>0)
 (nPositive: n>0)
+(qPositive: q>0)
 (qSmall: q/4≤ 1)
+(βSmall: β≤ 1)
 (Li: density_improving_list iSub ε β  n q)
 (i: ℕ )
+(hget0: vv (Li.L.get! 0)=  n)
 (hi: i< Li.L.length)
 :
 vv (Li.L.get! i)≥ (q/4)*β  * n
@@ -791,7 +841,37 @@ calc
   _≥ (q/4)*β  * n:= by
     gcongr
 
-sorry
+by_cases case2: i=0
+rw[case2, hget0]
+calc
+  q / 4 * β * n≤ 1*1*n:= by
+    gcongr
+  _= n:= by
+    ring_nf
+
+simp at case
+simp at case2
+have ipos: i>0:= by exact Nat.zero_lt_of_ne_zero case2
+have heq: i+1=Li.L.length:= by
+  exact (Nat.le_antisymm case hi).symm
+have him: i-1+1<Li.L.length:= by
+  rw[heq.symm]
+  simp
+  refine Nat.sub_one_lt_of_le ipos ?h₁
+  exact Nat.le_refl i
+have hii: i=i-1+1:= by
+  exact (Nat.sub_eq_iff_eq_add ipos).mp rfl
+calc
+  vv (Li.L.get! i)≥ q*(vv (Li.L.get! (i-1))/4):= by
+    rw[hii]
+    apply Li.Order_decrease (i-1) him
+  _≥ q*((β *n)/4):=by
+    gcongr
+    exact Li.Large (i - 1) him
+  _=q / 4 * β * n:= by
+    ring_nf
+
+
 
 
 lemma improving_list_vv_positive
@@ -800,7 +880,9 @@ lemma improving_list_vv_positive
 (nPositive: n>0)
 (qPositive: q>0)
 (qSmall: q/4≤ 1)
+(βSmall: β≤ 1)
 (Li: density_improving_list iSub ε β  n q)
+(hget0: vv (Li.L.get! 0)=  n)
 (i: ℕ )
 (hi: i< Li.L.length)
 :
@@ -809,10 +891,9 @@ vv (Li.L.get! i)>0
 calc
   vv (Li.L.get! i)≥ (q/4)*β  * n:= by
     apply  LiLarge
-    exact βPositive
-    exact nPositive
-    exact qSmall
-    exact  hi
+    repeat assumption
+
+
   _>0:= by
     apply mul_pos
     apply mul_pos
@@ -848,14 +929,16 @@ lemma improving_list_vv_positive_getD
 (nPositive: n>0)
 (qPositive: q>0)
 (qSmall: q/4≤ 1)
+(βSmall: β≤ 1)
 (Li: density_improving_list iSub ε β  n q)
+(hget0: vv (Li.L.get! 0)=  n)
 (i: ℕ )
 (hi: i< Li.L.length)
 :
 vv (Li.L.getD i default)>0
 := by
 have h1: vv (Li.L.get! i)>0:= by
-  exact improving_list_vv_positive iSub ε β n q βPositive nPositive qPositive qSmall Li i hi
+  exact improving_list_vv_positive iSub ε β n q βPositive nPositive qPositive qSmall βSmall Li hget0 i hi
 simp at h1
 exact h1
 
@@ -916,6 +999,48 @@ simp
 apply subgraphs_vertex_sets_subsets G
 exact hHK
 
+lemma improving_list_vv_le_n
+(ε β  n q : ℚ  )
+(Li: density_improving_list iSub ε β  n q)
+(hget0: vv (Li.L.get! 0)=  n)
+(i: ℕ )
+(hi: i< Li.L.length)
+:
+ vv (Li.L.get! i)≤   n
+:= by
+induction' i with i HI
+exact le_of_eq hget0
+calc
+vv (Li.L.get! (i + 1)) ≤
+vv (Li.L.get! (i)) :=by
+  apply nested_graphs_vv_increase
+  apply Li.Nested
+  exact hi
+_≤n:=by
+  apply HI
+  exact Nat.lt_of_succ_lt hi
+
+
+lemma improving_list_nested_in_0
+(ε β  n q : ℚ  )
+(Li: density_improving_list iSub ε β  n q)
+(i: ℕ )
+(hi: i< Li.L.length)
+:
+(Li.L.get! i)≤(Li.L.get! 0)
+:= by
+induction' i with i HI
+exact Preorder.le_refl (Li.L.get! 0)
+
+calc
+(Li.L.get! (i + 1)) ≤
+(Li.L.get! (i)) :=by
+  apply Li.Nested
+  exact hi
+_≤(Li.L.get! (0)):=by
+  apply HI
+  exact Nat.lt_of_succ_lt hi
+
 lemma improving_list__weakening_Large
 (ε β  n q : ℚ  )
 (Li: density_improving_list iSub ε β  n q)
@@ -966,7 +1091,10 @@ lemma improving_list__weakening
 (βPositive: β>0)
 (nPositive: n>0)
 (εPositive: ε>0)
+(qPositive: q>0)
 (qSmall: q/4≤ 1)
+(βSmall: β≤ 1)
+(hget0: vv (Li.L.get! 0)=  n)
 (i: ℕ )
 (hk: i+1< Li.L.length)
 --(hk2: i+1< Li.L.length)
@@ -1001,13 +1129,9 @@ _≥ (dens (Li.L.get! (i)))
   apply Li.Nested
   exact hk
 
-  sorry
-
   apply LiLarge
-  exact βPositive
-  exact nPositive
-  exact qSmall
-  exact hk
+  repeat assumption
+
 
 
 
@@ -1022,8 +1146,11 @@ lemma improving_list_total_density
 (qPositive: q>0)
 (qSmall: q/4≤ 1)
 (Li: density_improving_list iSub ε β  n q)
+(εβ: ε*4/(β*q)≤ 1/2)
+(βSmall: β≤ 1)
+(hget0: vv (Li.L.get! 0)=  n)
 (k: ℕ )
-(hk: k+1< Li.L.length)
+(hk: k< Li.L.length)
 :
 dens (Li.L.get! (k))≥ (dens (Li.L.get! (0)))*(vv (Li.L.get! (0)) / vv (Li.L.get! (k)))*(1-ε *(vv (Li.L.get! (0))-vv (Li.L.get! (k)))/ ((q/4)*β* n))
 
@@ -1042,7 +1169,7 @@ calc
     have h1: vv (Li.L.getD 0 default)>0:= by
       apply improving_list_vv_positive_getD
       repeat assumption
-      exact Nat.zero_lt_of_lt hk
+      --exact Nat.zero_lt_of_lt hk
 
 
     exact Ne.symm (ne_of_lt h1)
@@ -1055,7 +1182,7 @@ calc
 
 -----induction
 have kle1: k+1< Li.L.length:= by
-  exact Nat.lt_of_succ_lt hk
+  exact hk--Nat.lt_of_succ_lt hk
 have kle2: k< Li.L.length:= by
   exact Nat.lt_of_succ_lt kle1
 
@@ -1066,11 +1193,8 @@ dens (Li.L.get! (k + 1))
 *(vv (Li.L.get! (k)) / vv (Li.L.get! (k+1)))
 *(1-ε *(vv (Li.L.get! (k))-vv (Li.L.get! (k+1)))/ ((q/4)*β *n))  := by
   apply improving_list__weakening
-  exact βPositive
-  exact nPositive
-  exact εPositive
-  exact qSmall
-  exact Nat.lt_of_succ_lt hk
+  repeat assumption
+
 
 
 _≥
@@ -1083,7 +1207,32 @@ _≥
 *(1-ε *(vv (Li.L.get! (k))-vv (Li.L.get! (k+1)))/ ((q/4)*β *n))  := by
   gcongr --?_*(vv (Li.L.get! (k)) / vv (Li.L.get! (k+1)))*(1-ε *(vv (Li.L.get! (k))-vv (Li.L.get! (k+1)))/ (β *n))
   --should just be a calculation
-  sorry
+  simp only [ sub_nonneg]
+  calc
+    ε * (vv (Li.L.get! k) - vv (Li.L.get! (k + 1))) / (q / 4 * β * n)
+    ≤ ε *(vv (Li.L.get! k) - 0) / (q / 4 * β * n):= by
+      gcongr
+      exact vv_nonneg (Li.L.get! (k + 1))
+
+    _=ε *(vv (Li.L.get! k)) / (q / 4 * β * n):= by
+      ring_nf
+    _≤ε *(n) / (q / 4 * β * n):= by
+      gcongr
+      apply improving_list_vv_le_n
+      repeat assumption
+    _=ε  / (q / 4 * β )*(n/n):= by
+      field_simp
+      linarith
+    _=ε  / (q / 4 * β )*(1):= by
+      congr
+      field_simp
+    _=ε*4/(β*q):= by
+      field_simp
+      linarith
+    _≤ 1/2:= by
+      exact εβ
+    _≤ 1:= by
+      exact half_le_self rfl
 
   apply div_nonneg
   exact vv_nonneg (Li.L.get! k)
@@ -1123,11 +1272,13 @@ _≥
   apply mul_nonneg
   exact sq_nonneg ε
   simp only [sub_nonneg]
-  sorry--either do a separate lemma by induction, or incorporate this into the curret one
+  rw[hget0]
+  apply improving_list_vv_le_n
+  repeat assumption
   simp only [sub_nonneg]
   apply nested_graphs_vv_increase
   apply Li.Nested
-  exact Nat.lt_of_succ_lt hk
+  exact  hk
   have h1:((β * n) ^ 2).inv=1/((β * n) ^ 2):= by
     apply eq_one_div_of_mul_eq_one_left
     refine (IsUnit.mul_eq_one_iff_eq_inv ?_).mpr rfl
@@ -1135,7 +1286,19 @@ _≥
     refine Exists.intro ?h.a.w ?h.a.h
     exact (1/(β * n)^2)
     field_simp
-  sorry
+  have h1:(((q / 4 * β * n) ^ 2)).inv=1/(((q / 4 * β * n) ^ 2)):= by
+    apply eq_one_div_of_mul_eq_one_left
+    refine (IsUnit.mul_eq_one_iff_eq_inv ?_).mpr rfl
+    apply isUnit_iff_exists_inv.mpr
+    use  (1/((q / 4 * β * n) ^ 2))
+    field_simp
+
+
+  rw[h1]
+  apply div_nonneg
+  exact rfl
+  exact sq_nonneg (q / 4 * β * n)
+
   --apply div_nonneg
   --exact rfl
   --exact sq_nonneg (β * n)
@@ -1151,11 +1314,7 @@ _=
   refine div_self ?_
   have h1:vv (Li.L.get! k)>0:= by
     apply improving_list_vv_positive
-    exact βPositive
-    exact nPositive
-    exact qPositive
-    exact qSmall
-    exact kle2
+    repeat assumption
   exact Ne.symm (ne_of_lt h1)
 _=
 dens (Li.L.get! 0)
@@ -1163,6 +1322,17 @@ dens (Li.L.get! 0)
 * (1 - ε * (vv (Li.L.get! 0) - vv (Li.L.get! (k + 1))) / ((q/4)*β * n)):= by
   ring_nf
 
+lemma inv_eq
+(q:ℚ)
+(hq: q> 0)
+:
+q.inv=1/q
+:=by
+apply eq_one_div_of_mul_eq_one_left
+refine (IsUnit.mul_eq_one_iff_eq_inv ?_).mpr rfl
+apply isUnit_iff_exists_inv.mpr
+use  (1/q)
+field_simp
 
 
 lemma improving_list_total_density2
@@ -1173,16 +1343,18 @@ lemma improving_list_total_density2
 (qPositive: q>0)
 (qSmall: q/4≤ 1)
 (Li: density_improving_list iSub ε β  n q)
+(εβ: ε*4/(β*q)≤ 1/2)
+(βSmall: β≤ 1)
 (hn: vv (Li.L.get! (0))=n)
 (k: ℕ )
-(hk: k+1< Li.L.length)
+(hk: k< Li.L.length)
 
 :
 dens (Li.L.get! (k))≥ (dens (Li.L.get! (0)))*(n / vv (Li.L.get! (k)))*(1-ε*4 /(β*q) )
 := by
 calc
 dens (Li.L.get! (k))≥ (dens (Li.L.get! (0)))*(vv (Li.L.get! (0)) / vv (Li.L.get! (k)))*(1-ε *(vv (Li.L.get! (0))-vv (Li.L.get! (k)))/ ((q/4)*β* n)):= by
-  exact    improving_list_total_density iSub ε β n q βPositive nPositive εPositive qPositive qSmall Li k hk
+  exact    improving_list_total_density iSub ε β n q βPositive nPositive εPositive qPositive qSmall Li εβ  βSmall hn k hk
 _=(dens (Li.L.get! (0)))*(n / vv (Li.L.get! (k)))*(1-ε *((n-vv (Li.L.get! (k)))/ ((q/4)*β* n))):= by
   rw[hn]
   ring_nf
@@ -1192,29 +1364,27 @@ _≥ (dens (Li.L.get! (0)))*(n / vv (Li.L.get! (k)))*(1-(ε*4)/(β*q)):= by
   apply mul_nonneg
   apply ee_nonneg
   rw [hn]
-  sorry
+  rw[inv_eq]
+  apply div_nonneg
+  exact rfl
+  exact sq_nonneg n
+  exact sq_pos_of_pos nPositive
   apply div_nonneg
   exact gt_implies_gte_rational n 0 nPositive
   apply vv_nonneg
-
-  /-refine div_le_of_nonneg_of_le_mul ?h.h.h.hb ?h.h.h.hc ?h.h.h.h
-  apply mul_nonneg
-  sorry
-  --exact gt_implies_gte_rational β 0 βPositive
-  exact gt_implies_gte_rational n 0 nPositive
-  simp
-  exact gt_implies_gte_rational β 0 βPositive-/
-  sorry/-
-
   calc
-    β⁻¹ * (β * n)
-    =
-    n-0:= by
-      ring_nf
-      field_simp
-    _≥   n- vv (Li.L.get! k):= by
+    ε * ((n - vv (Li.L.get! k)) / (q / 4 * β * n))
+    ≤ε * ((n - 0) / (q / 4 * β * n)):=by
       gcongr
-      exact vv_nonneg (Li.L.get! k)-/
+      apply vv_nonneg
+    _=(ε  / (q / 4 * β))*(n/n):=by
+      ring_nf
+    _=(ε  / (q / 4 * β))*(1):=by
+      congr
+      field_simp
+    _=ε * 4 / (β * q):=by
+      field_simp
+      ring_nf
 
 
 
@@ -1226,12 +1396,12 @@ lemma improving_list_total_density3
 (εPositive: ε>0)
 (qPositive: q>0)
 (qSmall: q/4≤ 1)
+(βSmall: β≤ 1)
 (εβ: ε*4/(β*q)≤ 1/2)
-
 (Li: density_improving_list iSub ε β  n q)
 (hn: vv (Li.L.get! (0))=n)
 (k: ℕ )
-(hk: k+1< Li.L.length)
+(hk: k< Li.L.length)
 :
 dens (Li.L.get! (k))≥ (dens (Li.L.get! (0)))*(n / vv (Li.L.get! (k)))/2
 := by
@@ -1239,17 +1409,22 @@ calc
 dens (Li.L.get! (k))
 ≥ (dens (Li.L.get! (0)))*(n / vv (Li.L.get! (k)))*(1-ε*4/(β*q) )
 := by
-  apply improving_list_total_density2 iSub ε β n q _ _ _ _ _ _ _ k
+  apply improving_list_total_density2 iSub ε β n q _ _ _ _ _ _ _ _ _ k
   repeat assumption-- βPositive nPositive εPositive qPositive qSmall Li hn k hk hk2
 _≥
  (dens (Li.L.get! (0)))*(n / vv (Li.L.get! (k)))*(1/2):= by
   gcongr
-  sorry
+  apply mul_nonneg
+  apply dens_nonneg
+  apply div_nonneg
+  exact gt_implies_gte_rational n 0 nPositive
+  apply vv_nonneg
   refine le_tsub_of_add_le_left ?h.h
   refine le_sub_iff_add_le.mp ?h.h.a
   ring_nf
-  sorry
-  --exact εβ
+  calc
+    ε * β⁻¹ * q⁻¹ * 4 =ε*4/(β*q):=by ring_nf
+    _≤ 1/2 :=by exact εβ
 _= (dens (Li.L.get! (0)))*(n / vv (Li.L.get! (k)))/2:= by
   ring_nf
 
@@ -1263,12 +1438,13 @@ lemma improving_list_total_density4
 (εPositive: ε>0)
 (qPositive: q>0)
 (qSmall: q/4≤ 1)
+(βSmall: β≤ 1)
 (εβ: ε*4/(β*q)≤ 1/2)
 
 (Li: density_improving_list iSub ε β  n q)
 (hn: vv (Li.L.get! (0))=n)
 (k: ℕ )
-(hk: k+1< Li.L.length)
+(hk: k< Li.L.length)
 :
 dens (Li.L.get! (k))≥ (dens (Li.L.get! (0)))/2
 := by
@@ -1282,8 +1458,10 @@ _≥ (dens (Li.L.get! (0)))*(1)/2
 := by
   gcongr
   apply dens_nonneg
-  sorry
-
+  refine (one_le_div ?hab.h.hb).mpr ?hab.h.a
+  exact improving_list_vv_positive iSub ε β n q βPositive nPositive qPositive qSmall βSmall Li hn k hk
+  apply improving_list_vv_le_n
+  repeat assumption
 _=(dens (Li.L.get! (0)))/2
 := by
   ring_nf
@@ -1331,13 +1509,14 @@ lemma improving_list_order_lower_bound
 (εPositive: ε>0)
 (qPositive: q>0)
 (qSmall: q/4≤ 1)
+(βSmall: β≤ 1)
 (εβ: ε*4/(β*q)≤ 1/2)
 
 (Li: density_improving_list iSub ε β  n q)
 (hDense: dens (Li.L.get! (0))≥ δ )
 (hn: vv (Li.L.get! (0))=n)
 (k: ℕ )
-(hk: k+1< Li.L.length)
+(hk: k< Li.L.length)
 :
 vv (Li.L.get! (k)) ≥ n*δ/2--n*(dens (Li.L.get! (0)))/2
 --dens (Li.L.get! (k))≥ (dens (Li.L.get! (0)))*(n / vv (Li.L.get! (k)))/2
@@ -1348,7 +1527,7 @@ have hup: 1≥ (n*δ/2)/ (vv (Li.L.get! (k))):= by
       apply dens_le_1
       apply improving_list_vv_positive
       repeat assumption
-      exact Nat.lt_of_succ_lt hk
+      --exact Nat.lt_of_succ_lt hk
 
     _≥ (dens (Li.L.get! (0)))*(n / vv (Li.L.get! (k)))/2:= by
       apply improving_list_total_density3
@@ -1366,19 +1545,98 @@ have hup: 1≥ (n*δ/2)/ (vv (Li.L.get! (k))):= by
 have h2: vv (Li.L.get! (k))>0:= by
       apply improving_list_vv_positive
       repeat assumption
-      exact Nat.lt_of_succ_lt hk
+      --exact Nat.lt_of_succ_lt hk
 
 simp
 simp at hup
 --field_simp
 field_simp at hup
-sorry
+calc
+  n * δ / 2 =
+  n * δ / 2 *1:= by
+    ring_nf
+  _=  n * δ / 2*( (vv (Li.L.getD k default))/ (vv (Li.L.getD k default))):= by
+    congr
+    symm
+    apply div_self
+    simp at h2
+    exact Ne.symm (ne_of_lt h2)
+  _=(n * δ / (2 * vv (Li.L.getD k default)))*(vv (Li.L.getD k default)):= by
+    field_simp
+  _≤ 1*vv (Li.L.getD k default):= by
+    gcongr
+    apply vv_nonneg
+  _= vv (Li.L.getD k default):= by
+    ring_nf
 
 
 
 
 
 
+
+
+lemma improving_list_vv_get_upper_bound
+(ε β  n q : ℚ  )
+(Li: density_improving_list iSub ε β  n q)
+(i: ℕ )
+(hi: i+1< Li.L.length)
+:
+ (Li.L.get! (i+1)).verts.toFinset.card≤    (Li.L.get! (0)).verts.toFinset.card-i
+:= by
+induction' i with i HI
+simp only [zero_add,   tsub_zero]
+apply Nat.le_of_lt
+apply Li.Strictily_Decreasing
+exact hi
+
+calc
+  (Li.L.get! (i + 1 + 1)).verts.toFinset.card
+  ≤ (Li.L.get! (i + 1)).verts.toFinset.card-1:=by
+    have h1: (Li.L.get! (i + 1 + 1)).verts.toFinset.card<(Li.L.get! (i + 1)).verts.toFinset.card:= by
+      apply Li.Strictily_Decreasing
+      exact hi
+    exact Nat.le_sub_one_of_lt h1
+  _≤
+  (Li.L.get! 0).verts.toFinset.card - i-1:= by
+    gcongr
+    apply HI
+    exact Nat.lt_of_succ_lt hi
+
+
+
+
+
+
+
+lemma improving_list_vv_get_upper_bound2
+(ε β  n q : ℚ  )
+(Li: density_improving_list iSub ε β  n q)
+(hi: ((Li.L.get! (0)).verts.toFinset.card+1+1)< Li.L.length)
+:
+(Li.L.get! ((Li.L.get! (0)).verts.toFinset.card+1+1)).verts.toFinset.card<0:= by --≤    (Li.L.get! (0)).verts.toFinset.card-i
+
+calc
+(Li.L.get! ((Li.L.get! (0)).verts.toFinset.card+1+1)).verts.toFinset.card<(Li.L.get! ((Li.L.get! (0)).verts.toFinset.card+1)).verts.toFinset.card:= by
+  apply Li.Strictily_Decreasing
+  exact hi
+_≤ (Li.L.get! (0)).verts.toFinset.card-(Li.L.get! (0)).verts.toFinset.card:= by
+  apply improving_list_vv_get_upper_bound
+  exact Nat.lt_of_succ_lt hi
+_=0:= by exact Nat.sub_self (Li.L.get! 0).verts.toFinset.card
+
+
+
+lemma vge20
+(H: Subgraph G)
+(h: vv H≥ 20)
+:
+H.verts.toFinset.card≥ 20
+:= by
+unfold vv at h
+simp at h
+simp
+exact h
 
 theorem cut_dense_existence0
 --(δ: ℕ )--p≫ q
@@ -1387,8 +1645,21 @@ theorem cut_dense_existence0
 (nPositive: n>0)
 (εPositive: ε>0)
 (qPositive: q>0)
+(δPositive: δ>0)
+(qSmall: q/4≤ 1)
+(βSmall: β ≤ 1)
+(εβ: ε*4/(β*q)≤ 1/2)
+(dpe: δ / 2 ≥ 32 / (↑p * ε))
+(dq: δ / 2 ≥q)
+(db: (δ/2)≥ β )
+(δSmall: δ / 2 ≤ 1)
+(εSmall: ε ≤ 1/4)
+(εδ: ε≤ δ/2)
+(nd: n≥ 40/δ)
 (H: Subgraph G)
-(HEdges: dens H≥ δ )--q*H.edgeSet.toFinset.card≥ H.verts.toFinset.card^2)
+(HEdges: dens H≥ δ )
+(Hvertices: vv H=n)
+--q*H.edgeSet.toFinset.card≥ H.verts.toFinset.card^2)
 :∃ (D: Subgraph G), D ≤ H ∧ (vv D≥ ε * n) ∧ cut_dense G D p:= by
 
 let S:Set ℕ := {k: ℕ| ∃ (Li: density_improving_list iSub ε β  n q),  (Li.L.get! (0)=H) ∧ (Li.L.length=k+1) }
@@ -1398,10 +1669,35 @@ let S:Set ℕ := {k: ℕ| ∃ (Li: density_improving_list iSub ε β  n q),  (Li
 let k:= sSup S
 
 have Snonempty:  S.Nonempty:= by
-  sorry
+  use 0
+  dsimp[S]
+  refine Exists.intro ?h.w ?h.h --simp only [List.get!_eq_getD]
+  refine
+    { L := ?h.w.L, Nested := ?_, Density_Increase := ?h.w.Density_Increase,
+      Strictily_Decreasing := ?h.w.Strictily_Decreasing, Order_decrease := ?h.w.Order_decrease,
+      Large := ?h.w.Large, Dense := ?h.w.Dense }
+  exact [H]
+  repeat intro i hi;  simp at hi
+  simp
+
 
 have Sboundedabove: BddAbove S:=by
-  sorry
+  refine bddAbove_def.mpr ?_
+  use (H).verts.toFinset.card+1+1
+  intro k hk
+  by_contra cont
+  simp only [not_le] at cont
+  dsimp[S] at hk
+  rcases hk with ⟨Li, hLi1, hLi2 ⟩
+  have h1: (Li.L.get! ((H).verts.toFinset.card+1+1)).verts.toFinset.card<0:= by
+    rw[hLi1.symm]
+    apply improving_list_vv_get_upper_bound2
+    rw[hLi2]
+    rw[hLi1]
+    exact Nat.lt_add_right 1 cont
+  have h2: ¬ ((Li.L.get! ((H).verts.toFinset.card+1+1)).verts.toFinset.card<0):= by
+    simp
+  exact h2 h1
 
 
 have kmax1: k∈ S:= by
@@ -1422,13 +1718,37 @@ rcases kmax1 with ⟨Li, hLi1, hLi2 ⟩
 
 
 have hlarge:vv (Li.L.get! (k))≥ n*δ/2:= by
-  sorry
+  apply improving_list_order_lower_bound
+  repeat assumption
+  rw[hLi1]
+  assumption
+  rw[hLi1]
+  assumption
+  rw [hLi2]
+  simp
+
+
+
+
 
 have hdense: dens (Li.L.get! (k))≥ δ /2:= by
-  sorry
+  calc
+    dens (Li.L.get! (k))
+    ≥ dens (Li.L.get! (0))/2:= by
+      apply improving_list_total_density4
+      repeat assumption
+      rw[hLi1]
+      assumption
+      rw [hLi2]
+      simp
+    _≥ δ /2:= by gcongr; rw[hLi1]; exact HEdges
+
+
 
 by_contra cont
 push_neg at cont
+
+
 
 
 
@@ -1441,25 +1761,59 @@ have KnewEx:
 (
 (dens K≥ (dens (Li.L.get! (k)))*(vv (Li.L.get! (k)) / vv K)*(1-ε *(vv (Li.L.get! (k))-vv K)/ (vv K)))
 )
+∧ (K.verts.toFinset.card< (Li.L.get! (k)).verts.toFinset.card)
 := by
   apply combined_inequality_graph_alt (Li.L.get! (k)) p _ _ ε (δ/2)
   --δ / 2 ≥ 32 / (↑p * ε)
-  sorry
+  simp
+  exact δPositive
+  exact  dpe
   --δ / 2 ≤ 1
-  sorry
+  exact δSmall
   exact εPositive
   --(Li.L.get! k).verts.toFinset.card ≥ 20
-  sorry
+  apply vge20
+  calc
+    vv (Li.L.get! k) ≥
+    n*δ/2:= by exact hlarge
+    _≥ 40/δ*δ/2:= by
+      gcongr
+    _=40/2*(δ/δ):= by
+      ring_nf
+    _= 20*1:= by
+      congr
+      refine div_self ?_
+      exact Ne.symm (ne_of_lt δPositive)
+    _=20:= by ring_nf
+
   exact hdense
   -- 32 / (↑p * ε) ≤ 1
-  sorry
+  calc
+    32 / (↑p * ε)≤ δ/2:= by exact dpe
+      _≤ 1:= by exact δSmall
   --ε ≤ 1 / 4
-  sorry
+  exact εSmall
   exact Nat.not_eq_zero_of_lt pPositive
   --¬G.cut_dense (Li.L.get! k) p
-  sorry
+  apply cont
+  rw[hLi1.symm]
+  apply improving_list_nested_in_0
+  rw[hLi2]
+  exact lt_add_one k
+  --vv (Li.L.get! k) ≥ ε * n
+  calc
+    vv (Li.L.get! k) ≥
+     n*δ/2:= by exact hlarge
+     _=(δ/2)*n:= by ring_nf
+      _≥ ε * n:=by
+      gcongr
 
-rcases KnewEx with ⟨K, Ksub, Kord, Kden ⟩
+
+
+
+
+
+rcases KnewEx with ⟨K, Ksub, Kord, Kden, Kstrict ⟩
 
 let L: List (Subgraph G):=Li.L++[K]
 
@@ -1476,28 +1830,180 @@ have Llength2: L.length=k+1+1:= by
   rw[Llength]
   exact congrFun (congrArg HAdd.hAdd hLi2) 1
 
+have Lget:  ∀ (i: ℕ ), i< k+1→ L.get! (i)= Li.L.get! (i):=by
+  intro i hi
+  dsimp [L]
+  simp
+  rw [List.getD_append]
+  rw[hLi2]
+  exact hi
+
+
+have LgetN:L.get! (k+1)=K:= by
+  dsimp [L]
+  simp
+  rw [List.getD_append_right]
+  rw[hLi2]
+  simp
+  rw[hLi2]
 
 
 have Nested: ∀ (i: ℕ ), i+1< L.length→ L.get! (i)≥ L.get! (i+1):= by
-  sorry
+  intro i hi
+  by_cases case: i+1<k+1
+  rw[Lget i _];
+  rw[Lget (i+1) _];
+  apply Li.Nested
+  rw[hLi2]
+  exact case
+  exact case
+  exact Nat.lt_of_succ_lt case
+  --neg----------
+  simp at case
+  have ipeq: i  = k := by
+    rw[Llength2] at hi
+    simp at hi
+    refine Nat.le_antisymm ?h₁ case
+    exact Nat.le_of_lt_succ hi
+  rw[ipeq]
+  rw[Lget k _];
+  rw[LgetN]
+  exact Ksub
+  simp
 
 
-have Strictily_Decreasing:  ∀ (i: ℕ ), i+1< L.length→ vv (L.get! (i))> vv (L.get! (i+1)):= by
-  sorry
+have Strictily_Decreasing:  ∀ (i: ℕ ), i+1< L.length→ (L.get! (i)).verts.toFinset.card>  (L.get! (i+1)).verts.toFinset.card:=by
+  intro i hi
+  by_cases case: i+1<k+1
+  rw[Lget i _];
+  rw[Lget (i+1) _];
+  apply Li.Strictily_Decreasing
+  rw[hLi2]
+  exact case
+  exact case
+  exact Nat.lt_of_succ_lt case
+  --neg----------
+  simp at case
+  have ipeq: i  = k := by
+    rw[Llength2] at hi
+    simp at hi
+    apply Nat.le_antisymm
+    exact Nat.le_of_lt_succ hi
+    exact case
+  rw[ipeq]
+  rw[Lget k _];
+  rw[LgetN]
+  exact Kstrict
+  simp
 
 have Density_Increase: ∀ (i: ℕ ), i+1< L.length→
     dens (L.get! (i+1))≥ (dens (L.get! (i)))*(vv (L.get! (i)) / vv (L.get! (i+1)))*(1-ε *(vv (L.get! (i))-vv (L.get! (i+1)))/ (vv (L.get! (i+1)))):= by
-      sorry
+      intro i hi
+      by_cases case: i+1<k+1
+      rw[Lget i _];
+      rw[Lget (i+1) _];
+      apply Li.Density_Increase
+      rw[hLi2]
+      exact case
+      exact case
+      exact Nat.lt_of_succ_lt case
+      --neg----------
+      simp at case
+      have ipeq: i  = k := by
+        rw[Llength2] at hi
+        simp at hi
+        apply Nat.le_antisymm _ case
+        exact Nat.le_of_lt_succ hi
+      rw[ipeq]
+      rw[Lget k _];
+      rw[LgetN]
+      exact Kden
+      simp
 
 have   Order_decrease:  ∀ (i: ℕ ), i+1< L.length→ vv (L.get! (i+1))≥  q*(vv (L.get! (i))/4):= by
-  sorry
+      intro i hi
+      by_cases case: i+1<k+1
+      rw[Lget i _];
+      rw[Lget (i+1) _];
+      apply Li.Order_decrease
+      rw[hLi2]
+      exact case
+      exact case
+      exact Nat.lt_of_succ_lt case
+      --neg----------
+      simp at case
+      have ipeq: i  = k := by
+        rw[Llength2] at hi
+        simp at hi
+        apply Nat.le_antisymm _ case
+        exact Nat.le_of_lt_succ hi
+      rw[ipeq]
+      rw[Lget k _];
+      rw[LgetN]
+      calc
+        vv K ≥ _:= by exact Kord
+        _=δ / 2 * (vv (Li.L.get! k) / 4):= by ring_nf
+        _≥ q * (vv (Li.L.get! k) / 4):= by
+          gcongr
+          apply div_nonneg
+          apply vv_nonneg
+          simp
 
+
+      simp
 
 have   Large: ∀ (i: ℕ ), i+1<L.length→ vv (L.get! i)≥ β  * n:= by
-  sorry
+  intro i hi
+  by_cases case: i+1<k+1
+  rw[Lget i _];
+  apply Li.Large
+  rw[Llength] at hi
+  rw[hLi2]
+  exact case
+  exact Nat.lt_of_succ_lt case
+  --neg----------
+  simp at case
+  have ipeq: i  = k := by
+        rw[Llength2] at hi
+        simp at hi
+        apply Nat.le_antisymm _ case
+        exact Nat.le_of_lt_succ hi
+  rw[ipeq]
+  rw[Lget k _];
+  calc
+    vv (Li.L.get! k)
+    ≥ _:= by exact hlarge
+    _=(δ/2)*n:= by
+      ring_nf
+    _≥ β * n:= by
+      gcongr
+  exact lt_add_one k
+
 
 have   Dense: ∀ (i: ℕ ), i+1<L.length→ dens (L.get! i)≥ q:= by
-  sorry
+  intro i hi
+  by_cases case: i+1<k+1
+  rw[Lget i _];
+  apply Li.Dense
+  rw[Llength] at hi
+  rw[hLi2]
+  exact case
+  exact Nat.lt_of_succ_lt case
+  --neg----------
+  simp at case
+  have ipeq: i  = k := by
+        rw[Llength2] at hi
+        simp at hi
+        apply Nat.le_antisymm _ case
+        exact Nat.le_of_lt_succ hi
+  rw[ipeq]
+  rw[Lget k _];
+  calc
+    dens (Li.L.get! k)
+    ≥ _:= by exact hdense
+    _≥ q:= by
+      gcongr
+  exact lt_add_one k
 
 let Li': density_improving_list iSub ε β  n q:=⟨L, Nested,  Density_Increase, Strictily_Decreasing, Order_decrease, Large, Dense⟩
 
@@ -1507,15 +2013,197 @@ have hcont: k+1∈ S:= by
   use Li'
   constructor
   dsimp [Li', L]
-
-  sorry
+  simp
+  rw[List.getD_append]
+  simp at hLi1
+  rw[hLi1]
+  rw[hLi2]
+  simp
 
   dsimp[Li']
   exact Llength2--
 
 exact kmax3 hcont
 
+
+/-lemma vPos_imp_verts_pos
+(A: Finset V)
+(h:v  A>0)
+:
+A.toFinset.card>0
+:= by
+unfold v at h
+exact h
+-/
+lemma vAPos_imp_vertsB_decrease
+(H: Subgraph G)
+(A B: Finset V)
+(h: vv H= v A+v B)
+(hpos: v A>0)
+:
+H.verts.toFinset.card>B.card
+:= by
+unfold v at h
+unfold vv at h
+unfold v at hpos
+have h1: (H.verts.toFinset.card :ℚ )> (B.card:ℚ):= by
+  calc
+    (H.verts.toFinset.card :ℚ )= (A.card :ℚ )+ (B.card:ℚ ):= by exact h
+    _> 0+(B.card:ℚ ):= by
+      gcongr
+    _= B.card:= by
+      ring_nf
+simp at h1
+simp
+exact h1
+
+
+
+theorem cut_dense_existence1
+--d=1/δ
+--1/n<<1/p≪  ε  << δ
+--β=δ/2
+--q=8ε/β = 16ε/δ=16*64/pδ^2
+--eps=64/pδ
+(n δ : ℚ)
+--(ε β  n q δ: ℚ  )
+--(βPositive: β>0)
+(nPositive: n>0)
+--(εPositive: ε>0)
+--(qPositive: q>0)
+(δPositive: δ>0)
+(δSmall: δ≤ 1)
+--(qSmall: q/4≤ 1)
+--(βSmall: β ≤ 1)
+--(εβ: ε*4/(β*q)≤ 1/2)
+--(dpe: δ / 2 ≥ 32 / (↑p * ε))
+--(dq: δ / 2 ≥q)
+--(db: (δ/2)≥ β )
+--(δSmall: δ / 2 ≤ 1)
+--(εSmall: ε ≤ 1/4)
+--(εδ: ε≤ δ/2)--p ≥ 128d^2
+(pd:  256 / (p * δ ^ 2) ≤ 1)
+(pd2: (↑p)⁻¹ * δ⁻¹ ^ 2 * 1024 ≤ δ * (1 / 2) )--2048 / (p * δ ^ 3) ≤ 1)
+(pd3: 64 / (↑p * δ) ≤ 1 / 4)
+(pd4: 64 / (↑p * δ) ≤ δ  / 2)
+--(pd2: 256 / (↑p * δ) ≤ 1)
+(nd: n≥ 40/δ)
+(H: Subgraph G)
+(HEdges: dens H≥ δ )
+(Hvertices: vv H=n)
+--q*H.edgeSet.toFinset.card≥ H.verts.toFinset.card^2)
+:∃ (D: Subgraph G), D ≤ H ∧ (vv D≥ (64/(p*δ)) * n) ∧ cut_dense G D p:= by
+let β := δ/2
+let ε := 64/(p*δ)
+let q := 16*64/(p*δ^2)
+have βPositive: β>0:= by
+  apply div_pos
+  exact δPositive
+  simp
+have εPositive: ε>0:= by
+  apply div_pos
+  simp
+  apply mul_pos
+  simp
+  exact pPositive
+  exact δPositive
+have qPositive: q>0:= by
+  apply div_pos
+  simp
+  apply mul_pos
+  simp
+  exact pPositive
+  exact sq_pos_of_pos δPositive
+have qSmall: q/4≤ 1:= by
+  dsimp[q]
+  field_simp
+  ring_nf
+  field_simp
+  exact pd
+have βSmall: β ≤ 1:= by
+  dsimp[β]
+  apply (div_le_one ?_).2
+  exact Preorder.le_trans δ 1 2 δSmall rfl
+  simp
+have εβ: ε*4/(β*q)≤ 1/2:= by
+  dsimp[ε, β, q]
+  field_simp
+  ring_nf
+  field_simp
+
+have dpe: δ / 2 = 32 / (↑p * ε):= by
+  dsimp[ε]
+  field_simp
+  ring_nf
+
+have dpe: δ / 2 ≥  32 / (↑p * ε):= by
+  exact le_of_eq (id dpe.symm)
+
+have dq: δ / 2 ≥  q:= by
+  dsimp[q]
+  field_simp
+  ring_nf
+  exact pd2
+have db: (δ/2)≥ β := by
+  dsimp[β]
+  exact (div_le_div_left δPositive rfl rfl).mpr rfl
+have δSmall: δ / 2 ≤ 1:= by
+  apply (div_le_one ?_).2
+  exact Preorder.le_trans δ 1 2 δSmall rfl
+  simp
+
+have εSmall: ε ≤ 1/4:= by
+  dsimp[ε]
+  exact pd3
+have εδ: ε≤ δ/2:= by
+  dsimp[ε, β]
+  exact pd4
+
+apply  cut_dense_existence0 iSub ε β  n q δ
+repeat assumption
+
+
+
+ 
+
+
 /-
+lemma improving_list_vv_get_upper_bound_one_step
+(ε β  n q : ℚ  )
+(Li: density_improving_list iSub ε β  n q)
+(i: ℕ )
+(hi: i+1< Li.L.length)
+:
+vv (Li.L.get! (i))≥   vv (Li.L.get! (i+1))+1
+:=by
+have h1: vv (Li.L.get! (i))>   vv (Li.L.get! (i+1)):=by
+  apply Li.Strictily_Decreasing
+  exact hi
+have h2: (Li.L.get! (i)).verts.toFinset.card>   (Li.L.get! (i+1)).verts.toFinset.card:=by
+  by_contra cont
+  have h3: ¬ (vv (Li.L.get! (i))>   vv (Li.L.get! (i+1))):= by
+    simp only [gt_iff_lt, not_lt]
+    simp only [ gt_iff_lt, not_lt] at      cont
+    unfold vv
+    simp only [List.get!_eq_getD, Set.toFinset_card, Fintype.card_ofFinset, Nat.cast_le]
+    simp at cont
+    exact cont
+  exact h3 h1
+
+
+have h4:  (Li.L.get! (i)).verts.toFinset.card≥    (Li.L.get! (i+1)).verts.toFinset.card+1:= by
+  exact h2
+unfold vv
+simp only [ ge_iff_le]
+simp only [ge_iff_le] at h4
+simp at h4
+simp
+apply?
+
+
+
+
+-/
 
 
 
@@ -1523,6 +2211,10 @@ exact kmax3 hcont
 
 
 
+
+
+
+/-
 
 
 lemma combined_inequality_graph

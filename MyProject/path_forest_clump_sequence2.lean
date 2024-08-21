@@ -11,7 +11,7 @@ open scoped BigOperators
 namespace SimpleGraph
 
 
-set_option maxHeartbeats  100000
+set_option maxHeartbeats  200000
 
 universe u
 variable {V : Type u} {G : SimpleGraph V}
@@ -51,6 +51,33 @@ variable {mggpr: m≫ pr}
   --(LM_NoDup: LM.Nodup)
 -/
 
+
+
+lemma get_rotate_tail
+(L: List V)
+(i: ℕ )
+(hi: i< L.length-1)
+:
+(L.rotate 1).get! i=L.tail.get! i
+:= by
+sorry
+
+lemma get_take_tail
+(L: List V)
+(i k: ℕ )
+(hi: i< k-1)
+:
+(List.take k L).tail.get! i= L.tail.get! i
+:= by
+sorry
+
+lemma Path_forest_ends_contained
+(F : PathForest iV iSP H)
+:
+{v:V| v∈ F.E.take F.k}⊆ Path_forest_support iV iSP F
+:= by
+sorry
+
 lemma set_disjoint_to_internal_disjoint_reverse_taildisj_symm2_tailaligned2
 (F1  F2: PathForest iV iSP H)
 (Fb: Set V)
@@ -59,7 +86,7 @@ lemma set_disjoint_to_internal_disjoint_reverse_taildisj_symm2_tailaligned2
 (F2k: F2.k≥ k)
 (F2k2: F2.k = F2.S.length)
 (F1k2: F1.k = F1.E.length)
-(Ends_eq:F1.E=F2.S.tail)
+(Ends_eq:F1.E=F2.S.rotate 1)
 (F2SNodup: F2.E.Nodup)
 (F2_avoids_Fb: Path_forest_avoids! iV iSP F2 Fb k)
 (F1_in_Fb: {v:V| v∈ Path_forest_support iV iSP F1∧ v∉ F2.S}= Fb)
@@ -87,6 +114,17 @@ lemma path_forest_avoids_monotone!
     i < k':= by exact hi
     _≤ k:= by exact le
 
+
+lemma disjoint_1_rotate
+{L K: List V}
+(hdis: L.Disjoint K)
+:
+L.Disjoint (K.rotate 1)
+:= by
+refine List.disjoint_left.mpr ?_
+intro a ha
+simp
+exact hdis ha
 
 
 lemma clump_path_sequence_gives_path2
@@ -288,8 +326,36 @@ have Stail_get_in_S:∀ (i: ℕ ), (hi:i< k+1)→S.tail.get! i∈ S:= by
     exact List.tail_subset S
   exact h1 (Stail_get_in_Stail i hi)
 
+
+have Srotate_get_ineq: ∀ (i: ℕ ), i< k→i<(S'.rotate 1).length:= by
+  intro i hi
+  rw [List.length_rotate]
+  dsimp[S']
+  simp
+  constructor
+  exact hi
+  rw[hS]
+  calc
+    i < k:= by exact hi
+    _< k+4:= by simp
+
+have Srotate_get: ∀ (i: ℕ ), (hi:i< k)→(S'.rotate 1).get! i=(S'.rotate 1).get ⟨i, Srotate_get_ineq i hi⟩:= by
+  intro i hi
+  simp
+  apply List.getD_eq_get
+
 have Srotate_get_in_S:∀ (i: ℕ ), (hi:i< k)→(S'.rotate 1).get! i∈ S:= by
-  sorry
+  intro i hi
+  have h1: S'⊆ S:= by
+    dsimp[S']
+    exact List.take_subset k S
+  rw[Srotate_get]
+  have h2: (S'.rotate 1).get ⟨i, Srotate_get_ineq i hi⟩∈ {v:V|v∈ (S'.rotate 1)}:= by
+    simp only [Set.mem_setOf_eq]
+    apply List.get_mem
+  simp at h2
+  refine h1 h2
+  exact hi
 
 
 have S'Sublist: List.Sublist S' S:= by
@@ -395,11 +461,27 @@ have hF1Ex: _:= by
   apply hVer_in_HS i hi
   --vertex_list_in_graph_list iV iSub S HS (k + 1)
   intro i hi2
-  have hi: i< k+1:= by exact Nat.lt_add_right 1 hi2
-  sorry
+  rw[get_rotate_tail]
+  dsimp[S']
+  rw[get_take_tail]
+  apply hS_in_HS
+  have hi: i< k+1:= by
+    calc
+      i<k-1:= by exact hi2
+      _≤ k+1:= by simp; ring_nf; simp
+  exact hi
+  exact hi2
+  dsimp[S']
+  simp
+  rw [hS]
+  simp
+  exact hi2
   --Disjointness
-  have h23: S.tail⊆ S:= by exact List.tail_subset S
-  sorry
+  have h23: S'⊆ S:= by dsimp[S']; exact List.take_subset k S
+  apply disjoint_1_rotate
+  apply List.disjoint_of_subset_right
+  exact h23
+  exact hSVer
   --lengths
   exact Ver_length_ge
   simp;  dsimp[S']; simp; rw[hS]; simp
@@ -507,9 +589,11 @@ have hF2Ex: _:= by
   apply hE_in_HE i hi
   --vertex_list_in_graph_list iV iSub Seq.Ver HS (k + 1)
   intro i hi2
-  have hi: i< k+1:= by exact Nat.lt_add_right 1 hi2
+  have hi: i< k+1:= by
+    calc
+      i<k-1:= by exact hi2
+      _≤ k+1:= by simp; ring_nf; simp
   apply hVer_in_HE i hi
-
   --Disjointness
   exact hEVer
   --lengths
@@ -761,7 +845,49 @@ have hF3_avoids1 : Path_forest_avoids! iV iSP F3 Fb3_1 k:= by
 
 
 have SinFb2: {v:V|v∈ List.take (k) S}⊆ Fb2:= by
-  sorry
+  have h1: {v:V|v∈ List.take (k) S}={v:V|v∈ F1.E.take F1.k}:= by
+    --have h3: {v:V|v∈ List.take (k) S}={v:V|v∈ List.take (k) (S'.rotate 1)}
+    have h2:  List.take (k) (S'.rotate 1)=F1.E.take F1.k:= by
+      rw[hF1E, hF1k]
+      symm
+      apply (List.take_length_le)
+      exact List.length_take_le k (S'.rotate 1)
+    rw[h2.symm]
+    dsimp[S']
+    ext v
+    simp
+    nth_rewrite 2 [List.take_length_le]
+    simp
+    rw [@List.length_rotate]
+    exact List.length_take_le k S
+  rw[h1]
+  dsimp[Fb2]
+  have h2:  {v | v ∈ List.take F1.k F1.E} ⊆ Path_forest_support iV iSP F1:= by
+    apply Path_forest_ends_contained
+  have h3: Disjoint {v | v ∈ List.take F1.k F1.E}   {v | v ∈ List.take k Seq.Ver} := by
+    rw[h1.symm]
+    rw [@Set.disjoint_right]
+    intro a ha
+    simp
+    simp at ha
+    by_contra cont
+    have aS:a∈ S:= by
+      have h2: List.take k S⊆ S:= by
+        exact List.take_subset k S
+      exact h2 cont
+    have aV: a∈ Seq.Ver:= by
+      have h2: List.take k Seq.Ver⊆ Seq.Ver:= by
+        exact List.take_subset k Seq.Ver
+      exact h2 ha
+    have ndis: ¬(List.Disjoint (Seq.Ver) S):= by
+      exact fun a_1 ↦ hSVer aV aS
+    exact hSVer aV aS
+  refine Set.subset_diff.mpr ?_
+  constructor
+  exact h2
+  exact h3
+
+
 
 
 have Fb3Cont2: {v:V| v∈ Path_forest_support iV iSP F2}\ {v: V| v∈ (E.take (k))}⊆ Fb3:= by
@@ -949,7 +1075,13 @@ have Path_ex: _:= by
   rw[hF3k, hF3S_length]
   rw[hF1k, hF1E_length]
   rw[hF1E, hF3S]
-  sorry
+  have hRoteq: List.take k (S'.rotate 1) = (List.take k S).rotate 1:= by
+    dsimp[S']
+    nth_rewrite 1 [List.take_length_le]
+    exact rfl
+    rw [List.length_rotate]
+    exact List.length_take_le k S
+  exact hRoteq
   rw[hF3E]
   apply @List.Nodup.sublist _ (List.take k E) E
   exact List.take_sublist k E

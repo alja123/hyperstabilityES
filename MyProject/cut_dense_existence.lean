@@ -34,14 +34,7 @@ variable {mggpr: m≫ pr}
 
 
 
-theorem cut_dense_existence
-(q: ℕ )--p≫ q
-(H: Subgraph G)
-(HEdges: q*H.edgeSet.toFinset.card≥ H.verts.toFinset.card^2)
-:∃ (D: Subgraph G), D ≤ H ∧ cut_dense G D p:= by
-
-
-sorry
+ 
 
 
 noncomputable def  v ( B: Finset V):ℚ  :=B.card

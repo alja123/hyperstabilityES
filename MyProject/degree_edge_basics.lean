@@ -80,7 +80,13 @@ lemma neighborset_delete_vertices_card
 {v: V}
 {U: Set V}
 :  ((H.neighborSet v)\ U).toFinset.card ≥  (H.neighborSet v).toFinset.card - U.toFinset.card:= by
-sorry
+calc
+((H.neighborSet v)\ U).toFinset.card
+=((H.neighborSet v).toFinset\ U.toFinset).card:= by
+  congr
+  simp
+_≥  (H.neighborSet v).toFinset.card - U.toFinset.card:= by
+  exact le_card_sdiff U.toFinset (H.neighborSet v).toFinset
 
 lemma degree_delete_vertices
 {H: Subgraph G}
@@ -204,7 +210,72 @@ have h1:  _:= by  exact sum_degrees_eq_twice_card_edges K
 
 
 have h3: K.edgeFinset.card= H.edgeSet.toFinset.card:= by
-  sorry
+  --simp
+  dsimp [K]
+  dsimp[U]
+
+  unfold edgeFinset
+
+
+  refine (card_eq_of_equiv ?i).symm
+  simp
+  symm
+  refine Set.BijOn.equiv ?i.f ?i.h
+  let f: { x // x ∈ H.verts }→ V:= fun x=> x.1
+  let g: Sym2 { x // x ∈ H.verts } → Sym2 V:= fun x=> Sym2.map f x
+  exact g
+  constructor
+  intro x hx
+  have h1: ∃ (a b: { x // x ∈ H.verts }), x=s(a,b):= by
+    use (Quot.out x).1
+    use (Quot.out x).2
+    simp
+
+  rcases h1 with ⟨a, b, h1⟩
+  rw[h1]
+  rw[h1] at hx
+  simp at hx
+  simp
+  exact hx
+
+  constructor
+  intro x  hx y hy hxy
+  have hxx: ∃ (a b: { x // x ∈ H.verts }), x=s(a,b):= by
+    use (Quot.out x).1
+    use (Quot.out x).2
+    simp
+  have hyy: ∃ (c d: { x // x ∈ H.verts }), y=s(c,d):= by
+    use (Quot.out y).1
+    use (Quot.out y).2
+    simp
+  rcases hxx with ⟨a, b, hab⟩
+  rcases hyy with ⟨c, d, hcd⟩
+  rw[hab, hcd]
+  rw[hab, hcd] at hxy
+  rw[hab] at hx
+  rw[hcd] at hy
+  simp at hx hy hxy
+  simp
+  aesop
+
+  intro x hx
+  have hxx: ∃ (a b: V), x=s(a,b):= by
+    use (Quot.out x).1
+    use (Quot.out x).2
+    simp
+  rcases hxx with ⟨a, b, hab⟩
+  rw[hab]
+  rw[hab] at hx
+  simp at hx
+  simp
+  have ha: a∈ H.verts:= by
+    exact H.edge_vert hx
+  have hb: b∈ H.verts:= by
+    exact H.edge_vert (id (Subgraph.adj_symm H hx))
+  use s(⟨a, ha⟩, ⟨b, hb⟩)
+  simp
+  exact hx
+
 --  simp
 --  have h2: ((K.edgeSet): Set (Sym2 V))=H.edgeSet:= by
 --    simp
@@ -232,7 +303,9 @@ rw [h1.symm]
 
 
 have h6: ∑ v ∈ H.verts.toFinset, H.degree v = ∑ v : U, H.degree v:= by
-  refine sum_subtype H.verts.toFinset ?h fun a ↦ H.degree a
+  --refine sum_subtype H.verts.toFinset ?h fun a ↦ H.degree a
+  apply sum_subtype
+
   intro x
   exact Set.mem_toFinset
 rw[h6]

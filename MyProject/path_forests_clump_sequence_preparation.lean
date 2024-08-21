@@ -519,7 +519,7 @@ lemma path_forest_specified_ends_simplified_prefix
 (Fb: Set V)
 
 (SinH: vertex_list_in_graph_list iV iSub S HL (k))---change
-(EinH: vertex_list_in_graph_list iV iSub E HL (k))---change
+(EinH: vertex_list_in_graph_list iV iSub E HL (k-1))---change
 
 (SE_Disjoint : List.Disjoint S E)
 
