@@ -1,6 +1,6 @@
 import MyProject
-
-import MyProject.long_path_avoiding
+import MyProject.interedges_auxiliary
+--import MyProject.cut_dense_basics
   --import MyProject.SimpleGraph
 
 open Classical
@@ -24,17 +24,14 @@ variable {mPositive: m >0}
 variable {hPositive: h >0}
 variable {prPositive: pr >0}
 variable {γPositive: γ >0}
-variable (iI:Inhabited (Clump G p m κ pr h))
+--variable (iI:Inhabited (Clump G p m κ pr h))
 variable (iV:Inhabited V)
 variable (iSub:Inhabited (Subgraph G))
-variable (iSP:Inhabited (SubgraphPath_implicit   G) )
-
-variable {prggp: pr≫ p}
-variable {mggpr: m≫ pr}
+--variable (iSP:Inhabited (SubgraphPath_implicit   G) )
 
 
 
- 
+
 
 
 noncomputable def  v ( B: Finset V):ℚ  :=B.card
@@ -170,7 +167,7 @@ calc
 
 theorem cut_dense_negation
 (H: Subgraph G)
- (AS BS: Finset V)
+(AS BS: Finset V)
 (hUnion:H.verts.toFinset= AS ∪ BS)
 (hNotCut: p * (Rel.interedges H.Adj AS BS).card < AS.card * BS.card)
 (hAbigger: AS.card≥ 5)

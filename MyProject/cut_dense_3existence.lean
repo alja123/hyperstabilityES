@@ -24,13 +24,13 @@ variable {mPositive: m >0}
 variable {hPositive: h >0}
 variable {prPositive: pr >0}
 variable {γPositive: γ >0}
-variable (iI:Inhabited (Clump G p m κ pr h))
+--variable (iI:Inhabited (Clump G p m κ pr h))
 variable (iV:Inhabited V)
 variable (iSub:Inhabited (Subgraph G))
-variable (iSP:Inhabited (SubgraphPath_implicit   G) )
+--variable (iSP:Inhabited (SubgraphPath_implicit   G) )
 
-variable {prggp: pr≫ p}
-variable {mggpr: m≫ pr}
+--variable {prggp: pr≫ p}
+--variable {mggpr: m≫ pr}
 
 
 
@@ -303,7 +303,157 @@ exact h5
 exact hD3
 
 
+
+
+theorem cut_dense_existence4
+--(d m: ℕ )
+--(dPositive: d>0)
+(H: Subgraph G)
+(hnd: H.verts.toFinset.card≥ m)
+(hedges: p*H.edgeSet.toFinset.card≥ H.verts.toFinset.card^2)
+(hp: pr≥  2048*p^3)
+(hm:  m≥ 40*p)
+:∃ (D: Subgraph G), D ≤ H ∧ (D.verts.toFinset.card≥ m/pr) ∧ cut_dense G D pr:= by
+let p':ℕ :=2048*p^3
+have p'Positive: p'>0:= by
+  dsimp[p']
+  apply mul_pos
+  simp
+  exact Nat.pos_pow_of_pos 3 pPositive
+have hex: ∃ (D: Subgraph G), D ≤ H ∧ (p'*D.verts.toFinset.card≥ H.verts.toFinset.card) ∧ cut_dense G D p':= by
+  apply cut_dense_existence3
+  assumption
+  assumption
+  exact pPositive
+
+  calc
+    H.verts.toFinset.card≥ m:= by assumption
+    _≥ 40*p:= by assumption
+  repeat assumption
+  dsimp[p']
+rcases hex with ⟨D, hD1, hD2, hD3⟩
+use D
+constructor
+exact hD1
+constructor
+have h2: p' * D.verts.toFinset.card ≥ m:= by
+  calc
+    p' * D.verts.toFinset.card ≥ H.verts.toFinset.card:= by
+      exact hD2
+    _≥ m:= by
+      assumption
+have h3: D.verts.toFinset.card ≥ m/pr:= by
+  calc
+    D.verts.toFinset.card
+    =p' * D.verts.toFinset.card/p':= by exact
+      (Nat.mul_div_right D.verts.toFinset.card p'Positive).symm
+    _≥ m/p':= by
+      gcongr
+    _≥ m/pr:= by
+      gcongr
+exact h3
+
+apply Cut_Dense_monotone
+have h5: p'≤ pr:= by
+  dsimp[p']
+  exact hp
+exact h5
+exact hD3
+
+
+
+
+theorem cut_dense_existence5
+--(d m: ℕ )
+--(dPositive: d>0)
+(H: Subgraph G)
+(hnd: H.verts.toFinset.card≥ m/(2*p))
+(hedges: p*H.edgeSet.toFinset.card≥ H.verts.toFinset.card^2)
+(hp: pr≥ 4096*p^4)-- (2*p)*(2048*p^3))
+(hm:  m≥ 80*p^2)
+:∃ (D: Subgraph G), D ≤ H ∧ (D.verts.toFinset.card≥ m/pr) ∧ cut_dense G D pr:= by
+have hp: pr≥  (2*p)*(2048*p^3):= by
+  calc pr≥ 4096*p^4:= by assumption
+  _= (2*p)*(2048*p^3):= by
+    ring_nf
+
+have hm : m/(2*p)≥ 40*p:= by
+  refine (Nat.le_div_iff_mul_le ?k0).mpr ?_
+  apply mul_pos
+  simp
+  assumption
+  ring_nf
+  ring_nf at hm
+  exact hm
+
+
+let p':ℕ :=2048*p^3
+have p'Positive: p'>0:= by
+  dsimp[p']
+  apply mul_pos
+  simp
+  exact Nat.pos_pow_of_pos 3 pPositive
+have hex: ∃ (D: Subgraph G), D ≤ H ∧ (p'*D.verts.toFinset.card≥ H.verts.toFinset.card) ∧ cut_dense G D p':= by
+  apply cut_dense_existence3
+  assumption
+  assumption
+  exact pPositive
+
+  calc
+    H.verts.toFinset.card≥ m/(2*p):= by assumption
+    _≥ 40*p:= by assumption
+  repeat assumption
+  dsimp[p']
+rcases hex with ⟨D, hD1, hD2, hD3⟩
+use D
+constructor
+exact hD1
+constructor
+have h2: p' * D.verts.toFinset.card ≥ m/(2*p):= by
+  calc
+    p' * D.verts.toFinset.card ≥ H.verts.toFinset.card:= by
+      exact hD2
+    _≥ m/(2*p):= by
+      assumption
+have h3: D.verts.toFinset.card ≥ m/pr:= by
+  calc
+    D.verts.toFinset.card
+    =p' * D.verts.toFinset.card/p':= by exact
+      (Nat.mul_div_right D.verts.toFinset.card p'Positive).symm
+    _≥ m/(2*p)/p':= by
+      gcongr
+    _≥ m/pr:= by
+      rw [Nat.div_div_eq_div_mul]
+      gcongr
+
+exact h3
+
+apply Cut_Dense_monotone
+have h5: p'≤ pr:= by
+  dsimp[p']
+  calc
+    pr≥  (2*p)*(2048*p^3):= by assumption
+    _≥ 1*(2048*p^3):= by
+      gcongr
+      apply Nat.one_le_of_lt
+      apply mul_pos
+      simp
+      exact pPositive
+
+
+    _= 2048*p^3:= by
+      ring_nf
+exact h5
+exact hD3
+
+
+
+
+
 /-
+
+theorem near_regular_subgraph {H: Subgraph G}{p pr m:ℕ }(mggp: m≫ pr)(prggp: pr≫ p)(HEdges: p*H.edgeSet.toFinset.card≥ H.verts.toFinset.card^2)(HOrder: H.verts.toFinset.card≥ m): ∃ (H': Subgraph G), H' ≤ H ∧ near_regular H' (m/pr):= by
+
 theorem cut_dense_existence1
 (n δ : ℚ)
 (nPositive: n>0)

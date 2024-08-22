@@ -1,6 +1,7 @@
 import MyProject
 
 import MyProject.clumps_basics
+import MyProject.clumps_3basics
  --import MyProject.SimpleGraph
 
 open Classical
@@ -20,8 +21,8 @@ variable [Fintype (Sym2 V)]-- [FinV2: Fintype (Sym2 V)]
 variable {p m κ pr h: ℕ}
 variable (κPositive: κ >0)
 variable (pPositive: p >0)
-variable (prggp: pr≫ p)
-variable (mggpr: m≫ pr)
+--variable (prggp: pr≫ p)
+--variable (mggpr: m≫ pr)
 
 
 lemma clump_M_nonempty
@@ -35,18 +36,23 @@ exact card_pos.mp h1
 lemma M_graphs_nonempty
 {K: Clump G p m κ pr h}
 {M: Subgraph G}
+(mggpr: m≥ gg1 pr)
+(prPositive: pr>0)
 (hM: M ∈ K.M)
 : M.verts.toFinset.Nonempty := by
 
-have h0: MNear_Regular K.M (m/pr):= by
+have h0: MNear_Regular K.M m pr:= by
   exact K.M_Near_Regular
 unfold MNear_Regular at h0
-have h1: near_regular M (m/pr):= by
+have h1: near_regular M m pr:= by
   apply h0
   exact hM
 unfold near_regular at h1
 have h2: M.verts.toFinset.card > 0:= by
-  exact h1.2.2
+  apply near_regular_nonempty
+  repeat assumption
+
+
 exact card_pos.mp h2
 
 lemma subgraph_subgraph_of_induced
@@ -79,6 +85,8 @@ _≤ K.induce S:= by exact Subgraph.induce_mono_right hS
 
 lemma clump_C_has_verts
 {K: Clump G p m κ pr h}
+(mggpr: m≥ gg1 pr)
+(prPositive: pr>0)
 : K.C.verts.toFinset.Nonempty := by
 have hNonempM: K.M.Nonempty := by exact clump_M_nonempty
 have hex: ∃ (M : Subgraph G), M ∈ K.M := by
@@ -88,17 +96,21 @@ have h1: M ≤ K.C := by
   apply  K.M_In_C
   exact hM
 have h2: M.verts.toFinset.Nonempty := by
-  exact M_graphs_nonempty hM
+  apply M_graphs_nonempty
+  repeat assumption
 have h3: M.verts.toFinset ⊆ K.C.verts.toFinset := by
   exact subgraphs_vertex_subsets G M K.C h1
 exact Nonempty.mono h3 h2
 
 lemma clump_C_has_verts_Set
 {K: Clump G p m κ pr h}
+(mggpr: m≥ gg1 pr)
+(prPositive: pr>0)
 : Nonempty (↑K.C.verts:Set V)
 := by
 have hNonemptyC: K.C.verts.toFinset.Nonempty := by
-  exact clump_C_has_verts
+  apply clump_C_has_verts
+  repeat assumption
 by_contra h
 have hCempty: K.C.verts = ∅:= by
   exact Set.not_nonempty_iff_eq_empty'.mp h
@@ -132,10 +144,10 @@ lemma M_order_lower_bound
 {M: Subgraph G}
 (hM: M ∈ K.M)
 :  M.verts.toFinset.card ≥ m/pr := by
-have h1: MNear_Regular K.M (m/pr):= by
+have h1: MNear_Regular K.M m pr:= by
   exact K.M_Near_Regular
 unfold MNear_Regular at h1
-have h2: near_regular M (m/pr):= by
+have h2: near_regular M m pr:= by
   apply h1
   exact hM
 exact near_regular_vertices_lower_bound h2
@@ -169,6 +181,8 @@ lemma q_simplified_bound
 (IorderUpperBound: I.toFinset.card≤  K.C.verts.toFinset.card)
 (μbig: μ ≥ 2*p)
 (qDef: q = 4 * (κ^(Nat.factorial (100*K.k))) * μ * (K.Gr.induce (I ∪ K.C.verts)).verts.toFinset.card ^ 2 / K.C.verts.toFinset.card ^ 2 + 1)
+(mggpr: m≥ gg1 pm)
+(prPositive: pm>0)
 : q≤ 32 * (κ^(Nat.factorial (100*K.k))) * μ := by
 have μPositive: μ > 0 := by calc
   μ ≥ 2*p:= by exact μbig
@@ -190,7 +204,10 @@ have h2: (K.Gr.induce (I ∪ K.C.verts)).verts.toFinset.card^2 ≥  K.C.verts.to
 have h3: 0 < K.C.verts.toFinset.card ^ 2:= by
   refine Nat.pos_pow_of_pos 2 ?h
   refine card_pos.mpr ?h.a
-  exact clump_C_has_verts
+  apply clump_C_has_verts
+  repeat assumption
+
+
 
 have h4: (K.Gr.induce (I ∪ K.C.verts)).verts.toFinset.card≤ 2*K.C.verts.toFinset.card:=by
   calc
@@ -254,7 +271,11 @@ lemma clump_add_B_vertices_cut_dense
 (μbiggerthanp: μ ≥ 2*p)
 (qDef: q = 4 * (κ^(Nat.factorial (100*K.k))) * (μ*h*4^(K.k)) * (K.Gr.induce (I ∪ K.C.verts)).verts.toFinset.card ^ 2 / K.C.verts.toFinset.card ^ 2 + 1)
 (hI: I⊆ BSet K)
-(Iorder: μ *I.toFinset.card≥ m):
+--(Iorder: μ *I.toFinset.card≥ m)
+(mggpr: m≥ gg1 pm)
+(prPositive: pm>0)
+(hPositive: h>0)
+:
 cut_dense G (K.Gr.induce (I∪ K.C.verts)) q := by
 
 have μPositive: μ > 0 := by calc
@@ -265,7 +286,7 @@ have μPositive: (μ*h*4^(K.k)) > 0 := by
   apply mul_pos
   exact μPositive
   --h>0
-  sorry
+  exact hPositive
   exact Fin.size_pos'
 
 let Ccd:ℕ := (κ^(Nat.factorial (100*K.k)))
@@ -283,7 +304,8 @@ exact Nat.one_le_pow (100 * K.k).factorial κ κPositive
 --μ ≥ 1
 exact μPositive
 --K.C.verts.toFinset.Nonempty
-exact clump_C_has_verts
+apply clump_C_has_verts
+repeat assumption
 
 intro v hv
 have hBv: v ∈ BSet K := by
@@ -304,7 +326,9 @@ have hbv2:v ∈ (K.Gr).verts∧ (((K.Gr.neighborSet v)∩ (sSup K.M: Subgraph G)
   exact hBv
 
 have hMinC: (sSup ↑K.M:Subgraph G).verts⊆ K.C.verts := by
-  have h1: (sSup ↑K.M:Subgraph G)≤  K.C:= by sorry
+  have h1: (sSup ↑K.M:Subgraph G)≤  K.C:= by
+    apply M_sub_C
+
   exact @subgraphs_vertex_sets_subsets V G (sSup K.M) K.C  h1
 have h2: (K.Gr.neighborSet v ∩ (I∪ K.C.verts): Set V)=((K.Gr.induce (I ∪ K.C.verts)).neighborSet v: Set V):= by
   ext x
@@ -351,9 +375,33 @@ calc
   _≤ μ * h*4 ^ K.k * ((K.Gr.neighborSet v ∩ (I ∪ K.C.verts)).toFinset ∩ K.C.verts.toFinset).card   := by
     gcongr
     --p * 2 ≤ μ
-    sorry
+    rw[mul_comm]
+    exact μbiggerthanp
     --(K.Gr.neighborSet v ∩ (sSup ↑K.M).verts).toFinset ⊆ (K.Gr.neighborSet v ∩ (I ∪ K.C.verts)).toFinset ∩ K.C.verts.toFinset
-    sorry
+    let M:=(sSup ↑K.M: Subgraph G).verts
+    let C:=K.C.verts
+    have hM1: M=(sSup ↑K.M: Subgraph G).verts:= by exact rfl
+    have hC1: C=K.C.verts:= by exact rfl
+    have hcont1: M⊆ C:= by
+      dsimp[M, C]
+      exact hMinC
+    simp_rw[hM1.symm, hC1.symm]
+    rw [← @Set.toFinset_inter]
+    rw [@Set.toFinset_subset_toFinset]
+    simp
+    constructor
+    calc
+      K.Gr.neighborSet v ∩ M
+      ⊆ M:= by exact Set.inter_subset_right (K.Gr.neighborSet v) M
+      _⊆ C:= by exact hcont1
+      _⊆ I ∪ C:= by exact Set.subset_union_right I C
+    calc
+      K.Gr.neighborSet v ∩ M ⊆
+      M:= by exact Set.inter_subset_right (K.Gr.neighborSet v) M
+      _⊆ C:= by exact hcont1
+
+
+
 
 
 --q = 4 * Ccd * μ * (K.Gr.induce (I ∪ K.C.verts)).verts.toFinset.card ^ 2 / K.C.verts.toFinset.card ^ 2 + 1
@@ -362,7 +410,9 @@ rw[qDef]
 
 
 --Nonempty ↑K.C.verts
-exact clump_C_has_verts_Set
+apply clump_C_has_verts_Set
+repeat assumption
+
 
 
 
@@ -375,8 +425,13 @@ lemma clump_add_B_vertices_cut_dense_simplified
 (μbiggerthanp: μ ≥ 2*p)
 (qDef: q ≥  32 * (κ^(2*Nat.factorial (100*K.k))) * μ*h)
 (hI: I⊆ BSet K)
-(Iorder: μ *I.toFinset.card≥ m)
-(Iorderupperbound: I.toFinset.card≤ K.C.verts.toFinset.card):
+--(Iorder: μ *I.toFinset.card≥ m)
+(Iorderupperbound: I.toFinset.card≤ K.C.verts.toFinset.card)
+(mggpr: m≥ gg1 pm)
+(prPositive: pm>0)
+(hPositive: h>0)
+(κlarge: κ≥ 4)
+:
 --Could have alternative I≤ m
 cut_dense G (K.Gr.induce (I∪ K.C.verts)) q := by
 let q':ℕ := 4 * (κ^(Nat.factorial (100*K.k))) * (μ*h*4^(K.k)) * (K.Gr.induce (I ∪ K.C.verts)).verts.toFinset.card ^ 2 / K.C.verts.toFinset.card ^ 2 + 1
@@ -387,7 +442,8 @@ have h1: cut_dense G (K.Gr.induce (I∪ K.C.verts)) q':= by
   exact μbiggerthanp
   exact rfl
   exact hI
-  exact Iorder
+  --exact Iorder
+  repeat assumption
 #check Cut_Dense_monotone
 apply Cut_Dense_monotone _ _ _ h1
 calc
@@ -403,17 +459,30 @@ _≤ 32 * (κ^(Nat.factorial (100*K.k))) * (μ*h*4^(K.k)):= by
       gcongr
       refine Nat.le_mul_of_pos_right μ ?h₁.h
       --h>0
-      sorry
+      exact hPositive
       exact Nat.one_le_pow' K.k 3
     _=μ := by
       ring_nf
     _≥ 2*p:= by exact μbiggerthanp
   exact rfl
+  repeat assumption
 _≤ 32 * (κ^(Nat.factorial (100*K.k))) * (μ*h*(κ^(Nat.factorial (100*K.k)))):= by
   gcongr
 
   --4 ^ K.k ≤ κ ^ (100 * K.k).factorial
-  sorry
+  calc
+    4 ^ K.k ≤κ^(K.k):= by
+      gcongr
+    _≤ κ^(100*K.k).factorial:= by
+      gcongr
+      exact κPositive
+      calc
+        (100 * K.k).factorial≥(100 * K.k):= by exact Nat.self_le_factorial (100 * K.k)
+        _≥ 1*K.k:= by
+          gcongr
+          simp
+        _=K.k:= by ring_nf
+
 _= 32 * (κ^(2*Nat.factorial (100*K.k))) * μ*h:= by
   ring_nf
 _≤  q:= by

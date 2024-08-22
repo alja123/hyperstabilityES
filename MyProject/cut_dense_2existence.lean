@@ -1,6 +1,8 @@
 import MyProject
 
 import MyProject.cut_dense_existence
+import MyProject.cut_dense_add_vertices
+
   --import MyProject.SimpleGraph
 
 open Classical
@@ -24,13 +26,13 @@ variable {mPositive: m >0}
 variable {hPositive: h >0}
 variable {prPositive: pr >0}
 variable {γPositive: γ >0}
-variable (iI:Inhabited (Clump G p m κ pr h))
+--variable (iI:Inhabited (Clump G p m κ pr h))
 variable (iV:Inhabited V)
 variable (iSub:Inhabited (Subgraph G))
-variable (iSP:Inhabited (SubgraphPath_implicit   G) )
+--variable (iSP:Inhabited (SubgraphPath_implicit   G) )
 
-variable {prggp: pr≫ p}
-variable {mggpr: m≫ pr}
+--variable {prggp: pr≫ p}
+--variable {mggpr: m≫ pr}
 
 
 
@@ -2164,7 +2166,7 @@ repeat assumption
 
 
 
- 
+
 
 
 /-

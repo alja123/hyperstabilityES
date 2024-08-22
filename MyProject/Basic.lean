@@ -58,6 +58,7 @@ exact Nat.le_of_succ_le h2
 
 
 
+
 lemma div_assoc_le2
 {a b c:ℕ }
 (cPos: c>0)
@@ -496,6 +497,14 @@ rw[hC]
 simp
 exact sSup_union.symm
 
+lemma induced_subgraph_subgraph
+{S: Set V}
+{H: Subgraph G}
+(hS: S ⊆ H.verts)
+: (H.induce S) ≤ H:= by
+have h1: H= H.induce H.verts:= by exact Subgraph.induce_self_verts.symm
+nth_rw 2 [h1]
+exact Subgraph.induce_mono_right hS
 
 lemma three_graph_sup
 (a b c: Subgraph G)
@@ -627,3 +636,126 @@ calc
   exact biunion_max_bound F M hM
 _≤t*M:= by
   gcongr
+
+
+lemma Sym2_to_tuple (e: Sym2 V):
+ ∃ (a b :V), e=s(a,b):= by
+let a:V:= (Quot.out e).1
+have hea: a∈ e:= by exact Sym2.out_fst_mem e
+have h2: ∃ (b : V), e = s(a, b):= by
+  exact hea
+rcases h2 with ⟨b, h2⟩
+exact ⟨a, b, h2⟩
+
+
+
+
+lemma lower_bound_vertices_by_edges
+(H: Subgraph G):
+(H.verts.toFinset.card).choose 2≥H.edgeSet.toFinset.card
+:= by
+let U:= { x // x ∈ H.verts }
+let K:SimpleGraph U:=H.coe
+have h1: (Fintype.card U).choose 2≥  K.edgeFinset.card:= by
+  exact card_edgeFinset_le_card_choose_two
+have h2: Fintype.card U= (H.verts.toFinset.card):= by
+  exact (Set.toFinset_card H.verts).symm
+have h3: K.edgeFinset.card= H.edgeSet.toFinset.card:= by
+  --simp
+  dsimp [K]
+  dsimp[U]
+
+  unfold edgeFinset
+
+
+  refine (card_eq_of_equiv ?i).symm
+  simp
+  symm
+  refine Set.BijOn.equiv ?i.f ?i.h
+  let f: { x // x ∈ H.verts }→ V:= fun x=> x.1
+  let g: Sym2 { x // x ∈ H.verts } → Sym2 V:= fun x=> Sym2.map f x
+  exact g
+  constructor
+  intro x hx
+  have h1: ∃ (a b: { x // x ∈ H.verts }), x=s(a,b):= by
+    use (Quot.out x).1
+    use (Quot.out x).2
+    simp
+
+  rcases h1 with ⟨a, b, h1⟩
+  rw[h1]
+  rw[h1] at hx
+  simp at hx
+  simp
+  exact hx
+
+  constructor
+  intro x  hx y hy hxy
+  have hxx: ∃ (a b: { x // x ∈ H.verts }), x=s(a,b):= by
+    use (Quot.out x).1
+    use (Quot.out x).2
+    simp
+  have hyy: ∃ (c d: { x // x ∈ H.verts }), y=s(c,d):= by
+    use (Quot.out y).1
+    use (Quot.out y).2
+    simp
+  rcases hxx with ⟨a, b, hab⟩
+  rcases hyy with ⟨c, d, hcd⟩
+  rw[hab, hcd]
+  rw[hab, hcd] at hxy
+  rw[hab] at hx
+  rw[hcd] at hy
+  simp at hx hy hxy
+  simp
+  rcases hxy with ⟨c1, c2⟩ | ⟨c1, c2⟩
+  left
+  constructor
+  exact SetCoe.ext c1
+  exact SetCoe.ext c2
+  right
+  constructor
+  exact SetCoe.ext c1
+  exact SetCoe.ext c2
+
+  
+
+  intro x hx
+  have hxx: ∃ (a b: V), x=s(a,b):= by
+    use (Quot.out x).1
+    use (Quot.out x).2
+    simp
+  rcases hxx with ⟨a, b, hab⟩
+  rw[hab]
+  rw[hab] at hx
+  simp at hx
+  simp
+  have ha: a∈ H.verts:= by
+    exact H.edge_vert hx
+  have hb: b∈ H.verts:= by
+    exact H.edge_vert (id (Subgraph.adj_symm H hx))
+  use s(⟨a, ha⟩, ⟨b, hb⟩)
+  simp
+  exact hx
+
+--rw[h2, h3] at h1
+rw[h3.symm]
+rw[h2.symm]
+exact h1
+
+
+lemma square_ge_choose {n:ℕ }: n^2≥n.choose 2:= by
+  have h1: n^2=n*n:= by ring_nf
+  have h2: n.choose 2= n*(n-1)/2:= by
+    exact Nat.choose_two_right n
+  have h3: n*(n-1)/2 ≤ n*n:= by calc
+    n*(n-1)/2 ≤ n*(n-1):= by exact Nat.div_le_self (n * (n - 1)) 2
+    _≤  n*n:= by gcongr; exact Nat.sub_le n 1
+  rw[h1, h2]
+  exact h3
+
+lemma lower_bound_vertices_by_edges_weaker
+(H: Subgraph G):
+(H.verts.toFinset.card)^2≥H.edgeSet.toFinset.card
+:=by calc
+  (H.verts.toFinset.card)^2≥ (H.verts.toFinset.card).choose 2:= by exact square_ge_choose
+  _≥H.edgeSet.toFinset.card:= by exact lower_bound_vertices_by_edges H

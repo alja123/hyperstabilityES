@@ -2,6 +2,10 @@ import MyProject
 
 import MyProject.cut_dense_add_vertices
 import MyProject.degree_edge_basics
+import MyProject.cut_dense_3existence
+import MyProject.gg
+
+
  --import MyProject.SimpleGraph
 
 open Classical
@@ -12,20 +16,20 @@ namespace SimpleGraph
 
 
 --set_option maxHeartbeats 400000
-
 universe u
 variable {V : Type u} {G : SimpleGraph V}
 variable   [Fintype V]--[FinV: Fintype V]
 variable  [DecidableRel G.Adj] --[DecG: DecidableRel G.Adj]
 variable [Fintype (Sym2 V)]-- [FinV2: Fintype (Sym2 V)]
+variable (iSub:Inhabited (Subgraph G))
 
-def near_regular (H:Subgraph G)(r: ℕ): Prop :=
-  (H.edgeSet.toFinset.card≥ r*H.verts.toFinset.card)
-  ∧ (∀ (v: V), v ∈ H.verts → H.degree v ≤  2*r)∧ (H.verts.toFinset.card>0)
+def near_regular (H:Subgraph G)(m pr: ℕ): Prop :=
+  (H.verts.toFinset.card≥ m/pr)
+  ∧ (G.cut_dense H pr)
 
 
 def MVertex_Disjoint (M: Finset (Subgraph G)):Prop:=  ∀ (A B: Subgraph G),  A∈ M→ B∈ M→ A≠ B→ (Disjoint A.verts  B.verts)
-def MNear_Regular (M: Finset (Subgraph G))(r:ℕ ):Prop:= ∀ (A: Subgraph G), A ∈ M → near_regular A r
+def MNear_Regular (M: Finset (Subgraph G))(m pr:ℕ ):Prop:= ∀ (A: Subgraph G), A ∈ M → near_regular A m pr
 def Mgraphs_in_H (M: Finset (Subgraph G)) (H: Finset (Subgraph G)):Prop:=  ∀ (A: Subgraph G), A ∈ M→ (∃ (B: Subgraph G), B ∈ H ∧ A ≤ B)
 
 def Mgraphs_in_L (M: Finset (Subgraph G)) (L: Subgraph G):Prop:=  ∀ (A: Subgraph G), A ∈ M→ (A ≤ L)
@@ -55,14 +59,14 @@ def FamilyContained_in_Graph (H: Finset (Subgraph G))(Gr: Subgraph G):Prop:=  �
   H_Order_Upper_Bound: HOrder_le_hm_Family H m h -- ∀ (A: Subgraph G), A ∈ H → A.verts.toFinset.card ≥ m
   H_In_K: FamilyContained_in_Graph H Gr--∀ (A: Subgraph G), A ∈ H → A ≤ Gr
   H_Partition_K: sSup H= Gr
-  M_Near_Regular: MNear_Regular M (m/pr) -- ∀ (A: Subgraph G), A ∈ M → near_regular A (m/pr)
+  M_Near_Regular: MNear_Regular M m pr -- ∀ (A: Subgraph G), A ∈ M → near_regular A m pr
   C_In_K: C≤ Gr
   M_In_C: FamilyContained_in_Graph M C--∀ (A: Subgraph G), A ∈ M → A ≤ C
   M_Size: M.card = k
   C_Cut_Dense: cut_dense G C (κ^(Nat.factorial (100*k)))
   C_Order: C.verts.toFinset.card ≤  m*h* 4^(k)
   M_graphs_in_H:  Mgraphs_in_H M H--∀ (A: Subgraph G), A ∈ M→ (∃ (B: Subgraph G), B ∈ H ∧ A ≤ B)
-  k_Maximal: ¬ (∃ (M': Finset (Subgraph G)), M'.card > k ∧ (MVertex_Disjoint M')∧ (MNear_Regular M' (m/pr))∧ (Mgraphs_in_H M' H))
+  k_Maximal: ¬ (∃ (M': Finset (Subgraph G)), M'.card > k ∧ (MVertex_Disjoint M')∧ (MNear_Regular M' m pr)∧ (Mgraphs_in_H M' H))
   Nonemptyness: k>0
 def BSet  {p m κ pr: ℕ }(K: Clump G p m κ pr h): Set V
 := {v| v ∈ (K.Gr).verts∧ (((K.Gr.neighborSet v)∩ (sSup K.M: Subgraph G).verts).toFinset.card*p*2 ≥ m)}
@@ -83,80 +87,166 @@ HEdge_Disjoint H := by --∀ (A B: Subgraph G),  (A∈ H)→ (B∈ H)→ (A≠ B
   exact (hAB h2).elim
 --def PreClump  (G: SimpleGraph V)(K: Subgraph G)(H: Finset (Subgraph G))(M: Finset (Subgraph G)) where
 
-lemma lower_bound_vertices_by_edges
-(H: Subgraph G):
-(H.verts.toFinset.card).choose 2≥H.edgeSet.toFinset.card
-:= by
-let U:= { x // x ∈ H.verts }
-let K:SimpleGraph U:=H.coe
-have h1: (Fintype.card U).choose 2≥  K.edgeFinset.card:= by
-  exact card_edgeFinset_le_card_choose_two
-have h2: Fintype.card U= (H.verts.toFinset.card):= by
-  exact (Set.toFinset_card H.verts).symm
-have h3: K.edgeFinset.card= H.edgeSet.toFinset.card:= by
-  sorry
---rw[h2, h3] at h1
-rw[h3.symm]
-rw[h2.symm]
-exact h1
 
 
-lemma square_ge_choose {n:ℕ }: n^2≥n.choose 2:= by
-  have h1: n^2=n*n:= by ring_nf
-  have h2: n.choose 2= n*(n-1)/2:= by
-    exact Nat.choose_two_right n
-  have h3: n*(n-1)/2 ≤ n*n:= by calc
-    n*(n-1)/2 ≤ n*(n-1):= by exact Nat.div_le_self (n * (n - 1)) 2
-    _≤  n*n:= by gcongr; exact Nat.sub_le n 1
-  rw[h1, h2]
-  exact h3
+theorem near_regular_subgraph {H: Subgraph G}{p pr m:ℕ }
+(mggp: m≥ gg1 pr)
+(prggp: pr≥ gg1 p)
+(pPositive: p>0)
 
-lemma lower_bound_vertices_by_edges_weaker
-(H: Subgraph G):
-(H.verts.toFinset.card)^2≥H.edgeSet.toFinset.card
-:=by calc
-  (H.verts.toFinset.card)^2≥ (H.verts.toFinset.card).choose 2:= by exact square_ge_choose
-  _≥H.edgeSet.toFinset.card:= by exact lower_bound_vertices_by_edges H
+(HEdges: p*H.edgeSet.toFinset.card≥ H.verts.toFinset.card^2)
+(HOrder: H.verts.toFinset.card≥ m)
+: ∃ (H': Subgraph G), (H' ≤ H) ∧ (near_regular H' m pr):= by
+
+have prPositive: pr>0:= by
+  calc
+    pr≥ p:= by
+      apply gg1_ge
+      exact prggp
+      exact pPositive
+    _>0:= by
+      exact pPositive
+have hex: ∃ (D: Subgraph G), D ≤ H ∧ (D.verts.toFinset.card≥ m/pr) ∧ cut_dense G D pr:= by
+  apply cut_dense_existence4
+  exact pPositive
+  assumption
+  assumption
+  assumption
+  calc
+    pr≥ 10000 *p^3:= by
+      apply gg1_1;
+      assumption
+      assumption
+    _≥ 2048*p^3:= by
+      gcongr
+      simp
+  have mggp': m≥ gg1  p:= by
+    apply gg1_trans
+    exact mggp
+    exact prggp
+    assumption
+  calc
+    m≥ 10000 *p^3:= by
+      apply gg1_1;
+      assumption
+      assumption
+    _≥ 40*p^3:= by
+      gcongr
+      simp
+    _=40*p*p*p:= by
+      ring_nf
+    _≥ 40*p*1*1:= by
+      gcongr
+      exact pPositive
+      exact pPositive
+    _=40*p:= by
+      ring_nf
+rcases hex with ⟨D, hD1, hD2, hD3⟩
+use D
+constructor
+exact hD1
+unfold near_regular
+constructor
+exact hD2
+exact hD3
+
+
+
+theorem near_regular_subgraph2 {H: Subgraph G}{p pr m:ℕ }
+(mggp: m≥ gg1 pr)
+(prggp: pr≥ gg1 p)
+(pPositive: p>0)
+
+(HEdges: p*H.edgeSet.toFinset.card≥ H.verts.toFinset.card^2)
+(HOrder: H.verts.toFinset.card≥ m/(2*p))
+: ∃ (H': Subgraph G), (H' ≤ H) ∧ (near_regular H' m pr):= by
+
+have prPositive: pr>0:= by
+  calc
+    pr≥ p:= by
+      apply gg1_ge
+      exact prggp
+      exact pPositive
+    _>0:= by
+      exact pPositive
+have hex: ∃ (D: Subgraph G), D ≤ H ∧ (D.verts.toFinset.card≥ m/pr) ∧ cut_dense G D pr:= by
+  apply cut_dense_existence5
+  exact pPositive
+  assumption
+  assumption
+  assumption
+  calc
+    pr≥ 10000 *p^4:= by
+      apply gg1_3;
+      assumption
+      assumption
+    _≥ 4096*p^4:= by
+      gcongr
+      simp
+  have mggp': m≥ gg1  p:= by
+    apply gg1_trans
+    exact mggp
+    exact prggp
+    assumption
+  calc
+    m≥ 10000 *p^3:= by
+      apply gg1_1;
+      assumption
+      assumption
+    _≥ 80*p^3:= by
+      gcongr
+      simp
+    _=80*p*p*p:= by
+      ring_nf
+    _≥ 80*p*p*1:= by
+      gcongr
+      exact pPositive
+
+    _=80*p^2:= by
+      ring_nf
+rcases hex with ⟨D, hD1, hD2, hD3⟩
+use D
+constructor
+exact hD1
+unfold near_regular
+constructor
+exact hD2
+exact hD3
+
+
 
 lemma near_regular_vertices_lower_bound
 {H: Subgraph G}
-{r: ℕ}
-(h: near_regular H r):
-H.verts.toFinset.card ≥ r:= by
-  have h1: H.edgeSet.toFinset.card≥ r*H.verts.toFinset.card:= by exact h.1
+{m pr: ℕ}
+(h: near_regular H m pr):
+H.verts.toFinset.card ≥ m/pr:= by
+exact h.1
+  /-have h1: H.edgeSet.toFinset.card≥ r*H.verts.toFinset.card:= by exact h.1
   have h2: H.verts.toFinset.card^2≥H.edgeSet.toFinset.card:= by exact lower_bound_vertices_by_edges_weaker H
   have h3: H.verts.toFinset.card*H.verts.toFinset.card≥r*H.verts.toFinset.card:= by calc
     H.verts.toFinset.card*H.verts.toFinset.card=H.verts.toFinset.card^2:= by ring_nf
     _≥r*H.verts.toFinset.card:= by exact Nat.le_trans h1 h2
   exact Nat.le_of_mul_le_mul_right h3 h.2.2
-
-
-def GG (a b: ℕ ): Prop:= (1=1)--∀ (f: ℕ → ℕ ), (a≥ f b)
-
-@[inherit_doc] infixl:50 " ≫  " => GG
-
-
-theorem near_regular_subgraph {H: Subgraph G}{p pr m:ℕ }(mggp: m≫ pr)(prggp: pr≫ p)(HEdges: p*H.edgeSet.toFinset.card≥ H.verts.toFinset.card^2)(HOrder: H.verts.toFinset.card≥ m): ∃ (H': Subgraph G), H' ≤ H ∧ near_regular H' (m/pr):= by
- sorry
-
+-/
 
 lemma exists_M_family_in_dense_graph_in_one_subgraph
 {L: Subgraph G}
 {p m pr:ℕ }
-(mggpr: m≫ pr)(prggp: pr≫ p)
+(mggpr: m≥ gg1 pr)(prggp: pr≥ gg1 p)
+(pPositive: p>0)
 (LEdges: p*L.edgeSet.toFinset.card≥ L.verts.toFinset.card^2)
 (LOrder: L.verts.toFinset.card≥ m)
 :
-∃ (M: Finset (Subgraph G)), M.card = 1 ∧ (MVertex_Disjoint M)∧ (MNear_Regular M (m/pr))∧ (Mgraphs_in_L M L):= by
+∃ (M: Finset (Subgraph G)), M.card = 1 ∧ (MVertex_Disjoint M)∧ (MNear_Regular M m pr)∧ (Mgraphs_in_L M L):= by
 
-have h1: ∃ (R: Subgraph G), R ≤ L ∧ near_regular R (m/pr):= by
+have h1: ∃ (R: Subgraph G), R ≤ L ∧ near_regular R m pr:= by
 
-  exact near_regular_subgraph mggpr prggp LEdges LOrder
+  exact near_regular_subgraph iSub mggpr prggp pPositive LEdges LOrder
 
 rcases h1 with ⟨R, hR⟩
 let M:Finset (Subgraph G):={R}
 have MCard: M.card = 1:= by exact rfl
-have MNearReg: MNear_Regular M (m/pr):= by
+have MNearReg: MNear_Regular M m pr:= by
   intros A hA
   have hA': A∈ {R}:= by exact hA
   #check Finset.mem_singleton
@@ -187,20 +277,24 @@ exact ⟨M, MCard, MVertexDisj, MNearReg, Mgraphs_in_L⟩
 lemma exists_M_family_in_cut_dense_family
 {H: Finset (Subgraph G)}
 {m p pr:ℕ }
-(mggp: m≫ pr)(prggp: pr≫ p)
+(mggp: m≥ gg1  pr)(prggp: pr≥ gg1 (p*2))
+(pPositive: p>0)
 (HCutDense: HCut_Dense_Family H p)
 (HOrderm: HOrder_ge_m_Family H m )
 (HNonempty: H.Nonempty)
-:∃ (M: Finset (Subgraph G)), M.card = 1 ∧ (MVertex_Disjoint M)∧ (MNear_Regular M (m/pr))∧ (Mgraphs_in_H M H):= by
+:∃ (M: Finset (Subgraph G)), M.card = 1 ∧ (MVertex_Disjoint M)∧ (MNear_Regular M m pr)∧ (Mgraphs_in_H M H):= by
 
 have hNonempty:∃ (L: Subgraph G), L∈ H:= by exact HNonempty
 rcases hNonempty with ⟨L, hL⟩
 have LCutDense: cut_dense G L p:= by exact HCutDense L hL
 have LOrderm: L.verts.toFinset.card ≥ m:= by exact HOrderm L hL
 have LDense: (p*2)*L.edgeSet.toFinset.card ≥ L.verts.toFinset.card^2:= by exact cut_dense_edges_lower_bound LCutDense
-have prggp': pr≫ p*2:= by sorry
-have h1: ∃ (M: Finset (Subgraph G)), M.card = 1 ∧ (MVertex_Disjoint M)∧ (MNear_Regular M (m/pr))∧ (Mgraphs_in_L M L):= by
-  exact exists_M_family_in_dense_graph_in_one_subgraph mggp prggp' LDense LOrderm
+have prggp': pr≥ gg1 (p*2):= by exact prggp
+have p2Positive: p*2>0:= by
+  apply Nat.mul_pos pPositive
+  simp
+have h1: ∃ (M: Finset (Subgraph G)), M.card = 1 ∧ (MVertex_Disjoint M)∧ (MNear_Regular M m pr)∧ (Mgraphs_in_L M L):= by
+  exact exists_M_family_in_dense_graph_in_one_subgraph iSub mggp prggp' p2Positive LDense LOrderm
 rcases h1 with ⟨M, hM⟩
 have hMinH: Mgraphs_in_H M H:= by
   intros A hA
@@ -247,12 +341,12 @@ lemma M_family_in_L_upper_bound_size
 {L: Subgraph G}
 {pr:ℕ }
 (hMinH: Mgraphs_in_L M L)
-(MNearReg: MNear_Regular M (m/pr))
+(MNearReg: MNear_Regular M m pr)
 (MVertDisj: MVertex_Disjoint M):
 L.verts.toFinset.card≥ M.card*(m/pr) := by
 have h1: ∀ (A: Subgraph G), A ∈ M → A.verts.toFinset.card ≥ (m/pr):= by
   intros A hA
-  have hA': near_regular A (m/pr):= by exact MNearReg A hA
+  have hA': near_regular A m pr:= by exact MNearReg A hA
   exact near_regular_vertices_lower_bound hA'
 
 calc
@@ -284,9 +378,9 @@ lemma M_family_in_H_upper_bound_size
 {M H: Finset (Subgraph G)}
 {pr:ℕ }
 (hMinH: Mgraphs_in_H M H)
-(MNearReg: MNear_Regular M (m/pr))
+(MNearReg: MNear_Regular M m pr)
 (MVertDisj: MVertex_Disjoint M):
-M.card * (m/pr) ≤  ((sSup H: Subgraph G).verts).toFinset.card
+M.card * (m /pr) ≤  ((sSup H: Subgraph G).verts).toFinset.card
 := by
 have h1: Mgraphs_in_L M (sSup H):= by exact Mgraphs_in_H_Mgraphs_in_L hMinH
 let L0:Subgraph G:= (sSup ↑H:Subgraph G)
@@ -304,15 +398,16 @@ exact M_family_in_L_upper_bound_size hL.2 MNearReg MVertDisj
 lemma have_1_in_k_Set
 {H: Finset (Subgraph G)}
 {m p pr:ℕ }
-(mggp: m≫ pr)(prggp: pr≫ p)
+(mggp: m≥ gg1 pr)(prggp: pr≥ gg1 (p*2))
+(pPositive: p>0)
 (HCutDense: HCut_Dense_Family H p)
 (HOrderm: HOrder_ge_m_Family H m )
 (HNonempty: H.Nonempty)
 (Sk: Set ℕ )
-(hSk: Sk={ k:ℕ | ∃ (M: Finset (Subgraph G)), (M.card = k) ∧ (MVertex_Disjoint M)∧ (MNear_Regular M (m/pr))∧ (Mgraphs_in_H M H)})
+(hSk: Sk={ k:ℕ | ∃ (M: Finset (Subgraph G)), (M.card = k) ∧ (MVertex_Disjoint M)∧ (MNear_Regular M m pr)∧ (Mgraphs_in_H M H)})
 : 1∈ Sk:= by
-have h1: ∃ (M: Finset (Subgraph G)), M.card = 1 ∧ (MVertex_Disjoint M)∧ (MNear_Regular M (m/pr))∧ (Mgraphs_in_H M H):= by
-  exact exists_M_family_in_cut_dense_family  mggp prggp HCutDense HOrderm HNonempty
+have h1: ∃ (M: Finset (Subgraph G)), M.card = 1 ∧ (MVertex_Disjoint M)∧ (MNear_Regular M m pr)∧ (Mgraphs_in_H M H):= by
+  exact exists_M_family_in_cut_dense_family  iSub mggp prggp pPositive HCutDense HOrderm HNonempty
 rcases h1 with ⟨M, hM⟩
 rw[hSk]
 simp
@@ -321,45 +416,46 @@ use M
 lemma k_Set_finite
 {H: Finset (Subgraph G)}
 {pr m:ℕ }
-(hpmPositive: (m/pr)>0)
+(hpmPositive: (m/ pr)>0)
 (Sk: Set ℕ )
-(hSk: Sk={ k:ℕ | ∃ (M: Finset (Subgraph G)), (M.card = k) ∧ (MVertex_Disjoint M)∧ (MNear_Regular M (m/pr))∧ (Mgraphs_in_H M H)})
-:∀ x ∈ Sk, x ≤ ((sSup H: Subgraph G).verts).toFinset.card/(m/pr)+1:= by
+(hSk: Sk={ k:ℕ | ∃ (M: Finset (Subgraph G)), (M.card = k) ∧ (MVertex_Disjoint M)∧ (MNear_Regular M m pr)∧ (Mgraphs_in_H M H)})
+:∀ x ∈ Sk, x ≤ ((sSup H: Subgraph G).verts).toFinset.card/(m/ pr)+1:= by
   intros x hx
   rw[hSk] at hx
   simp at hx
   rcases hx with ⟨M, hM⟩
   have h1: M.card=x:= by exact hM.1
   rw[h1.symm]
-  have h1: M.card*(m/pr) ≤ ((sSup H: Subgraph G).verts).toFinset.card*1:= by calc
-   M.card*(m/pr) ≤ ((sSup H: Subgraph G).verts).toFinset.card:= by exact M_family_in_H_upper_bound_size hM.2.2.2 hM.2.2.1 hM.2.1
+  have h1: M.card*(m /pr) ≤ ((sSup H: Subgraph G).verts).toFinset.card*1:= by calc
+   M.card*(m /pr) ≤ ((sSup H: Subgraph G).verts).toFinset.card:= by exact M_family_in_H_upper_bound_size hM.2.2.2 hM.2.2.1 hM.2.1
    _= ((sSup H: Subgraph G).verts).toFinset.card*1:= by ring_nf
   calc
-  M.card≤ (((sSup H: Subgraph G).verts).toFinset.card/(m/pr)+1)*1:= by
-    exact nat_div_ge (sSup H:Subgraph G).verts.toFinset.card (m/pr) 1 M.card h1 hpmPositive
-  _= ((sSup H: Subgraph G).verts).toFinset.card/(m/pr)+1:= by ring_nf
+  M.card≤ (((sSup H: Subgraph G).verts).toFinset.card/(m/ pr)+1)*1:= by
+    exact nat_div_ge (sSup H:Subgraph G).verts.toFinset.card (m/ pr) 1 M.card h1 hpmPositive
+  _= ((sSup H: Subgraph G).verts).toFinset.card/(m /pr)+1:= by ring_nf
 
 lemma maximal_k_existence
 {H: Finset (Subgraph G)}
 {m p pr:ℕ }
-(mggp: m≫ pr)(prggp: pr≫ p)
+(mggp: m≥ gg1 pr)(prggp: pr≥ gg1 (p*2))
+(pPositive: p>0)
 (HCutDense: HCut_Dense_Family H p)
 (HOrderm: HOrder_ge_m_Family H m )
 (HNonempty: H.Nonempty)
 (hpm: m/pr>0)
 :∃ (k: ℕ),
-(∃ (M: Finset (Subgraph G)), (M.card = k) ∧ (MVertex_Disjoint M)∧ (MNear_Regular M (m/pr))∧ (Mgraphs_in_H M H))
-∧ ¬(∃ (M: Finset (Subgraph G)), (M.card > k) ∧ (MVertex_Disjoint M)∧ (MNear_Regular M (m/pr))∧ (Mgraphs_in_H M H))
+(∃ (M: Finset (Subgraph G)), (M.card = k) ∧ (MVertex_Disjoint M)∧ (MNear_Regular M m pr)∧ (Mgraphs_in_H M H))
+∧ ¬(∃ (M: Finset (Subgraph G)), (M.card > k) ∧ (MVertex_Disjoint M)∧ (MNear_Regular M m pr)∧ (Mgraphs_in_H M H))
 ∧ k≥ 1
-∧ k≤ ((sSup H: Subgraph G).verts).toFinset.card/(m/pr)+1
+∧ k≤ ((sSup H: Subgraph G).verts).toFinset.card/(m/ pr)+1
 := by
-let Sk: Set ℕ := { k:ℕ | ∃ (M: Finset (Subgraph G)), (M.card = k) ∧ (MVertex_Disjoint M)∧ (MNear_Regular M (m/pr))∧ (Mgraphs_in_H M H)}
-let upperbound:ℕ := ((sSup H: Subgraph G).verts).toFinset.card/(m/pr)+1
+let Sk: Set ℕ := { k:ℕ | ∃ (M: Finset (Subgraph G)), (M.card = k) ∧ (MVertex_Disjoint M)∧ (MNear_Regular M m pr)∧ (Mgraphs_in_H M H)}
+let upperbound:ℕ := ((sSup H: Subgraph G).verts).toFinset.card/(m/ pr)+1
 have hbounded: ∀ x ∈ Sk, x ≤  upperbound:= by
-  exact fun x a ↦    k_Set_finite hpm      {k | ∃ M, M.card = k ∧ MVertex_Disjoint M ∧ MNear_Regular M (m/pr) ∧ Mgraphs_in_H M H} rfl x a
+  exact fun x a ↦    k_Set_finite hpm      {k | ∃ M, M.card = k ∧ MVertex_Disjoint M ∧ MNear_Regular M m pr ∧ Mgraphs_in_H M H} rfl x a
 let k:=sSup Sk
 have h1inSk: 1∈ Sk:= by
-  exact have_1_in_k_Set mggp prggp HCutDense HOrderm HNonempty  Sk rfl
+  exact have_1_in_k_Set iSub mggp prggp pPositive HCutDense HOrderm HNonempty  Sk rfl
 have SkNonempty: Sk.Nonempty:= by
   exact ⟨1, h1inSk⟩
 have SkBoundedAbove: BddAbove Sk:= by
@@ -368,9 +464,9 @@ have h2:k∈ Sk:= by exact Nat.sSup_mem SkNonempty SkBoundedAbove
 --have h3: k+1∉ Sk:= by
 --  have h4: k+1>k:= by exact lt_add_one k
 --  exact not_mem_of_csSup_lt h4 SkBoundedAbove
-have h5: ∃ (M: Finset (Subgraph G)), (M.card = k) ∧ (MVertex_Disjoint M)∧ (MNear_Regular M (m/pr))∧ (Mgraphs_in_H M H):= by
+have h5: ∃ (M: Finset (Subgraph G)), (M.card = k) ∧ (MVertex_Disjoint M)∧ (MNear_Regular M m pr)∧ (Mgraphs_in_H M H):= by
   exact h2
-have h6: ¬(∃ (M: Finset (Subgraph G)), (M.card > k) ∧ (MVertex_Disjoint M)∧ (MNear_Regular M (m/pr))∧ (Mgraphs_in_H M H)):= by
+have h6: ¬(∃ (M: Finset (Subgraph G)), (M.card > k) ∧ (MVertex_Disjoint M)∧ (MNear_Regular M m pr)∧ (Mgraphs_in_H M H)):= by
   by_contra hcont
   rcases hcont with ⟨M, hM⟩
   have h7: M.card ∈ Sk:=by
@@ -394,7 +490,10 @@ exact ⟨k, h5, h6, hkpos, hkub⟩
 lemma initial_clump_construction
 {L: Subgraph G}
 {p pr κ m h: ℕ}
-(mggp: m≫ pr)(prggp: pr≫ p)
+(mggp: m≥ gg1 pr)
+(prggp: pr≥ gg1 (p*2))
+(κggp: κ ≥ p)
+(pPositive: p>0)
 (hpm: m/pr>0)
 (hLorderUpperBound: L.verts.toFinset.card ≤  m*h*4)
 (hLorderm: L.verts.toFinset.card ≥ m)
@@ -427,11 +526,11 @@ have HOrder_le_hm: HOrder_le_hm_Family H m h:= by
 
 
 have h1:∃ (k: ℕ),
-(∃ (M: Finset (Subgraph G)), (M.card = k) ∧ (MVertex_Disjoint M)∧ (MNear_Regular M (m/pr))∧ (Mgraphs_in_H M H))
-∧ ¬(∃ (M: Finset (Subgraph G)), (M.card > k) ∧ (MVertex_Disjoint M)∧ (MNear_Regular M (m/pr))∧ (Mgraphs_in_H M H))
+(∃ (M: Finset (Subgraph G)), (M.card = k) ∧ (MVertex_Disjoint M)∧ (MNear_Regular M m pr)∧ (Mgraphs_in_H M H))
+∧ ¬(∃ (M: Finset (Subgraph G)), (M.card > k) ∧ (MVertex_Disjoint M)∧ (MNear_Regular M m pr)∧ (Mgraphs_in_H M H))
 ∧ k≥ 1
-∧ k≤ ((sSup H: Subgraph G).verts).toFinset.card/(m/pr)+1
-:= by exact maximal_k_existence mggp prggp  HCutDense HOrderm HNonempty hpm
+∧ k≤ ((sSup H: Subgraph G).verts).toFinset.card/(m /pr)+1
+:= by exact maximal_k_existence iSub mggp prggp pPositive  HCutDense HOrderm HNonempty hpm
 
 rcases h1 with ⟨k, hk⟩
 rcases hk.1 with ⟨M, hM⟩
@@ -440,7 +539,20 @@ rcases hk.1 with ⟨M, hM⟩
 let C:Subgraph G:=L
 have hCL: C=L:= by rfl
 have CCut_dense: cut_dense G C (κ^(Nat.factorial (100*k))):= by
-  sorry
+  apply Cut_Dense_monotone
+  have h1:p≤  (κ^(Nat.factorial (100*k))):= by
+    calc
+      p≤κ:= by exact κggp
+      _=κ^1:= by ring_nf
+      _≤ (κ^(Nat.factorial (100*k))):= by
+        gcongr
+        calc
+          κ≥ p:= by exact κggp
+          _≥ 1:= by exact pPositive
+        refine Nat.succ_le_of_lt ?h.h
+        exact Nat.factorial_pos (100 * k)
+  exact h1
+  exact hL
 have COrder: C.verts.toFinset.card ≤  m* h*4^(k):= by calc
   C.verts.toFinset.card = L.verts.toFinset.card:= by rfl
   _≤ m* h*4^(1):= by exact hLorderUpperBound
@@ -483,5 +595,5 @@ repeat
 
 calc
 X.k=k:= by rfl
-_≤ ((sSup H: Subgraph G).verts).toFinset.card/(m/pr)+1:= by exact hk.2.2.2
-_= L.verts.toFinset.card/(m/pr)+1:= by rw[HPartitionK.symm]; simp
+_≤ ((sSup H: Subgraph G).verts).toFinset.card/(m/ pr)+1:= by exact hk.2.2.2
+_= L.verts.toFinset.card/(m /pr)+1:= by rw[HPartitionK.symm]; simp

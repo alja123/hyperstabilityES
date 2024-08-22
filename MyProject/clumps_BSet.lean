@@ -18,18 +18,10 @@ variable   [Fintype V]--[FinV: Fintype V]
 variable  [DecidableRel G.Adj] --[DecG: DecidableRel G.Adj]
 variable [Fintype (Sym2 V)]-- [FinV2: Fintype (Sym2 V)]
 variable {p m κ pr h: ℕ}
-variable (prggp: pr≫ p)
-variable (mggpr: m≫ pr)
+variable (iSub:Inhabited (Subgraph G))
 
 
-lemma induced_subgraph_subgraph
-{S: Set V}
-{H: Subgraph G}
-(hS: S ⊆ H.verts)
-: (H.induce S) ≤ H:= by
-have h1: H= H.induce H.verts:= by exact Subgraph.induce_self_verts.symm
-nth_rw 2 [h1]
-exact Subgraph.induce_mono_right hS
+
 
 lemma Finset_add_one_element
 {S:Finset V}
@@ -99,9 +91,9 @@ lemma Near_regular_add_one_graph
 {M:Finset (Subgraph G)}
 {R: Subgraph G}
 {pm:ℕ }
-(hM: MNear_Regular M pm)
-(hR: near_regular R pm)
-: MNear_Regular (M ∪ {R}) pm:= by
+(hM: MNear_Regular M m pm)
+(hR: near_regular R m pm)
+: MNear_Regular (M ∪ {R}) m pm:= by
 intro X hX
 by_cases hXinM: X∈ M
 exact hM X hXinM
@@ -139,6 +131,9 @@ lemma clump_few_edges_outside_M
 (hHS: HS= Hi.induce S)
 (hHi: Hi∈ K.H)
 (hDifferenceOrder: 2*p*S.toFinset.card≥  m)
+(mggpr: m≥ gg1 pr)
+(prggp: pr ≥ gg2 p)
+(pPositive: p>0)
 : (p^4) * (HS).edgeSet.toFinset.card< ((HS).verts.toFinset.card)^2:= by
 
 have hDifferenceOrder:  (S:Set V).toFinset.card ≥  (m/(2*p)):= by exact  Nat.div_le_of_le_mul hDifferenceOrder
@@ -155,12 +150,40 @@ have hDisjoint: Disjoint S (sSup K.M: Subgraph G).verts:= by
   exact Set.disjoint_sdiff_left
 
 by_contra hc2
-have prgg4p : pr/(2*p) ≫ p^4:= by sorry
-have mggpr' : m/(2*p) ≫ pr/(2*p):= by sorry
-have pr'eq: (m / (2 * p))/(pr / (2 * p)) =m/pr:= by sorry
+--have prgg4p : pr/(2*p) ≫ p^4:= by sorry
+--have mggpr' : m/(2*p) ≫ pr/(2*p):= by sorry
+--have pr'eq: (m / (2 * p))/(pr / (2 * p)) =m/pr:= by sorry
 have hc2: (p^4) * (HS).edgeSet.toFinset.card≥ ((HS).verts.toFinset.card)^2:= by exact Nat.le_of_not_lt hc2
-have hex:  ∃ (H': Subgraph G), H' ≤ HS ∧ near_regular H' (m/pr):= by
-  rw[pr'eq.symm]; apply near_regular_subgraph  mggpr' prgg4p hc2 hDifferenceOrder
+have hex:  ∃ (H': Subgraph G), H' ≤ HS ∧ near_regular H' m pr:= by
+  --rw[pr'eq.symm];
+  apply near_regular_subgraph2 -- mggpr' prgg4p hc2 hDifferenceOrder
+  assumption
+  exact mggpr
+
+  have prggp': pr≥ gg1 ( (p^4)):=by
+    apply gg2_1
+    assumption
+    assumption
+  exact prggp'
+  repeat assumption
+  --apply gg1_pos
+  exact Nat.pos_pow_of_pos 4 pPositive
+  repeat assumption
+  --sorry
+  calc
+    HS.verts.toFinset.card ≥ m / (2 * p):= by
+      exact hDifferenceOrder
+    _≥  m / (2 * p ^ 4):= by
+      gcongr
+      calc
+        p^4=p*p*p*p:= by ring_nf
+        _≥ p*1*1*1:= by
+          gcongr
+          repeat assumption
+        _= p:= by ring_nf
+
+
+  --
 rcases hex with ⟨R, hR⟩
 let M':Finset (Subgraph G):=K.M∪ {R}
 
@@ -176,7 +199,33 @@ have hRninM: R∉ K.M:= by
     rw [hSS.symm] at vertsdisj
     have hsubgr: R≤ HS:= by exact hR.left
     have hsubs: R.verts ⊆ HS.verts:= by apply subgraphs_vertex_sets_subsets; exact hsubgr
-    have Nonemp1: R.verts.Nonempty:= by sorry
+    have Nonemp1: R.verts.Nonempty:= by
+      have h7:R.verts.toFinset.card>0:= by
+        calc
+          R.verts.toFinset.card≥ m/pr:= by
+            exact hR.2.1
+          _≥ 1:= by
+            refine (Nat.one_le_div_iff ?hb).mpr ?_
+            calc
+              pr≥ gg2 p:= by
+                exact prggp
+              _>0:= by
+                apply gg2_pos
+                exact pPositive
+            apply gg1_ge
+            assumption
+            calc
+              pr≥ gg2 p:= by
+                exact prggp
+              _>0:= by
+                apply gg2_pos
+                exact pPositive
+          _>0:= by simp
+      have h8: R.verts.toFinset.Nonempty:= by
+        exact card_pos.mp h7
+      exact Set.toFinset_nonempty.mp h8
+
+
     have hneg:  HS.verts∩  R.verts≠ ∅:= by
       rw [←Set.nonempty_iff_ne_empty]
       refine Set.inter_nonempty_iff_exists_left.mpr ?_
@@ -204,7 +253,7 @@ have hDisjSym: Disjoint  R.verts (sSup K.M: Subgraph G).verts := by
 have M'VertexDisjoint: MVertex_Disjoint M':= by
   exact Vertex_disjoint_add_one_graph K.M R (K.M_Vertex_Disjoint) hDisjSym
 
-have M'NearReg: MNear_Regular M' (m/pr):= by
+have M'NearReg: MNear_Regular M' m pr:= by
   exact Near_regular_add_one_graph   (K.M_Near_Regular) hR.right
 
 have SsubsH: S⊆ Hi.verts:= by
@@ -217,7 +266,7 @@ have hRH: R≤ Hi:= by calc
 have M'graphs_in_H: Mgraphs_in_H M' K.H:= by
   exact MGraphsinH_add_one_graph  hHi (K.M_graphs_in_H)  hRH
 
-have hneg: (∃ (M': Finset (Subgraph G)), M'.card > K.k ∧ (MVertex_Disjoint M')∧ (MNear_Regular M' (m/pr))∧ (Mgraphs_in_H M' K.H)):=
+have hneg: (∃ (M': Finset (Subgraph G)), M'.card > K.k ∧ (MVertex_Disjoint M')∧ (MNear_Regular M'  m pr)∧ (Mgraphs_in_H M' K.H)):=
   by
   use M';
 
@@ -760,14 +809,6 @@ def bipartite_induce (G' : G.Subgraph) (s t: Set V) : G.Subgraph where
 --#align simple_graph.subgraph.induce SimpleGraph.Subgraph.induce
 
 
-lemma Sym2_to_tuple (e: Sym2 V):
- ∃ (a b :V), e=s(a,b):= by
-let a:V:= (Quot.out e).1
-have hea: a∈ e:= by exact Sym2.out_fst_mem e
-have h2: ∃ (b : V), e = s(a, b):= by
-  exact hea
-rcases h2 with ⟨b, h2⟩
-exact ⟨a, b, h2⟩
 
 
 lemma edges_in_bipartite_induced_upper_bound
