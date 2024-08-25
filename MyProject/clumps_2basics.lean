@@ -25,8 +25,8 @@ variable (pPositive: p >0)
 variable (mPositive: m >0)
 variable (hPositive: h >0)
 variable (prPositive: pr >0)
-variable (prggp: pr≫ p)
-variable (mggpr: m≫ pr)
+variable (iSub:Inhabited (Subgraph G))
+
 
 
 
@@ -130,7 +130,7 @@ rcases h1 with ⟨Mi, hMi ⟩
 use Mi
 constructor
 
-sorry-/
+-/
 /-
 lemma im_f_cont_in_H
 (H: Finset (Subgraph G))
@@ -167,6 +167,7 @@ lemma H_smaller_than_M
 
 lemma C_lower_bound_simplified
 {K: Clump G p m κ pr h}
+(mggpr: m≥ gg1 pr)
 :  4*pr*K.C.verts.toFinset.card  ≥ m := by
 have h1: K.C.verts.toFinset.card≥ m/pr:=by
   exact C_order_lower_bound
@@ -181,4 +182,14 @@ _≥ m:=by
   refine twice_times_fraction_ge m pr ?hb ?hm
   exact prPositive
   --m ≥ 2 * pr
-  sorry
+
+  calc
+   m≥10000 *pr^3:= by
+      apply gg1_1 mggpr
+      assumption
+    _≥2*pr^1:= by
+      gcongr
+      simp
+      exact prPositive
+      simp
+    _=2*pr:= by ring_nf

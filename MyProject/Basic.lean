@@ -717,7 +717,7 @@ have h3: K.edgeFinset.card= H.edgeSet.toFinset.card:= by
   exact SetCoe.ext c1
   exact SetCoe.ext c2
 
-  
+
 
   intro x hx
   have hxx: ∃ (a b: V), x=s(a,b):= by
@@ -759,3 +759,19 @@ lemma lower_bound_vertices_by_edges_weaker
 :=by calc
   (H.verts.toFinset.card)^2≥ (H.verts.toFinset.card).choose 2:= by exact square_ge_choose
   _≥H.edgeSet.toFinset.card:= by exact lower_bound_vertices_by_edges H
+
+
+
+lemma bernoulli_inequality
+(n: ℕ )
+:
+2^n≥ n:=by
+induction' n with n IH
+simp
+
+calc
+2^(n+1)=2^n*2^1:= by exact rfl
+_=2^n+2^n:= by ring_nf
+_≥ n+1:=by
+  gcongr
+  exact Nat.one_le_two_pow

@@ -17,9 +17,9 @@ variable   [Fintype V]--[FinV: Fintype V]
 variable  [DecidableRel G.Adj] --[DecG: DecidableRel G.Adj]
 variable [Fintype (Sym2 V)]-- [FinV2: Fintype (Sym2 V)]
 variable {p m κ pr h: ℕ}
-variable (prggp: pr≫ p)
-variable (mggpr: m≫ pr)
 variable (pPositive: p>0)
+variable (iSub:Inhabited (Subgraph G))
+
 
 lemma clump_Hi_contained_in_three_graphs
 --{p m κ pr : ℕ}
@@ -280,6 +280,7 @@ lemma clump_most_edges_of_Hi_in_Bgraph_Case_fewedgesoutsideS_fixed
 (hHi: Hi∈ K.H)
 --(hDifferenceOrder: 2*p*S.toFinset.card≥  m)
 (hfewedgeshoutsideHS: (p^4) * (HS).edgeSet.toFinset.card< ((HS).verts.toFinset.card)^2)
+(pLarge: p≥ 20)
 : p^2*(Hi).edgeSet.toFinset.card≤  (Hi.verts.toFinset.card)^2+(HB).edgeSet.toFinset.card*p^2
 := by
 calc
@@ -298,7 +299,21 @@ _≤ p^2*(HB.edgeSet.toFinset.card+2*p*(2*HS.edgeSet.toFinset.card)+HS.edgeSet.t
 _= p^2*HB.edgeSet.toFinset.card+(4*p^3+p^2)*HS.edgeSet.toFinset.card:= by
   ring_nf
 _≤ p^2*HB.edgeSet.toFinset.card+p^4*HS.edgeSet.toFinset.card:= by
-  sorry
+  gcongr
+  calc
+    (4*p^3+p^2)≤(4*p^3+p^3):= by
+      gcongr
+      exact pPositive
+      simp
+    _= 5*p^3:= by
+      ring_nf
+    _≤ 20*p^3:= by
+      gcongr
+      simp
+    _≤ p*p^3:= by
+      gcongr
+    _= p^4:= by
+      ring_nf
 _≤ p^2*(HB).edgeSet.toFinset.card+ (HS.verts.toFinset.card)^2:= by
   gcongr
 _≤ p^2*(HB).edgeSet.toFinset.card+ (Hi.verts.toFinset.card)^2:= by
@@ -330,8 +345,15 @@ lemma clump_most_edges_of_Hi_in_Bgraph_Case_fewedgesoutsideS_fixed_alternatenumb
 (hHi: Hi∈ K.H)
 --(hDifferenceOrder: 2*p*S.toFinset.card≥  m)
 (hfewedgeshoutsideHS: (p^4) * (HS).edgeSet.toFinset.card< ((HS).verts.toFinset.card)^2)
+(pLarge: p≥ 20)
 : 4*p^2*(Hi).edgeSet.toFinset.card≤  (Hi.verts.toFinset.card)^2+(HB).edgeSet.toFinset.card*p^2*4
 := by
+have pPositive:p>0:= by
+  calc
+    p≥ 20:= by exact pLarge
+    _>0:= by
+      simp
+
 calc
 4*p^2*(Hi).edgeSet.toFinset.card
 _≤ 4*p^2*(HB.edgeSet.toFinset.card+((Hi.verts)\ (BSetPlusM K)).toFinset.card*(Hi.verts.toFinset.card)+ HS.edgeSet.toFinset.card):= by
@@ -348,7 +370,19 @@ _≤ 4*p^2*(HB.edgeSet.toFinset.card+2*p*(2*HS.edgeSet.toFinset.card)+HS.edgeSet
 _= 4*p^2*HB.edgeSet.toFinset.card+(4*4*p^3+4*p^2)*HS.edgeSet.toFinset.card:= by
   ring_nf
 _≤ 4*p^2*HB.edgeSet.toFinset.card+p^4*HS.edgeSet.toFinset.card:= by
-  sorry
+  gcongr
+  calc
+    (4*4*p^3+4*p^2)≤(4*4*p^3+4*p^3):= by
+      gcongr
+      exact pPositive
+      simp
+    _= 20*p^3:= by
+      ring_nf
+    _≤ p*p^3:= by
+      gcongr
+    _= p^4:= by
+      ring_nf
+
 _≤ 4*p^2*(HB).edgeSet.toFinset.card+ (HS.verts.toFinset.card)^2:= by
   gcongr
 _≤ 4*p^2*(HB).edgeSet.toFinset.card+ (Hi.verts.toFinset.card)^2:= by
@@ -376,6 +410,9 @@ lemma clump_most_edges_of_Hi_in_Bgraph_fixed
 (hHS: HS= Hi.induce S)
 (hBip: HBip= (bipartite_induce Hi ((Hi.verts)\ B) (Hi.verts)))
 (hHi: Hi∈ K.H)
+(mggpr: m≥ gg1 pr)
+(prggp: pr ≥ gg2 p)
+(pLarge: p≥ 20)
 : 4*p^2*(Hi).edgeSet.toFinset.card≤  (Hi.verts.toFinset.card)^2+(HB).edgeSet.toFinset.card*p^2*4
 := by
 have hS':S = Hi.verts \ (sSup ↑K.M: Subgraph G).verts:=by
@@ -386,11 +423,11 @@ by_cases hDifferenceOrder: 2*p*S.toFinset.card≥  m
 have hfewedgeshoutsideHS: (p^4) * (HS).edgeSet.toFinset.card< ((HS).verts.toFinset.card)^2:= by
   #check clump_few_edges_outside_M
 
-  exact clump_few_edges_outside_M Hi HS S hS' hHS hHi hDifferenceOrder
+  exact clump_few_edges_outside_M iSub Hi HS S hS' hHS hHi hDifferenceOrder mggpr prggp pPositive
 
 
 
-exact clump_most_edges_of_Hi_in_Bgraph_Case_fewedgesoutsideS_fixed_alternatenumbers Hi HB  HBip S B M hM hS hB hHB hHS hBip   hHi hfewedgeshoutsideHS
+exact clump_most_edges_of_Hi_in_Bgraph_Case_fewedgesoutsideS_fixed_alternatenumbers Hi HB  HBip S B M hM hS hB hHB hHS hBip   hHi hfewedgeshoutsideHS pLarge
 
 
 #check clump_few_edges_outside_B_case_S_Small
@@ -458,6 +495,9 @@ lemma clump_most_edges_of_Hi_in_Bgraph_simplified
 (Hi HB: Subgraph G)
 (hHB: HB= bipartite_induce Hi  (Hi.verts∩ BSetPlusM K) (Hi.verts∩(sSup K.M: Subgraph G).verts))
 (hHi: Hi∈ K.H)
+(mggpr: m≥ gg1 pr)
+(prggp: pr ≥ gg2 p)
+(pLarge: p≥ 20)
 : 4*p^2*(Hi).edgeSet.toFinset.card≤  (Hi.verts.toFinset.card)^2+(HB).edgeSet.toFinset.card*p^2*4
 := by
 let M:=  Hi.verts ∩ (sSup ↑K.M: Subgraph G).verts
@@ -471,6 +511,8 @@ have hHS: HS = Hi.induce S:=by exact rfl
 let HBip := bipartite_induce Hi (Hi.verts \ B) Hi.verts
 have hBip: HBip = bipartite_induce Hi (Hi.verts \ B) Hi.verts:=by exact rfl
 apply clump_most_edges_of_Hi_in_Bgraph_fixed
+exact pPositive
+exact iSub
 exact hM
 exact hS
 exact hB
@@ -500,7 +542,6 @@ let hBip: HBip= bipartite_induce Hi ((Hi.verts)\ B) (Hi.verts):= by exact rfl
 
 
 
-sorry--exact?
 
 
 
@@ -518,7 +559,6 @@ have h3: (⋃ (Hi ∈ K.H), (Hi: Subgraph G).edgeSet).toFinset=⋃ (Hi ∈ K.H),
   exact?
 rw[h2]
 
-sorry
 
 
 lemma clump_most_edges_in_Bgraph
@@ -529,7 +569,6 @@ lemma clump_most_edges_in_Bgraph
 (hB: B=  BSetPlusM K)
 (hHB: HB= bipartite_induce K.Gr  B M)
  : 4*p*(K.Gr).edgeSet.toFinset.card≤  (K.Gr).edgeSet.toFinset.card+(HB).edgeSet.toFinset.card*p*4
-sorry
 
 
 have heq: Hi=HB:= by
@@ -560,6 +599,10 @@ lemma clump_BcapM_order_improved
 {K: Clump G p m κ pr h}
 (Hi: Subgraph G)
 (hHi: Hi∈ K.H)
+(pLarge: p≥ 20)
+(mLarge: m≥ 20)
+(mggpr: m≥ gg1 pr)
+(prggp: pr ≥ gg2 p)
 : 2*p*(Hi.verts ∩ (sSup K.M: Subgraph G).verts).toFinset.card≥  Hi.verts.toFinset.card:= by
 
 
@@ -631,8 +674,25 @@ have hc1: m≤ 2 * p * (S).toFinset.card := by
   _≥ 2 * p * (Hi.verts.toFinset.card/2):=by
     gcongr
     apply minus_two_quarters_halves
-    sorry
-    sorry
+    gcongr
+    calc
+      2*p≥ 2*20:= by
+        gcongr
+      _=40:= by
+        ring_nf
+      _≥ 4:= by
+        simp
+
+    calc
+      Hi.verts.toFinset.card / 4≥ m/4:= by
+        gcongr
+        apply K.H_Order
+        assumption
+      _≥ 20/4:= by
+        gcongr
+      _≥ 1:= by
+        simp
+
 
 
   _≥ 2 * p * (m/2):=by
@@ -641,12 +701,20 @@ have hc1: m≤ 2 * p * (S).toFinset.card := by
     exact hHi
   _≥ 2*2*(m/2):=by
     gcongr
-    sorry
+    calc
+      p≥ 20:= by assumption
+      _≥ 2:= by simp
   _=4*(m/2):=by
     ring_nf
   _≥ m:= by
     apply four_times_half_ge
-    sorry
+    calc
+      m≥ 20:= by
+        assumption
+      _≥ 4:= by
+        simp
+    --
+
 
 
 
@@ -656,9 +724,8 @@ have hc1: m≤ 2 * p * (S).toFinset.card := by
   _= (Hi.verts ∩ (sSup ↑K.M: Subgraph G).verts).toFinset.card+ S.toFinset.card:= by
     rw[heq.symm]
 
-  _≤  2 * p * (S).toFinset.card := by
-    sorry-/
-  --calc
+  _≤  2 * p * (S).toFinset.card := by-/
+   --calc
   --m≤2*p*(Hi.verts \ (sSup K.M: Subgraph G).verts).toFinset.card:= by exact Nat.le_of_not_lt hc
   --_= 2*p*(S).toFinset.card:= by congr
 
@@ -676,7 +743,7 @@ have hc1: m≤ 2 * p * (S).toFinset.card := by
 
 
 have hedges: (p^4) * (HS).edgeSet.toFinset.card< ((HS).verts.toFinset.card)^2:= by
-  exact clump_few_edges_outside_M Hi HS S hS rfl hHi hc1
+  exact clump_few_edges_outside_M iSub Hi HS S hS rfl hHi hc1 mggpr prggp pPositive
 
 have mindegproportion: min_degree_at_least_proportion Hi p:= by
   apply cut_dense_min_degree_proportion_at_least;
@@ -700,7 +767,17 @@ have mindegprop2: min_degree_at_least_proportion HS (2*p):= by
   simp at Uupperbound
   exact Uupperbound
 
-have pineq: 4*p< p^4:= by sorry
+have pineq: 4*p< p^4:= by
+  calc
+    p^4= p*p*p*p:= by ring_nf
+    _≥ 1*1*20*p:= by
+      gcongr
+      exact pPositive
+      exact pPositive
+    _=20*p:=by ring_nf
+    _>4*p:= by
+      gcongr
+      simp
 
 have hedges2: (2*p) *(2* (HS).edgeSet.toFinset.card)≥  ((HS).verts.toFinset.card)^2:=
   by

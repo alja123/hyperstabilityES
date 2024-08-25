@@ -279,7 +279,7 @@ exact K.k_Maximal hneg
 
 
 
-
+/-
 lemma clump_BcapM_order
 --{p m κ pr : ℕ}
 {K: Clump G p m κ pr h}
@@ -391,12 +391,17 @@ have hcontra:((HS).verts.toFinset.card)^2<((HS).verts.toFinset.card)^2:= by calc
   _≥ ((HS).verts.toFinset.card)^2:= by exact hedges2
 
 sorry
-
+-/
 lemma diff_diff_eq_int
 (S T R: Set V)
 (SinR: S⊆ R)
 : S∩ T= S\ (R\ T):= by
-sorry
+ext x
+simp
+intro h
+left
+exact SinR h
+
 
 lemma clump_few_edges_outside_B_case_S_Small
 --{p m κ pm : ℕ}
@@ -465,9 +470,21 @@ have hBsetmem:  x ∈ (K.Gr).verts∧ (((K.Gr.neighborSet x)∩ (sSup K.M: Subgr
     ring_nf
   _≥ (Hi.verts.toFinset.card)*2-m:=by
     gcongr
-    sorry
+    rw [@Subgraph.finset_card_neighborSet_eq_degree]
+    rw[mul_comm]
+    apply cut_dense_min_degree
+    assumption
+    apply K.H_Cut_Dense
+    assumption
+  _≥  m*2-m:= by
+    gcongr
+    apply K.H_Order
+    assumption
+  _=m*2-m*1:= by ring_nf
+  _=m*(2-1):= by exact (Nat.mul_sub_left_distrib m 2 1).symm
+  _=m*1:= by exact rfl
   _= m:= by
-    sorry
+    ring_nf
 
 
 exact hBsetmem
@@ -605,7 +622,7 @@ lemma clump_HS_larger_than_BS
 --(hDifferenceOrder: 2*p*S.toFinset.card≥  m)
 --(hfewedgeshoutsideHS: (p^4) * (HS).edgeSet.toFinset.card< ((HS).verts.toFinset.card)^2)
 : 2*p*HS.degree v≥ Hi.verts.toFinset.card:= by
-sorry/-
+
 have h1:  (((K.Gr.neighborSet v)∩ (sSup K.M: Subgraph G).verts).toFinset.card*p*2 < m):= by
   apply v_outside_BS_property Hi HS S v hHi
   exact hv1
@@ -679,7 +696,7 @@ _≥ 2*Hi.verts.toFinset.card-Hi.verts.toFinset.card:= by
   exact hHi
 _= Hi.verts.toFinset.card:= by
   exact subtract_one_mult_from_two (Hi.verts.toFinset.card)
--/
+
 
 
 /-
@@ -742,7 +759,6 @@ lemma clump_HS_edges_lower_bound_BS
 --(hfewedgeshoutsideHS: (p^4) * (HS).edgeSet.toFinset.card< ((HS).verts.toFinset.card)^2)
 : ((Hi.verts)\ (BSetPlusM K)).toFinset.card*(Hi.verts.toFinset.card)≤  2*p*(2*HS.edgeSet.toFinset.card)
 := by
-sorry /-
 calc
 2*p*(2*HS.edgeSet.toFinset.card)= 2*p*∑ (v∈ HS.verts), HS.degree v:= by
   congr
@@ -777,7 +793,7 @@ _≥∑ (v∈ ((Hi.verts)\ (BSetPlusM K): Set V)), Hi.verts.toFinset.card:= by
   exact Set.not_mem_of_mem_diff h7
 _=  ((Hi.verts)\ (BSetPlusM K)).toFinset.card*(Hi.verts.toFinset.card):= by
   exact sum_const_nat fun x ↦ congrFun rfl
--/
+
 
 
 
@@ -811,6 +827,63 @@ def bipartite_induce (G' : G.Subgraph) (s t: Set V) : G.Subgraph where
 
 
 
+lemma edges_in_bipartite_induced_cont
+--{p m κ pr : ℕ}
+{B H: Subgraph G}
+{S T: Set V}
+(hBip: B= (bipartite_induce H S T))
+(F: Set (Sym2 V))
+(hF: F=  Set.image (Sym2.mk) {⟨a,b ⟩: V× V| a∈ S∧ b∈ T } )
+--(hHi: Hi∈ K.H)
+:B.edgeSet⊆ F := by
+intro e he
+have hex:  ∃ (a b :V), e=s(a,b):=by exact Sym2_to_tuple e
+rcases hex with ⟨a, b, habe⟩
+rw [habe]
+unfold bipartite_induce at hBip
+rw[hF]
+simp
+rw[hBip] at he
+rw[habe] at he
+simp at he
+aesop
+
+
+lemma edges_in_bipartite_induced_cont_Ffinset
+--{p m κ pr : ℕ}
+{S T: Set V}
+:{⟨a,b ⟩: V× V| a∈ S∧ b∈ T }.toFinset=S.toFinset×ˢT.toFinset
+:= by
+ext x
+constructor
+intro h
+simp
+simp at h
+exact h
+intro h
+simp
+simp at h
+exact h
+
+
+lemma edges_in_bipartite_induced_cont_Fcard
+--{p m κ pr : ℕ}
+{S T: Set V}
+:(Set.image (Sym2.mk) {⟨a,b ⟩: V× V| a∈ S∧ b∈ T }).toFinset.card ≤ S.toFinset.card*T.toFinset.card
+:= by
+have h1: (Set.image (Sym2.mk) {⟨a,b ⟩: V× V| a∈ S∧ b∈ T }).toFinset=Finset.image  (Sym2.mk) ({⟨a,b ⟩: V× V| a∈ S∧ b∈ T }.toFinset):=by
+  simp
+rw [h1]
+calc
+  (Finset.image  (Sym2.mk) ({⟨a,b ⟩: V× V| a∈ S∧ b∈ T }.toFinset)).card
+  ≤
+  ({⟨a,b ⟩: V× V| a∈ S∧ b∈ T }.toFinset).card:=by
+    exact card_image_le
+  _= S.toFinset.card*T.toFinset.card:= by
+    rw[edges_in_bipartite_induced_cont_Ffinset]
+    apply Finset.card_product
+
+
 lemma edges_in_bipartite_induced_upper_bound
 --{p m κ pr : ℕ}
 {B H: Subgraph G}
@@ -818,8 +891,20 @@ lemma edges_in_bipartite_induced_upper_bound
 (hBip: B= (bipartite_induce H S T))
 --(hHi: Hi∈ K.H)
 : B.edgeSet.toFinset.card≤ S.toFinset.card*T.toFinset.card:= by
-sorry
+calc
+B.edgeSet.toFinset.card≤
+(Set.image (Sym2.mk) {⟨a,b ⟩: V× V| a∈ S∧ b∈ T }).toFinset.card:= by
+  gcongr
+  simp
+  apply edges_in_bipartite_induced_cont
+  exact hBip
+  exact rfl
+_≤ S.toFinset.card*T.toFinset.card:= by
+  exact edges_in_bipartite_induced_cont_Fcard
 
+
+
+/-This one compiles without sorrys
 lemma clump_most_edges_in_Bgraph
 --{p m κ pr : ℕ}
 {K: Clump G p m κ pr h}
@@ -897,9 +982,9 @@ exact haHi
 exact Set.not_mem_of_mem_diff (hBcomp' a haHi haB)
 exact hbHi
 exact he
+-/
 
-
-
+/-
 lemma clump_count_Hi_edges_via_Bgraph
 --{p m κ pr : ℕ}
 {K: Clump G p m κ pr h}
@@ -928,8 +1013,8 @@ _≤  HB.edgeSet.toFinset.card+((Hi.verts)\ (BSetPlusM K)).toFinset.card*(Hi.ver
   simp at h1
   simp
   exact h1
-
-
+-/
+/-
 lemma clump_most_edges_of_Hi_in_Bgraph_Case_fewedgesoutsideS
 --{p m κ pr : ℕ}
 {K: Clump G p m κ pr h}
@@ -972,11 +1057,11 @@ _≤ p^2*(HB).edgeSet.toFinset.card+ (Hi.verts.toFinset.card)^2:= by
 _=  (Hi.verts.toFinset.card)^2+(HB).edgeSet.toFinset.card*p^2:= by
   ring_nf
 
+-/
 
 
 
-
-
+/-
 lemma clump_most_edges_of_Hi_in_Bgraph
 {K: Clump G p m κ pr h}
 (Hi HS HB HBip: Subgraph G)
@@ -1026,7 +1111,7 @@ _= HB.edgeSet.toFinset.card * p ^ 2:=by
   rw[heq]
 _≤ Hi.verts.toFinset.card ^ 2 + HB.edgeSet.toFinset.card * p ^ 2:=by
   exact Nat.le_add_left (HB.edgeSet.toFinset.card * p ^ 2) (Hi.verts.toFinset.card ^ 2)
-
+-/
 
 /-  by_contra hc2
   have hc2: (p^4) * (HS).edgeSet.toFinset.card≥ ((HS).verts.toFinset.card)^2:= by exact Nat.le_of_not_lt hc2

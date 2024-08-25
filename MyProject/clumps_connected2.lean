@@ -23,16 +23,18 @@ variable (mggpr: m≫ pr)
 variable (mPositive: m>0)
 variable (pPositive: p>0)
 variable (κPositive: κ>0)
+variable (iSub:Inhabited (Subgraph G))
 
 
-
-
-lemma clump_M_contained_in_C
+lemma clump_M_contained_in_C_b
 --{p m κ pr : ℕ}
 {K: Clump G p m κ pr h}
 :(sSup ↑K.M:Subgraph G).verts ⊆ K.C.verts:= by
-
-sorry
+apply subgraphs_vertex_sets_subsets G
+simp
+intro M hM
+apply K.M_In_C
+assumption
 
 
 lemma clump_BcapC_order_at_least_Hi
@@ -40,6 +42,10 @@ lemma clump_BcapC_order_at_least_Hi
 {K: Clump G p m κ pr h}
 (Hi: Subgraph G)
 (hHi: Hi∈ K.H)
+(pLarge: p≥ 20)
+(mLarge: m≥ 20)
+(mggpr: m≥ gg1 pr)
+(prggp: pr ≥ gg2 p)
 : 2*p*(Hi.verts ∩ (K.C).verts).toFinset.card≥  Hi.verts.toFinset.card:= by
 calc
 2*p*(Hi.verts ∩ (K.C).verts).toFinset.card≥
@@ -47,20 +53,24 @@ calc
   gcongr
   have h1: (Hi.verts ∩ (sSup ↑K.M:Subgraph G).verts) ⊆ (Hi.verts ∩ K.C.verts):= by
     gcongr
-    exact clump_M_contained_in_C
+    exact clump_M_contained_in_C_b
   exact Set.toFinset_subset_toFinset.mpr h1
 _≥ Hi.verts.toFinset.card:= by
-  exact clump_BcapM_order_improved pPositive Hi hHi
+  exact clump_BcapM_order_improved pPositive iSub  Hi hHi pLarge mLarge  mggpr prggp
 
 lemma clump_BcapC_order_at_least_m
 --{p m κ pr : ℕ}
 {K: Clump G p m κ pr h}
 (Hi: Subgraph G)
 (hHi: Hi∈ K.H)
+(pLarge: p≥ 20)
+(mLarge: m≥ 20)
+(mggpr: m≥ gg1 pr)
+(prggp: pr ≥ gg2 p)
 : 2*p*(Hi.verts ∩ (K.C).verts).toFinset.card≥  m:= by
 calc
 2*p*(Hi.verts ∩ (K.C).verts).toFinset.card≥  Hi.verts.toFinset.card:=by
-  exact clump_BcapC_order_at_least_Hi pPositive Hi hHi
+  exact clump_BcapC_order_at_least_Hi pPositive iSub  Hi hHi pLarge mLarge  mggpr prggp
 _≥ m:= by
   apply K.H_Order
   exact hHi
@@ -105,7 +115,7 @@ apply K.C_Cut_Dense
 --G.cut_dense Hi (κ ^ (100 * K.k).factorial)
 apply Cut_Dense_monotone p
 -- p ≤ κ ^ (100 * K.k).factorial
-sorry
+
 apply K.H_Cut_Dense
 exact hHi
 
@@ -148,11 +158,18 @@ lemma clump_add_Hi_cut_dense
 {q:ℕ }
 --more precise version:(hq: q ≥ 16*(κ^(Nat.factorial (100*K.k)))*(4*p*h*4^(K.k)))
 (hq: q ≥ 16*(κ^(2*Nat.factorial (100*K.k))))
-(hHi: Hi∈ K.H):
+(hHi: Hi∈ K.H)
+(pLarge: p≥ 20)
+(mLarge: m≥ 20)
+(mggpr: m≥ gg1 pm)
+(prggp: pm ≥ gg2 p)
+(hggp: h ≥ p)
+(κggh: κ ≥ h)
+:
 cut_dense G (K.C⊔ Hi) q := by
 --intro A B hUnion
 have h1: 2*p*(Hi.verts ∩ (K.C).verts).toFinset.card≥  m:= by
-  exact clump_BcapC_order_at_least_m pPositive Hi hHi
+  exact clump_BcapC_order_at_least_m pPositive iSub  Hi hHi pLarge mLarge  mggpr prggp
 #check cut_dense_union_simplified
 apply cut_dense_union_simplified (κ^(Nat.factorial (100*K.k))) q (4*p*h*4^(K.k)) --G  K.C Hi (κ^(Nat.factorial (100*(K.k)))) q
 
@@ -163,10 +180,27 @@ apply K.C_Cut_Dense
 --G.cut_dense Hi (κ ^ (100 * K.k).factorial)
 apply Cut_Dense_monotone G p
 -- p ≤ κ ^ (100 * K.k).factorial
-sorry
+calc
+  κ ^ (100 * K.k).factorial≥
+  κ^1 := by
+    gcongr
+    exact κPositive
+    refine Nat.succ_le_of_lt ?h.h
+    exact Nat.factorial_pos (100 * K.k)
+  _= κ := by ring_nf
+  _≥ h:= by
+    assumption
+  _≥ p:= by exact hggp
+
 apply K.H_Cut_Dense
 exact hHi
 
+have κLarge: κ ≥ 4:= by
+  calc
+          κ≥ h:= by assumption
+          _≥ p:= by assumption
+          _≥ 20:= by assumption
+          _≥ 4:=by simp
 --q = 4 * κ ^ (100 * K.k).factorial * (K.C.verts ∪ Hi.verts).toFinset.card / (K.C.verts ∩ Hi.verts).toFinset.card + 1
 calc
   q ≥ 16*(κ^(2*Nat.factorial (100*K.k))):= by exact hq
@@ -178,7 +212,32 @@ calc
     exact Nat.pow_add κ (100 * K.k).factorial (100 * K.k).factorial
   _≥ 16 * ((κ ^ (100 * K.k).factorial) * (4 * p *h* 4 ^ K.k)):=by
     gcongr
-    sorry
+    calc
+      κ ^ (100 * K.k).factorial
+      ≥ κ ^ (100 * K.k):= by
+        gcongr
+        exact κPositive
+        exact Nat.self_le_factorial (100 * K.k)
+      _=κ ^ (K.k+K.k+K.k+97 * K.k):= by
+        ring_nf
+      _≥ κ ^ (1+1+1+1* K.k):= by
+        gcongr
+        exact κPositive
+        repeat exact K.Nonemptyness
+        simp
+
+      _=κ^1*κ^1*κ^1*κ^(1*K.k):= by
+        repeat rw [Nat.pow_add]
+
+      _=κ*κ *κ *κ^(K.k):= by
+        ring_nf
+      _≥4*p*h*4^(K.k):= by
+        gcongr
+        calc
+          κ ≥ h:= by assumption
+          _≥ p:= by assumption
+        --
+
   _=16 * κ ^ (100 * K.k).factorial * (4 * p * h*4 ^ K.k):= by
     ring_nf
 
@@ -218,7 +277,7 @@ _≤ (K.C.verts).toFinset.card+ (Hi.verts).toFinset.card:= by
   exact card_union_le K.C.verts.toFinset Hi.verts.toFinset
 _≤ (K.C.verts).toFinset.card+  2*p*( Hi.verts∩ K.C.verts).toFinset.card:=by
   gcongr
-  exact clump_BcapC_order_at_least_Hi pPositive Hi hHi
+  exact clump_BcapC_order_at_least_Hi  pPositive iSub Hi hHi pLarge mLarge  mggpr prggp
 _≤ m*h*4^K.k+  2*p*( Hi.verts∩ K.C.verts).toFinset.card:=by
   gcongr
   exact K.C_Order
@@ -229,10 +288,14 @@ _= (2*p*( Hi.verts∩ K.C.verts).toFinset.card)*h*4^K.k+  2*p*( Hi.verts∩ K.C.
 _≤ (2*p*( Hi.verts∩ K.C.verts).toFinset.card)*h*4^K.k+  2*p*( Hi.verts∩ K.C.verts).toFinset.card*(h*4^K.k):= by
   gcongr
   -- 1 ≤ h * 4 ^ K.k
-  sorry
+  refine one_le_mul ?bc.bc.ha ?bc.bc.hb
+  calc
+    h≥ p:= by assumption
+    _>0:= by exact  pPositive
+  exact Nat.one_le_pow' K.k 3
+
 
 _= (K.C.verts ∩ Hi.verts).toFinset.card * (4 * p *h* 4 ^ K.k):=by
   have h33:K.C.verts ∩ Hi.verts= Hi.verts∩ K.C.verts:= by exact    Set.inter_comm K.C.verts Hi.verts
   simp_rw[h33]
   ring_nf
-  

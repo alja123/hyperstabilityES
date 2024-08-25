@@ -23,8 +23,8 @@ variable {pPositive: p >0}
 variable {mPositive: m >0}
 variable {hPositive: h >0}
 variable {prPositive: pr >0}
-variable {prggp: pr≫ p}
-variable {mggpr: m≫ pr}
+variable (iSub:Inhabited (Subgraph G))
+
 
 
 lemma induction_clump_add_Hi_and_I_cut_dense_easier
@@ -36,13 +36,20 @@ lemma induction_clump_add_Hi_and_I_cut_dense_easier
 (μbiggerthanp: μ ≥ κ)
 (hk1biggerthank: K1.k ≤  k)
 (hk2biggerthank: K2.k ≤  k)
-(hI: I⊆ BSet K1∩ BSet K2)
+(hI: I⊆ BSetPlusM K1∩ BSetPlusM K2)
 (Iorder: μ *I.toFinset.card≥ m)
 (Iorderupperbound: 4*pr*I.toFinset.card≤ m)
 (HFam: Finset (Subgraph G))
 (hHisize: HFam.card=t)
 (hHi: HFam⊆  K1.H∪ K2.H)
 (qDef: q ≥  (κ^(7*t*Nat.factorial (100*k)))*μ^(4*t*t*k))
+(pLarge: p≥ 20)
+(mggpr: m≥ gg1 pr)
+(prggp: pr ≥ gg2 p)
+(hggp: h ≥ pr)
+(κggh: κ ≥ gg1 h)
+(mggμ: m≥ μ )
+
 :
 cut_dense G ((K1.Gr.induce (I∪ K1.C.verts)⊔ K2.Gr.induce (I∪ K2.C.verts))⊔ (sSup HFam: Subgraph G)) q:= by
 
@@ -69,10 +76,10 @@ lemma induction_clump_add_Hi_and_I_cut_dense_simplernumbers
 (q k k':ℕ )
 {I: Set V}
 (hk'_g_k: k'>k)
-(μbiggerthanp: μ ≥ κ)
+--(μbiggerthanp: μ ≥ κ)
 (hk1biggerthank: K1.k ≤  k)
 (hk2biggerthank: K2.k ≤  k)
-(hI: I⊆ BSet K1∩ BSet K2)
+(hI: I⊆ BSetPlusM K1∩ BSetPlusM K2)
 (Iorder: (κ^(10*Nat.factorial (100*k))) *I.toFinset.card≥  m)
 (Iorderupperbound: 4*pr*I.toFinset.card≤ m)
 (HFam: Finset (Subgraph G))
@@ -80,13 +87,34 @@ lemma induction_clump_add_Hi_and_I_cut_dense_simplernumbers
 (hHi: HFam⊆  K1.H∪ K2.H)
 (qDef: q ≥  (κ^(Nat.factorial (100*k'))))
 (hk'_le_2k: HFam.card≤  2*k)
+(pLarge: p≥ 20)
+(mggpr: m≥ gg1 pr)
+(prggp: pr ≥ gg2 p)
+(hggp: h ≥ pr)
+(κggh: κ ≥ gg1 h)
+(mggκ :m≥ gg1 κ )
+(HFamNonempty: HFam.Nonempty)
+--(mggμ: m≥ μ )
 :
 cut_dense G ((K1.Gr.induce (I∪ K1.C.verts)⊔ K2.Gr.induce (I∪ K2.C.verts))⊔ (sSup HFam: Subgraph G)) q
 := by
 
 let μ:ℕ :=(κ^(10*Nat.factorial (100*k)))
 have μbiggerthanp: μ ≥ κ:= by
-  sorry
+  dsimp[μ ]
+  calc
+  (κ^(10*Nat.factorial (100*k)))≥ κ^1:= by
+    gcongr
+    assumption
+    refine Left.one_le_mul ?h.ha ?h.hb
+    simp
+    refine Nat.one_le_iff_ne_zero.mpr ?h.hb.a
+    exact Nat.factorial_ne_zero (100 * k)
+
+  _= κ :=by
+    ring_nf
+
+
 
 
 have Iorder: μ *I.toFinset.card≥  m:= by
@@ -98,8 +126,18 @@ let t:ℕ :=HFam.card
 --have ht0: t=k+1:=by
 --  exact rfl
 have ht: t>0:= by
-  sorry--exact Nat.zero_lt_of_lt hk'_g_k
+  dsimp[t]
+  exact card_pos.mpr HFamNonempty
+  --exact Nat.zero_lt_of_lt hk'_g_k
 --rw[ht0.symm] at hHisize
+
+have kPos:  k≥ 1:=by
+  calc
+    k≥ K1.k:= by
+      assumption
+    _≥ 1:= by
+      apply Nat.one_le_of_lt
+      exact K1.Nonemptyness
 
 have qDefNew: q ≥  (κ^(7*t*Nat.factorial (100*k)))*μ^(4*t*t*k):=by
   calc
@@ -110,13 +148,78 @@ have qDefNew: q ≥  (κ^(7*t*Nat.factorial (100*k)))*μ^(4*t*t*k):=by
     exact κPositive
     exact hk'_g_k
   _≥ (κ^(7*t*Nat.factorial (100*k)))*μ^(4*t*t*k):=by
-    sorry
+    dsimp[μ ]
+    simp
+    rw [←Nat.pow_mul]
+    rw[←Nat.pow_add]
+    gcongr
+    assumption
+    calc
+      7 * t * (100 * k).factorial + 10 * (100 * k).factorial * (4 * t * t * k)
+      ≤7 * (2*k) * (100 * k).factorial + 10 * (100 * k).factorial * (4 * (2*k) * (2*k) * k)
+      :=by
+        gcongr
+        --
+      _≤ (100*1)*(100*k)*(100 * k).factorial+(100*1) * (100 * k).factorial * ((100*1) * (100*k) * (100*k) * (100*k)):=by
+        gcongr
+        repeat simp
+        calc
+          k=1*k:= by ring_nf
+          _≤100*k:= by
+            gcongr;simp
+        --
+
+      _≤ (100*k)*(100*k)*(100 * k).factorial+(100*k) * (100 * k).factorial * ((100*k) * (100*k) * (100*k) * (100*k)):=by
+        gcongr
+
+      _=(100*k)^2*(100 * k).factorial+(100*k)^5*(100 * k).factorial:= by
+        ring_nf
+
+      _≤(100*k)^5*(100 * k).factorial+(100*k)^5*(100 * k).factorial:= by
+        gcongr
+        refine Right.one_le_mul ?bc.bc.ha.ha kPos
+        repeat simp
+        --
+
+      _=2*(100*k)^5*(100 * k).factorial:=by
+        ring_nf
+      _≤(100*1)*(100*k)^5*(100 * k).factorial:=by
+        gcongr
+        simp
+      _≤(100*k)*(100*k)^5*(100 * k).factorial:=by
+        gcongr
+
+
+      _= (100 * k).factorial*(100*k)^6:=by
+        ring_nf
+      _≤(100 * k).factorial*(100*k+1)^6:=by
+        gcongr
+        calc
+        100*k=100*k+0:=by ring_nf
+        _≤ _:=by gcongr; simp--
+      _≤ (100 * k+6).factorial:=by
+        exact Nat.factorial_mul_pow_le_factorial
+
+
+      _≤ (100*k+100).factorial:=by
+        gcongr
+        simp
+      _= (100 * (k + 1)).factorial:=by
+          ring_nf
 
 apply induction_clump_add_Hi_and_I_cut_dense_easier
-repeat assumption
-exact rfl
+assumption
+assumption
+assumption
+assumption
+assumption
+assumption
+exact ht
 repeat assumption
 
+exact rfl
+repeat assumption
+dsimp[μ]
 
 
 

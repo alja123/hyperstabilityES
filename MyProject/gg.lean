@@ -77,6 +77,29 @@ _= 10000 *b^4:= by
   ring_nf
 
 
+lemma gg1_large
+{b: ℕ}
+(bPositive: b>0)
+:
+gg1 b≥10000
+:= by
+have h1: gg1 b≥ gg1 b:= by
+  exact Nat.le_refl (gg1 b)
+calc
+gg1 b≥ gg1 b:= by
+  exact Nat.le_refl (gg1 b)
+_≥ 10000 *b^3:= by
+  apply gg1_1 h1
+  repeat assumption
+
+_≥ 10000 *1^3:= by
+  gcongr
+  assumption
+_=10000:= by
+  ring_nf
+
+
+
 lemma gg1_ge
 {a b: ℕ}
 (h: a ≥ gg1 b)

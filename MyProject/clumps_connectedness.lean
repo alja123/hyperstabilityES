@@ -488,4 +488,95 @@ _= 32 * (κ^(2*Nat.factorial (100*K.k))) * μ*h:= by
 _≤  q:= by
   exact qDef
 
-end SimpleGraph
+
+
+
+lemma clump_M_contained_in_C
+--{p m κ pr : ℕ}
+{K: Clump G p m κ pr h}
+:(sSup ↑K.M:Subgraph G).verts ⊆ K.C.verts:= by
+apply subgraphs_vertex_sets_subsets G
+simp
+intro M hM
+apply K.M_In_C
+assumption
+
+
+
+lemma clump_add_BSetPlusM_vertices_cut_dense_simplified
+{K: Clump G p m κ pm h}
+{I': Set V}
+{q:ℕ }
+(μ : ℕ)
+(μbiggerthanp: μ ≥ 2*p)
+(qDef: q ≥  32 * (κ^(2*Nat.factorial (100*K.k))) * μ*h)
+(hI': I'⊆ BSetPlusM K)
+--(Iorder: μ *I.toFinset.card≥ m)
+(Iorderupperbound: I'.toFinset.card≤ K.C.verts.toFinset.card)
+(mggpr: m≥ gg1 pm)
+(prPositive: pm>0)
+(hPositive: h>0)
+(κlarge: κ≥ 4)
+:
+cut_dense G (K.Gr.induce (I'∪ K.C.verts)) q := by
+
+let I: Set V:= I'∩ (BSet K)
+have hI:I ⊆ BSet K:= by
+  exact Set.inter_subset_right I' (BSet K)
+have Iorderupperbound:I.toFinset.card≤ K.C.verts.toFinset.card:= by
+  calc
+    I.toFinset.card≤
+    I'.toFinset.card:= by
+      gcongr
+      dsimp[I]
+      simp
+    _≤     K.C.verts.toFinset.card:= by
+      assumption
+
+have Iunion: I∪ K.C.verts=I'∪ K.C.verts:= by
+  --dsimp[I]
+  have h2: I'⊆   I∪(BSetPlusM K\ BSet K):= by
+    dsimp[I]
+    intro x hx
+    simp
+    have h5: x∈ BSetPlusM K:= by
+      exact hI' hx
+    have h6: x ∈ BSet K ∨ x ∉ BSet K:= by
+      exact Decidable.em (x ∈ BSet K)
+    aesop
+  have h0: I∪ K.C.verts⊆ I'∪ K.C.verts:= by
+    gcongr
+    dsimp[I]
+    exact Set.inter_subset_left I' (BSet K)
+
+  have h01: I∪ K.C.verts⊇  I'∪ K.C.verts:= by
+    calc
+      I'∪ K.C.verts⊆(I∪(BSetPlusM K\ BSet K))∪ K.C.verts:= by
+        gcongr
+      _= I∪ ((BSetPlusM K\ BSet K)∪ K.C.verts):= by
+        rw [@Set.union_assoc]
+      _= I∪ K.C.verts:= by
+        congr
+        unfold BSetPlusM
+        simp only [ mem_coe, Set.union_diff_left, Set.union_eq_right]
+        calc
+          _ ⊆(sSup K.M: Subgraph G).verts:= by
+            exact Set.diff_subset (sSup ↑K.M: Subgraph G).verts (BSet K)
+          _⊆ K.C.verts:= by
+            exact clump_M_contained_in_C
+  exact Set.Subset.antisymm h0 h01
+
+
+
+rw[Iunion.symm]
+
+apply clump_add_B_vertices_cut_dense_simplified
+repeat assumption
+calc
+    _ =  I.toFinset.card:= by
+      dsimp [I]
+      simp
+    _≤ _:= by exact Iorderupperbound
+    _= _:= by simp
+repeat assumption
+
