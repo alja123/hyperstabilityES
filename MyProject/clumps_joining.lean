@@ -10,7 +10,7 @@ open scoped BigOperators
 namespace SimpleGraph
 
 
- set_option maxHeartbeats 300000
+ set_option maxHeartbeats 450000
 
 universe u
 variable {V : Type u} {G : SimpleGraph V}
@@ -92,7 +92,8 @@ lemma induction_clump_add_Hi_and_I_cut_dense_simplernumbers
 (prggp: pr ≥ gg2 p)
 (hggp: h ≥ pr)
 (κggh: κ ≥ gg1 h)
-(mggκ :m≥ gg1 κ )
+(mggκ :m≥ gg2 κ )
+(κggk: gg1 κ≥ k )
 (HFamNonempty: HFam.Nonempty)
 --(mggμ: m≥ μ )
 :
@@ -221,6 +222,24 @@ exact rfl
 repeat assumption
 dsimp[μ]
 
+calc
+  κ ^ (10 * (100 * k).factorial)
+  /-≤κ ^ (10 * (100 * (gg1 k)).factorial):= by
+    gcongr
+    assumption
+    have h1:       gg1 k ≥ gg1 k:= by exact Nat.le_refl (gg1 k)
+    apply gg1_ge
+    assumption
+    exact kPos-/
+    --
+  ≤ κ ^ (10 * (100 * (gg1 κ) ).factorial):= by
+    gcongr
+    repeat assumption
+    --
+  _≤ m:= by
+    apply gg2_4
+    repeat assumption
+
 
 
 lemma HOrdermfamily_union
@@ -312,6 +331,19 @@ exact mem_union_left H2 hB
 exact hAB
 
 
+lemma clump_H_nonempty
+{K1: Clump G p m κ pr h}
+:
+K1.H.Nonempty:= by
+have h1: K1.M.Nonempty:= by
+  exact clump_M_nonempty
+rcases h1 with ⟨M, hM⟩
+have h2:_:=by
+  exact K1.M_graphs_in_H M hM
+rcases h2 with ⟨Hi, hHi, hMi⟩
+use Hi
+
+
 lemma clump_joining_1
 {K1 K2: Clump G p m κ pr h}
 --{HFam: Finset (Subgraph G)}
@@ -321,10 +353,17 @@ lemma clump_joining_1
 (hk1biggerthank: K1.k =  k)
 (hk2biggerthank: K2.k ≤  k)
 (hedge_disjoint: HEdge_Disjoint (K1.H ∪ K2.H))
-(hI: I⊆ BSet K1∩ BSet K2)
+(hI: I⊆ BSetPlusM K1∩ BSetPlusM K2)
 (Iorder: (κ^(10*Nat.factorial (100*k))) *I.toFinset.card≥  m)
 (Iorderupperbound: 4*pr*I.toFinset.card≤ m)
 (qDef: q ≥  (κ^(Nat.factorial (100*k+4))))
+(pLarge: p≥ 20)
+(mggpr: m≥ gg1 pr)
+(prggp: pr ≥ gg2 p)
+(hggp: h ≥ pr)
+(κggh: κ ≥ gg1 h)
+(mggκ :m≥ gg2 κ )
+(κggk: gg1 κ≥ k )
 :
 ∃ (K: Clump G p m κ pr h),
 (K.Gr=K1.Gr⊔ K2.Gr)∧
@@ -366,24 +405,52 @@ have M1Graphs_in_H : Mgraphs_in_H K1.M H:= by
   exact rfl
 
 have HpartitionGr: sSup H= K1.Gr⊔ K2.Gr:= by
-  sorry
+  --dsimp[H]
+  have h1: (sSup K1.H: Subgraph G)=K1.Gr:= by
+    exact K1.H_Partition_K
+  have h2: (sSup K2.H: Subgraph G)=K2.Gr:= by
+    exact K2.H_Partition_K
+  have h3:sSup H =(sSup K1.H: Subgraph G)⊔ (sSup K2.H: Subgraph G):= by
+    dsimp[H]
+    simp
+    exact sSup_union
+  rw[h3, h2, h1]
+
+
+
+
+
 
 have HEdgeDisjoint : HEdge_Disjoint H := by
   exact hedge_disjoint
 
 
 have HNonempty : H.Nonempty:= by
+  have h1: K1.H.Nonempty:= by
+    exact clump_H_nonempty
+  dsimp[H]
+  exact Nonempty.inl h1
 
-  sorry
+
 
 have hkEx: ∃ k,
-    (∃ M, M.card = k ∧ MVertex_Disjoint M ∧ MNear_Regular M (m / pr) ∧ Mgraphs_in_H M H) ∧
-      (¬∃ M, M.card > k  ∧ MVertex_Disjoint M ∧ MNear_Regular M (m / pr) ∧ Mgraphs_in_H M H) ∧
+    (∃ M, M.card = k ∧ MVertex_Disjoint M ∧ MNear_Regular M m  pr ∧ Mgraphs_in_H M H) ∧
+      (¬∃ M, M.card > k  ∧ MVertex_Disjoint M ∧ MNear_Regular M m  pr ∧ Mgraphs_in_H M H) ∧
         k ≥ 1 ∧ k ≤ (sSup ↑H: Subgraph G).verts.toFinset.card / (m / pr) + 1:=by
   apply maximal_k_existence
   repeat assumption
+  have h1:pr≥ gg1 (p*2):= by
+    apply gg2_5
+    repeat assumption
+  exact h1
+  repeat assumption
   --m / pr > 0
-  sorry
+  refine Nat.div_pos ?hpm.hba prPositive
+  apply gg1_ge
+  repeat assumption
+
+
+
 
 rcases hkEx with ⟨ k', ⟨ hk'1, hk'2⟩ ⟩
 
@@ -393,7 +460,7 @@ have k'_ge_k: k' ≥ k:= by
   by_contra contr
   have h1: k' < k:= by
     exact Nat.gt_of_not_le contr
-  have h2: ∃ M, M.card > k'  ∧ MVertex_Disjoint M ∧ MNear_Regular M (m / pr) ∧ Mgraphs_in_H M H:=by
+  have h2: ∃ M, M.card > k'  ∧ MVertex_Disjoint M ∧ MNear_Regular M m  pr ∧ Mgraphs_in_H M H:=by
     use K1.M
     constructor
     calc
@@ -450,16 +517,64 @@ have k'_le_2k: k' ≤  K1.k+K2.k:= by
     exact card_union_le M1 M2
   rw[hMcard] at hcard
   have hM1card: M1.card≤ K1.k:= by
-    sorry
+    by_contra contr
+    simp at contr
+    have hex: (∃ (M': Finset (Subgraph G)), M'.card > K1.k ∧ (MVertex_Disjoint M')∧ (MNear_Regular M' m pr)∧ (Mgraphs_in_H M' K1.H)):= by
+      use M1
+      constructor
+      exact contr
+      constructor
+      intro A B hA hB hAB
+      apply hMVD A B
+      rw[hM1M2]
+      exact mem_union_left M2 hA
+      exact mem_of_mem_filter B hB
+      exact hAB
+      constructor
+      intro A hA
+      apply hMNR A
+      rw[hM1M2]
+      exact mem_union_left M2 hA
+      dsimp[M1]
+      unfold Mgraphs_in_H
+      simp
+    have hcont: ¬ (∃ (M': Finset (Subgraph G)), M'.card > K1.k ∧ (MVertex_Disjoint M')∧ (MNear_Regular M' m pr)∧ (Mgraphs_in_H M' K1.H)):= by
+      exact K1.k_Maximal
+    exact hcont hex
+
+
   have hM1card: M2.card≤ K2.k:= by
-    sorry
+    by_contra contr
+    simp at contr
+    have hex: (∃ (M': Finset (Subgraph G)), M'.card > K2.k ∧ (MVertex_Disjoint M')∧ (MNear_Regular M' m pr)∧ (Mgraphs_in_H M' K2.H)):= by
+      use M2
+      constructor
+      exact contr
+      constructor
+      intro A B hA hB hAB
+      apply hMVD A B
+      rw[hM1M2]
+      exact mem_union_right M1 hA
+      exact mem_of_mem_filter B hB
+      exact hAB
+      constructor
+      intro A hA
+      apply hMNR A
+      rw[hM1M2]
+      exact mem_union_right M1 hA
+      dsimp[M2]
+      unfold Mgraphs_in_H
+      simp
+    have hcont: ¬ (∃ (M': Finset (Subgraph G)), M'.card > K2.k ∧ (MVertex_Disjoint M')∧ (MNear_Regular M' m pr)∧ (Mgraphs_in_H M' K2.H)):= by
+      exact K2.k_Maximal
+    exact hcont hex
+
   calc
     k'≤ M1.card + M2.card:= by exact hcard
     _≤ M1.card  + K2.k:= by
       gcongr
     _≤ K1.k + K2.k:= by
       gcongr
-
 
 
 
@@ -496,7 +611,9 @@ have MHsize2: HM.card≤ k':=by
     exact hMcard
 
 have kpos: k >0:= by
-  sorry
+  rw[hk1biggerthank.symm]
+  exact K1.Nonemptyness
+
 
 
 by_cases case1: k'=k
@@ -578,7 +695,26 @@ have hCsize:C.verts.toFinset.card ≤ m*h*4^(k'):= by
   _≤ m*h+m*h*4^(K1.k)+m*h*4^(K2.k)+m*h*(2*k):=by
     gcongr
     -- I.toFinset.card ≤ m
-    sorry
+    calc
+      I.toFinset.card
+      =1*I.toFinset.card:=by
+        ring_nf
+      _≤
+      4 * pr * I.toFinset.card:=by
+        gcongr
+        rw [@Nat.succ_le_iff]
+        apply mul_pos
+        simp
+        assumption
+
+      _≤ m:= by
+        exact Iorderupperbound
+      _= m*1:= by
+        ring_nf
+      _≤ m*h:= by
+        gcongr
+        assumption
+
     exact K1.C_Order
     exact K2.C_Order
     calc
@@ -604,7 +740,29 @@ have hCsize:C.verts.toFinset.card ≤ m*h*4^(k'):= by
   _≤ m*h*(4^(k+1)):=by
     gcongr
     --4 ^ k + 4 ^ k + 2 * k ≤ 4 ^ (k + 1)
-    sorry
+    calc
+      4 ^ (k + 1)=4*4 ^ (k):= by
+        exact Nat.pow_succ'
+      _=4 ^ (k)+4 ^ (k)+4 ^ (k)+4 ^ (k):=by
+        ring_nf
+      _≥
+        1 + 4 ^ k + 4 ^ k + 2 * k:= by
+        gcongr
+        exact Nat.one_le_pow' k 3
+        calc
+          4^k=(2*2)^k:=by ring_nf
+          _=2^k*2^k:= by
+            exact Nat.mul_pow 2 2 k
+          _≥2^1*k:= by
+            gcongr
+            exact NeZero.one_le
+            exact kpos
+            exact bernoulli_inequality k
+            --
+          _=2*k:= by ring_nf
+
+        --
+
   _≤ m*h*4^(k'):= by
     gcongr
     exact NeZero.one_le
@@ -619,11 +777,22 @@ have k1_l_k: K1.k≤ k:= by
 have C_cut_dense: cut_dense G C (κ^(Nat.factorial (100*k'))):=by
   let μ: ℕ :=κ ^ (10 * (100 * k).factorial)
   have μbiggerthanp: μ ≥ κ:= by
-    sorry
-  apply induction_clump_add_Hi_and_I_cut_dense_simplernumbers  (κ^(Nat.factorial (100*k'))) k (M.card)
+    dsimp [μ]
+    refine Nat.le_self_pow ?hn κ
+    refine Nat.mul_ne_zero_iff.mpr ?hn.a
+    simp
+    exact Nat.factorial_ne_zero (100 * k)
+  apply induction_clump_add_Hi_and_I_cut_dense_simplernumbers  iSub (κ^(Nat.factorial (100*k'))) k (M.card)
   rw[hMcard]; exact k'_g_k
-  --repeat assumption;
-  exact μbiggerthanp
+  repeat assumption;
+  rw[hMcard]; exact MHsize
+  repeat assumption;
+  rw [@image_nonempty]
+  rw [← @card_pos]
+  rw[hMcard]
+  exact k'pos
+  repeat assumption
+  /-exact μbiggerthanp
   --repeat assumption;
   --K1.k ≤ k
   exact k1_l_k
@@ -635,7 +804,7 @@ have C_cut_dense: cut_dense G C (κ^(Nat.factorial (100*k'))):=by
   gcongr;  exact κPositive;
   rw[hMcard];
   exact MHsize
-  repeat assumption;
+  repeat assumption;-/
 
 
 have C_in_Gr: C≤ K1.Gr⊔ K2.Gr:=by
@@ -649,12 +818,12 @@ have C_in_Gr: C≤ K1.Gr⊔ K2.Gr:=by
   have h1: I ∪ K1.C.verts⊆ K1.Gr.verts:= by
     apply Set.union_subset
     calc
-      I⊆ BSet K1∩  BSet K2:= by
+      I⊆ BSetPlusM K1∩  BSetPlusM K2:= by
         exact hI
-      _⊆ BSet K1:=by
-        exact Set.inter_subset_left (BSet K1) (BSet K2)
+      _⊆ BSetPlusM K1:=by
+        exact Set.inter_subset_left (BSetPlusM K1) (BSetPlusM K2)
       _⊆ K1.Gr.verts:= by
-        exact BSet_subgraph_Kgr
+        exact BSetPlusM_subgraph_Kgr
     have h2: K1.C≤  K1.Gr:= by
       exact K1.C_In_K
     apply subgraphs_vertex_sets_subsets G;
@@ -673,12 +842,12 @@ have C_in_Gr: C≤ K1.Gr⊔ K2.Gr:=by
   have h1: I ∪ K2.C.verts⊆ K2.Gr.verts:= by
     apply Set.union_subset
     calc
-      I⊆ BSet K1∩  BSet K2:= by
+      I⊆ BSetPlusM K1∩  BSetPlusM K2:= by
         exact hI
-      _⊆ BSet K2:=by
-        exact Set.inter_subset_right (BSet K1) (BSet K2)
+      _⊆ BSetPlusM K2:=by
+        exact Set.inter_subset_right (BSetPlusM K1) (BSetPlusM K2)
       _⊆ K2.Gr.verts:= by
-        exact BSet_subgraph_Kgr
+        exact BSetPlusM_subgraph_Kgr
     have h2: K2.C≤  K2.Gr:= by
       exact K2.C_In_K
     apply subgraphs_vertex_sets_subsets G;
@@ -710,7 +879,7 @@ have M_in_C: FamilyContained_in_Graph M C:=by
   calc
     Mi≤ B:= by exact hB.2
     _≤ (sSup ↑HM: Subgraph G ):= by
-      exact CompleteLattice.le_sSup (↑HM) B hB1
+      exact CompleteLattice.le_sSup (↑HM) B hB1-- CompleteLattice.le_sSup (↑HM) B hB1
     _≤ C:=by
       exact le_sup_right'
 

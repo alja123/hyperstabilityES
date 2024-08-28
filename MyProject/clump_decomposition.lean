@@ -23,8 +23,9 @@ variable {pPositive: p >0}
 variable {mPositive: m >0}
 variable {hPositive: h >0}
 variable {prPositive: pr >0}
-variable {prggp: pr≫ p}
-variable {mggpr: m≫ pr}
+variable (iSub:Inhabited (Subgraph G))
+
+
 
 
 @[ext] structure Locally_Dense  (G: SimpleGraph V) (p m    h: ℕ ) where
@@ -75,10 +76,22 @@ lemma initial_clump_construction_2
 {L: Subgraph G}
 (hLorderm: L.verts.toFinset.card ≥ m)
 (hLorderhm: L.verts.toFinset.card ≤  h*m)
-(hL: cut_dense G L p):
+(hL: cut_dense G L p)
+--(pLarge: p≥ 20)
+--(mggpr: m≥ gg1 pr)
+(prggp: pr ≥ gg2 p)
+(hggp: h ≥ gg1 pr)
+(κggh: κ ≥ gg1 h)
+(mggκ :m≥ gg2 κ )
+:
 ∃ (X: Clump G p m κ pr h), graph_forms_clump L X
 := by
-have hpm: m/pr>0:= by sorry
+have hpm: m/pr>0:= by
+  refine Nat.div_pos ?hba prPositive
+  calc
+    m≥ κ := by  apply gg2_ge; repeat assumption
+    _≥ h:= by apply gg1_ge; repeat assumption
+    _≥ pr:= by apply gg1_ge; repeat assumption
 have hLorderUpperBound: L.verts.toFinset.card ≤  m*h*4:=by
   calc
     L.verts.toFinset.card ≤ h*m:= by exact hLorderhm
@@ -86,12 +99,27 @@ have hLorderUpperBound: L.verts.toFinset.card ≤  m*h*4:=by
     _≤ m*h*4:= by gcongr; exact NeZero.one_le
 apply initial_clump_construction
 repeat assumption
+calc
+    m≥ κ := by  apply gg2_ge; repeat assumption
+    _≥ h:= by apply gg1_ge; repeat assumption
+    _≥ gg1 pr:= by exact hggp
+
+exact gg2_5 prggp pPositive
+calc
+  κ ≥ h:= by apply gg1_ge; repeat assumption
+  _≥ pr:= by apply gg1_ge; repeat assumption
+  _≥ p:= by apply gg2_ge; repeat assumption
+repeat assumption
 
 
 lemma initial_clump_construction_3
 {L: Locally_Dense G p m h}
 (Li: Subgraph G)
 (hLi: Li∈ L.H)
+(prggp: pr ≥ gg2 p)
+(hggp: h ≥ gg1 pr)
+(κggh: κ ≥ gg1 h)
+(mggκ :m≥ gg2 κ )
 :
 ∃ (X: Clump G p m κ pr h), graph_forms_clump Li X
 := by
@@ -100,6 +128,7 @@ repeat assumption
 exact L.H_Order Li hLi
 exact L.H_Order_Upper_Bound Li hLi
 exact L.H_Cut_Dense Li hLi
+repeat assumption
 
 
 def Clumps_forming_L: Subgraph G→ (Set (Clump G p m κ pr h)):=
@@ -129,6 +158,10 @@ lemma Initial_Clump_Decomposition_forms_clump
 (Li: Subgraph G)
 (hLi: Li∈ L.H)
 (nan: Clump G p m κ pr h)
+(prggp: pr ≥ gg2 p)
+(hggp: h ≥ gg1 pr)
+(κggh: κ ≥ gg1 h)
+(mggκ :m≥ gg2 κ )
 :
 graph_forms_clump Li (Clump_forming_L nan Li)
 := by
@@ -178,6 +211,10 @@ lemma Initial_Clump_Decomposition_Li_eq_Gr
 (KFam: Finset (Clump G p m κ pr h))
 (hKFam: KFam= Finset.image (Clump_forming_L nan) L.H)
 (hKi: Ki∈ KFam)
+(prggp: pr ≥ gg2 p)
+(hggp: h ≥ gg1 pr)
+(κggh: κ ≥ gg1 h)
+(mggκ :m≥ gg2 κ )
 : ∃ (Li: Subgraph G), Li∈ L.H ∧ Ki.Gr=Li∧ (Clump_forming_L nan Li = Ki)
 := by
 rw [hKFam] at hKi
@@ -195,6 +232,10 @@ lemma Initial_Clump_Decomposition_1
 (nan: Clump G p m κ pr h)
 (KFam: Finset (Clump G p m κ pr h))
 (hKFam: KFam= Finset.image (Clump_forming_L nan) L.H)
+(prggp: pr ≥ gg2 p)
+(hggp: h ≥ gg1 pr)
+(κggh: κ ≥ gg1 h)
+(mggκ :m≥ gg2 κ )
 :
 Clump_Decomposition L KFam
 ∧ (∀ (X:Clump G p m κ pr h ), (X∈ KFam) → (X.k≤ (h*m)/(m/pr)+1))
@@ -265,7 +306,7 @@ calc
     gcongr
     apply L.H_Order_Upper_Bound
     exact hL1
-    
+
 
 
 /-

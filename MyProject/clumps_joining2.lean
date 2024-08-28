@@ -23,8 +23,7 @@ variable {pPositive: p >0}
 variable {mPositive: m >0}
 variable {hPositive: h >0}
 variable {prPositive: pr >0}
-variable {prggp: pr≫ p}
-variable {mggpr: m≫ pr}
+variable (iSub:Inhabited (Subgraph G))
 
 
 
@@ -39,7 +38,7 @@ lemma  joining_numbers1
 :=by
 let S: Set ℕ:= {n:ℕ| x *n≥  m}
 have SNonempty: Set.Nonempty S:=by
-  sorry
+  exact Set.nonempty_of_mem hb
 let n:ℕ := Nat.find SNonempty
 have h1: n∈ S:=by
   dsimp [n]
@@ -72,7 +71,9 @@ have h2: x *n'≥  m:=by
 have h4: n'<n:=by
   refine Nat.sub_one_lt_of_le ?h₀ ?h₁
   --n>0
-  sorry
+  have h6: x*n>0:= by
+    exact Nat.lt_of_lt_of_le mPositive h1
+  exact Nat.pos_of_mul_pos_left h6
   exact Nat.find_mono fun n a ↦ a
 have h3: ¬ (x *n'≥  m):=by
   apply Nat.find_min SNonempty
@@ -92,7 +93,10 @@ lemma  joining_numbers2
 ∃ (n:ℕ ),(n≤ b)∧ (x *n≥  m) ∧ (y*n≤ m)
 :=by
 have h1: ∃ (n:ℕ ),(n≤ b)∧ (x *n≥  m) ∧ (x*n< m+x)
-:= by exact joining_numbers1 hb
+:= by
+  apply joining_numbers1 hb
+  exact mPositive
+  --
 rcases  h1 with ⟨n, hn, h1, h2⟩
 use n
 constructor
@@ -131,10 +135,17 @@ lemma clump_joining
 (hk1biggerthank: K1.k =   k)
 (hk2biggerthank: K2.k ≤  k)
 (hedge_disjoint: HEdge_Disjoint (K1.H ∪ K2.H))
-(hIntersection: (κ^(10*Nat.factorial (100*k)))*(BSet K1∩ BSet K2).toFinset.card≥ m )
+(hIntersection: (κ^(10*Nat.factorial (100*k)))*(BSetPlusM K1∩ BSetPlusM K2).toFinset.card≥ m )
 --(Iorder: (κ^(10*Nat.factorial (100*k))) *I.toFinset.card≥  m)
 --(Iorderupperbound: 4*pr*I.toFinset.card≤ m)
 --(qDef: q ≥  (κ^(Nat.factorial (100*k+4))))
+(pLarge: p≥ 20)
+(mggpr: m≥ gg1 pr)
+(prggp: pr ≥ gg2 p)
+(hggp: h ≥ gg1 pr)
+(κggh: κ ≥ gg1 h)
+(mggκ :m≥ gg2 κ )
+(κggk: gg1 κ≥ k )
 :
 ∃ (K: Clump G p m κ pr h),
 (K.Gr=K1.Gr⊔ K2.Gr)∧
@@ -142,29 +153,67 @@ lemma clump_joining
 (K.k≥ k)∧
 (K.k≤ K1.k+K2.k):=by
 
+have hgep: h ≥ pr:= by
+  apply gg1_ge
+  repeat assumption
 
 let q:ℕ :=  (κ^(Nat.factorial (100*k+4)))
 have qDef: q ≥  (κ^(Nat.factorial (100*k+4))):= by
   exact Nat.le_refl (κ ^ (100 * k + 4).factorial)
 
-have h1: ∃ (n:ℕ ),(n≤ (BSet K1∩ BSet K2).toFinset.card)∧ ((κ^(10*Nat.factorial (100*k))) *n≥  m) ∧ (( 4*pr)*n≤ m):=by
+have h1: ∃ (n:ℕ ),(n≤ (BSetPlusM K1∩ BSetPlusM K2).toFinset.card)∧ ((κ^(10*Nat.factorial (100*k))) *n≥  m) ∧ (( 4*pr)*n≤ m):=by
   apply joining_numbers2 hIntersection
   --4 * pr ≤ κ ^ (10 * (100 * k).factorial) / 2
-  sorry
+  refine (Nat.le_div_iff_mul_le ?hxy.k0).mpr ?hxy.a
+  simp
+  calc
+    κ ^ (10 * (100 * k).factorial)
+    ≥ κ^1:= by
+      gcongr
+      assumption
+      rw [@Nat.succ_le_iff]
+      apply mul_pos
+      simp
+      exact Nat.factorial_pos (100 * k)
+    _= κ := by ring_nf
+    _≥ 10000*pr^3:= by
+      apply gg1_1
+      apply gg1_trans
+      repeat assumption
+      --
+    _≥ 8*pr^1:= by
+      gcongr
+      repeat simp
+      assumption
+      simp
+    _= _:= by ring_nf
+
   --m ≥ κ ^ (10 * (100 * k).factorial) * κ ^ (10 * (100 * k).factorial)
-  sorry
+  calc
+    m ≥ κ ^ (10 * (100 * (gg1 κ )).factorial) * κ ^ (10 * (100 * (gg1 κ)).factorial):= by
+      apply gg2_6
+      repeat assumption
+    _≥ _:= by
+      gcongr
+      repeat assumption
+      --
+
+
+
   exact Nat.pos_pow_of_pos (10 * (100 * k).factorial) κPositive
+  repeat assumption
+  --
 
 rcases h1 with ⟨n, hn, h1, h2⟩
 
-have h3: ∃ (I: Finset V), I⊆ (BSet K1∩ BSet K2).toFinset∧ I.card=n:=by
-  exact exists_smaller_set (BSet K1 ∩ BSet K2).toFinset n hn
+have h3: ∃ (I: Finset V), I⊆ (BSetPlusM K1∩ BSetPlusM K2).toFinset∧ I.card=n:=by
+  exact exists_smaller_set (BSetPlusM K1 ∩ BSetPlusM K2).toFinset n hn
 
 rcases h3 with ⟨Ifin, hIfin⟩
-have h4: Ifin ⊆ (BSet K1 ∩ BSet K2).toFinset:=by
+have h4: Ifin ⊆ (BSetPlusM K1∩ BSetPlusM K2).toFinset:=by
   exact hIfin.left
 let I: Set V:= Ifin
-have hI : I⊆ (BSet K1∩ BSet K2):= by
+have hI : I⊆ (BSetPlusM K1∩ BSetPlusM K2):= by
   exact Set.subset_toFinset.mp h4
 have hIOrd: I.toFinset.card=n:=by
   calc
@@ -198,16 +247,34 @@ repeat assumption
 
 
  lemma clump_joining_max
-{K1 K2: Clump G p m κ pr h} 
+{K1 K2: Clump G p m κ pr h}
 (hedge_disjoint: HEdge_Disjoint (K1.H ∪ K2.H))
-(hIntersection: (κ^(10*Nat.factorial (100*(Nat.max K1.k K2.k))))*(BSet K1∩ BSet K2).toFinset.card≥ m )
+(hIntersection: (κ^(10*Nat.factorial (100*(Nat.max K1.k K2.k))))*(BSetPlusM K1∩ BSetPlusM K2).toFinset.card≥ m )
+(pLarge: p≥ 20)
+--(mggpr: m≥ gg1 pr)
+(prggp: pr ≥ gg2 p)
+(hggp: h ≥ gg1 pr)
+(κggh: κ ≥ gg1 h)
+(mggκ :m≥ gg2 κ )
+(κggk: gg1 κ≥ (Nat.max K1.k K2.k) )
 :
 ∃ (K: Clump G p m κ pr h),
 (K.Gr=K1.Gr⊔ K2.Gr)∧
 (K.H=K1.H∪ K2.H)∧
 (K.k≥ (Nat.max K1.k K2.k))∧
 (K.k≤ K1.k+K2.k)
+
 :=by
+have mggpr: m≥ gg1 pr:= by
+  calc
+    m≥  κ := by
+      apply gg2_ge
+      repeat assumption
+    _≥ h:= by
+      apply gg1_ge
+      repeat assumption
+    _≥ gg1 pr:= by
+      exact hggp
 
 let k:ℕ := Nat.max K1.k K2.k
 
@@ -219,13 +286,14 @@ have h1: K1.k = k:= by
   dsimp [k]
   dsimp[k] at hK1
   exact (Nat.max_eq_left hc).symm
-apply clump_joining h1 hK2 hedge_disjoint hIntersection
+apply clump_joining iSub h1 hK2 hedge_disjoint hIntersection
 repeat assumption
 
 
 have h2: K2.k = k:= by
   dsimp [k]
-  refine (Nat.max_eq_right ?h).symm
+  symm
+  apply Nat.max_eq_right
   exact Nat.le_of_not_ge hc
 
 
@@ -233,12 +301,12 @@ have hedge_disjoint : HEdge_Disjoint (K2.H ∪ K1.H):=by
   rw[Finset.union_comm K2.H K1.H]
   exact hedge_disjoint
 
-simp_rw[Set.inter_comm (BSet K1) (BSet K2)] at hIntersection
+simp_rw[Set.inter_comm (BSetPlusM K1) (BSetPlusM K2)] at hIntersection
 have hk:k=K1.k.max K2.k:= by exact rfl
 rw[hk.symm]
 
 have h0: ∃(K: Clump G p m κ pr h), K.Gr = K2.Gr ⊔ K1.Gr ∧ K.H = K2.H ∪ K1.H ∧ K.k ≥ k ∧ K.k ≤ K2.k + K1.k:=by
-  apply clump_joining h2 hK1 hedge_disjoint hIntersection
+  apply clump_joining iSub h2 hK1 hedge_disjoint hIntersection
   repeat assumption
 
 rcases h0 with ⟨K, hK1, hK2, hK3, hK4⟩

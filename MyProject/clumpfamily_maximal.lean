@@ -10,7 +10,7 @@ open scoped BigOperators
 namespace SimpleGraph
 
 
-set_option maxHeartbeats 100000
+set_option maxHeartbeats 300000
 
 universe u
 variable {V : Type u} {G : SimpleGraph V}
@@ -23,8 +23,13 @@ variable {pPositive: p >0}
 variable {mPositive: m >0}
 variable {hPositive: h >0}
 variable {prPositive: pr >0}
-variable {prggp: pr≫ p}
-variable {mggpr: m≫ pr}
+variable (iSub:Inhabited (Subgraph G))
+variable (pLarge: p≥ 20)
+variable (prggp: pr ≥ gg2 p)
+variable (hggp: h ≥ gg1 pr)
+variable (κggh: κ ≥ gg1 h)
+variable (mggκ :m≥ gg2 κ )
+
 
 
 lemma Clump_family_max
@@ -72,7 +77,7 @@ have hF3_exist: ∃ (KFam3: Finset (Clump G p m κ pr h)),
 Clump_Decomposition L KFam3
 ∧ KFam3.card< KFam2.card
 ∧ Clump_family_narrow KFam3:=by
-  apply Clump_family_improvement L KFam2
+  apply Clump_family_improvement iSub _ _ _ _ _ L KFam2
   repeat assumption
   exact hKFam2.2.1--
   exact hUnseparated
@@ -133,7 +138,59 @@ calc
     exact hKi
   _≤ pr * pr * h:=by
     --h * m / (m / pr) + 1 ≤ pr * pr * h
-    sorry
+    calc
+      h * m / (m / pr) + 1
+      ≤h * (pr+1) + 1:= by
+        gcongr
+        refine Nat.div_le_of_le_mul ?bc.bc.a
+        calc
+          m / pr * (h * (pr + 1))
+          =h*(m / pr *  (pr + 1)):= by ring_nf
+          _≥ h*m:= by
+            gcongr
+            calc
+              m≤ m / pr * pr+pr:= by
+                rw[mul_comm]
+                exact div_assoc_3 prPositive
+              _≤ m / pr * pr + m/pr:= by
+                gcongr
+                rw [propext (Nat.le_div_iff_mul_le' prPositive)]
+                calc
+                  m≥ κ := by
+                    apply gg2_ge
+                    repeat assumption
+                  _≥ h:=by
+                    apply gg1_ge
+                    repeat assumption
+                  _≥ 10000*pr^3:= by
+                    apply gg1_1
+                    repeat assumption
+                  _≥ 1*pr^2:= by
+                    gcongr
+                    simp
+                    assumption
+                    simp
+                  _=_:=by ring_nf
+              _= m / pr * (pr + 1):= by ring_nf
+      _=h * pr+ h*1 + 1*1:=by ring_nf
+      _≤ h*pr+h*pr+h*pr:= by
+        gcongr
+        repeat assumption
+      _= 3*pr*h:= by ring_nf
+      _≤ pr*pr*h:= by
+        gcongr
+        calc
+          pr≥ gg1 p:= by
+            apply gg2_gg1
+            repeat assumption
+          _≥ 10000:= by
+            apply gg1_large
+            repeat assumption
+          _≥ _:= by simp
+
+
+
+
 
 
 lemma Clump_decomposition_of_locally_dense
@@ -151,7 +208,7 @@ Clump_Decomposition L KFam∧ Clump_family_narrow KFam:= by
   apply Initial_Clump_Decomposition
   repeat assumption
 rcases KFam_ex with ⟨KFam, hKFam⟩
-apply Clump_family_max L KFam hKFam.1 hKFam.2 hNoWideClumps
+apply Clump_family_max iSub _ _ _ _ _ L KFam hKFam.1 hKFam.2 hNoWideClumps
 repeat assumption
 
 

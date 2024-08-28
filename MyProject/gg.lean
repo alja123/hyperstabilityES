@@ -4,7 +4,7 @@ import MyProject.Basic
 
 def gg1 (b: ℕ ): ℕ := 10000 *b^4*2^b
 
-def gg2 (b: ℕ ): ℕ := gg1 (b^4) * gg1 b*(2*b)*gg1 ( gg1 (b^4))
+def gg2 (b: ℕ ): ℕ := gg1 (b^4) * gg1 b*(2*b)*gg1 ( gg1 (b^4))*b ^ (10 * (100 * (gg1 b) ).factorial)*gg1 (b*2) * (b ^ (10 * (100 * (gg1 b)).factorial) * b ^ (10 * (100 * (gg1 b)).factorial))
 
 
 
@@ -98,6 +98,19 @@ _≥ 10000 *1^3:= by
 _=10000:= by
   ring_nf
 
+lemma gg1_large2
+{a b: ℕ}
+(bPositive: b>0)
+(hab: a≥ gg1 b)
+:
+a≥10000
+:= by
+calc
+a≥ gg1 b:= by
+  exact hab
+_≥ 10000:= by
+  apply gg1_large
+  assumption
 
 
 lemma gg1_ge
@@ -174,6 +187,25 @@ calc
     exact Nat.le_of_lt cPositive
     exact Nat.le_of_lt cPositive-/
 
+lemma gg2_0
+{a b: ℕ}
+(h: a ≥ gg2 b)
+(bPositive: b>0)
+:
+a≥ gg1 (b^4) * gg1 b*(2*b)*gg1 ( gg1 (b^4))*b ^ (10 * (100 * (gg1 b) ).factorial)*gg1 (b*2)
+:= by
+calc
+  a≥ _:= by exact h
+  _≥gg1 (b^4) * gg1 b*(2*b)*gg1 ( gg1 (b^4))*b ^ (10 * (100 * (gg1 b) ).factorial)*gg1 (b*2)*1:= by
+    unfold gg2
+    gcongr
+    rw [@Nat.succ_le_iff]
+    apply mul_pos
+    refine Nat.pos_pow_of_pos (10 * (100 * gg1 b).factorial) ?bc.ha.h
+    assumption
+    refine Nat.pos_pow_of_pos (10 * (100 * gg1 b).factorial) ?bc.ha.h
+
+  _= _ :=by ring_nf
 lemma gg2_1
 {a b: ℕ}
 (h: a ≥ gg2 b)
@@ -182,10 +214,12 @@ lemma gg2_1
 a≥ gg1 (b^4)
 := by
 calc
-a≥ gg2 b:= by
-  exact h
-_≥ gg1 (b^4)*1*(1*1)*1:= by
-  unfold gg2
+a
+≥ gg1 (b^4) * gg1 b*(2*b)*gg1 ( gg1 (b^4))*b ^ (10 * (100 * (gg1 b) ).factorial)*gg1 (b*2):= by
+  apply gg2_0
+  repeat assumption
+_≥ gg1 (b^4)*1*(1*1)*1*1*1:= by
+  --unfold gg2
   gcongr
   apply gg1_pos
   assumption
@@ -194,7 +228,11 @@ _≥ gg1 (b^4)*1*(1*1)*1:= by
   apply gg1_pos
   apply gg1_pos
   exact Nat.pos_pow_of_pos 4 bPositive
-
+  exact Nat.one_le_pow (10 * (100 * gg1 b).factorial) b bPositive
+  apply gg1_pos
+  apply mul_pos
+  assumption
+  simp
 _= gg1 (b^4):= by
   ring_nf
 
@@ -208,10 +246,12 @@ lemma gg2_3
 a≥ gg1 (gg1 (b^4))
 := by
 calc
-a≥ gg2 b:= by
-  exact h
-_≥ 1*1*(1*1)*(gg1 (gg1 (b^4))):= by
-  unfold gg2
+a≥ gg1 (b^4) * gg1 b*(2*b)*gg1 ( gg1 (b^4))*b ^ (10 * (100 * (gg1 b) ).factorial)*gg1 (b*2):= by
+  apply gg2_0
+  repeat assumption
+
+_≥ 1*1*(1*1)*(gg1 (gg1 (b^4)))*1*1:= by
+  --unfold gg2
   gcongr
   apply gg1_pos
   exact Nat.pos_pow_of_pos 4 bPositive
@@ -219,10 +259,72 @@ _≥ 1*1*(1*1)*(gg1 (gg1 (b^4))):= by
   assumption
   simp
   assumption
-
-
-_= (gg1 (gg1 (b^4))):= by
+  exact Nat.one_le_pow (10 * (100 * gg1 b).factorial) b bPositive
+  apply gg1_pos
+  apply mul_pos
+  assumption
+  simp
+_= gg1 (gg1 (b^4)):= by
   ring_nf
+
+
+lemma gg2_4
+{a b: ℕ}
+(h: a ≥ gg2 b)
+(bPositive: b>0)
+:
+a≥ (b ^ (10 * (100 * (gg1 b) ).factorial))
+:= by
+calc
+a≥ gg1 (b^4) * gg1 b*(2*b)*gg1 ( gg1 (b^4))*b ^ (10 * (100 * (gg1 b) ).factorial)*gg1 (b*2):= by
+  apply gg2_0
+  repeat assumption
+_≥ 1*1*(1*1)*1*(b ^ (10 * (100 * (gg1 b) ).factorial))*1:= by
+  gcongr
+  apply gg1_pos
+  exact Nat.pos_pow_of_pos 4 bPositive
+  apply gg1_pos
+  assumption
+  simp
+  assumption
+  apply gg1_pos
+  apply gg1_pos
+  exact Nat.pos_pow_of_pos 4 bPositive
+  apply gg1_pos
+  apply mul_pos
+  assumption
+  simp
+_= (b ^ (10 * (100 * (gg1 b) ).factorial)):= by
+  ring_nf
+
+
+lemma gg2_5
+{a b: ℕ}
+(h: a ≥ gg2 b)
+(bPositive: b>0)
+:
+a≥ gg1 (b*2)
+:= by
+calc
+a≥ gg1 (b^4) * gg1 b*(2*b)*gg1 ( gg1 (b^4))*b ^ (10 * (100 * (gg1 b) ).factorial)*gg1 (b*2):= by
+  apply gg2_0
+  repeat assumption
+_≥ 1*1*(1*1)*1*1*gg1 (b*2):= by
+  gcongr
+  apply gg1_pos
+  exact Nat.pos_pow_of_pos 4 bPositive
+  apply gg1_pos
+  assumption
+  simp
+  assumption
+  apply gg1_pos
+  apply gg1_pos
+  exact Nat.pos_pow_of_pos 4 bPositive
+  exact Nat.one_le_pow (10 * (100 * gg1 b).factorial) b bPositive
+
+_= gg1 (b*2):= by
+  ring_nf
+
 
 lemma gg2_gg1
 {a b: ℕ}
@@ -232,10 +334,10 @@ lemma gg2_gg1
 a≥ gg1 (b)
 := by
 calc
-a≥ gg2 b:= by
-  exact h
-_≥ 1*gg1 (b)*(1*1)*1:= by
-  unfold gg2
+a≥ gg1 (b^4) * gg1 b*(2*b)*gg1 ( gg1 (b^4))*b ^ (10 * (100 * (gg1 b) ).factorial)*gg1 (b*2):= by
+  apply gg2_0
+  repeat assumption
+_≥ 1*gg1 (b)*(1*1)*1*1*1:= by
   gcongr
   apply gg1_pos
   exact Nat.pos_pow_of_pos 4 bPositive
@@ -244,6 +346,11 @@ _≥ 1*gg1 (b)*(1*1)*1:= by
   apply gg1_pos
   apply gg1_pos
   exact Nat.pos_pow_of_pos 4 bPositive
+  exact Nat.one_le_pow (10 * (100 * gg1 b).factorial) b bPositive
+  apply gg1_pos
+  apply mul_pos
+  assumption
+  simp
 _= gg1 (b):= by
   ring_nf
 
@@ -327,3 +434,42 @@ _≥ 1*gg1 b:= by
   exact Nat.pos_pow_of_pos 4 bPositive
 _= gg1 b:= by
   ring_nf-/
+
+
+lemma gg2_6
+{a b: ℕ}
+(h: a ≥ gg2 b)
+(bPositive: b>0)
+:
+a≥ (b ^ (10 * (100 * (gg1 b)).factorial) * b ^ (10 * (100 * (gg1 b)).factorial))
+:= by
+
+calc
+  a≥ gg2 b:= by exact h
+  _≥ 1*(b ^ (10 * (100 * (gg1 b)).factorial) * b ^ (10 * (100 * (gg1 b)).factorial)):= by
+    unfold gg2
+    gcongr
+    rw  [@Nat.succ_le_iff]
+    repeat apply mul_pos
+    simp
+    refine Nat.pos_pow_of_pos 4 ?bc.ha.ha.ha.ha.ha.ha.hb.h
+    exact Nat.pos_pow_of_pos 4 bPositive
+    apply Nat.pos_pow_of_pos
+    simp
+    apply gg1_pos
+    assumption
+    apply mul_pos
+    simp
+    assumption
+    apply gg1_pos
+    apply gg1_pos
+    apply Nat.pos_pow_of_pos
+    assumption
+    apply  Nat.pos_pow_of_pos
+    assumption
+    apply gg1_pos
+    apply mul_pos
+    assumption
+    simp
+    --
+  _= _:= by ring_nf

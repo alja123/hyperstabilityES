@@ -23,8 +23,13 @@ variable {pPositive: p >0}
 variable {mPositive: m >0}
 variable {hPositive: h >0}
 variable {prPositive: pr >0}
-variable {prggp: pr≫ p}
-variable {mggpr: m≫ pr}
+variable (iSub:Inhabited (Subgraph G))
+variable (pLarge: p≥ 20)
+variable (prggp: pr ≥ gg2 p)
+variable (hggp: h ≥ gg1 pr)
+variable (κggh: κ ≥ gg1 h)
+variable (mggκ :m≥ gg2 κ )
+
 
 
 --def Clump_family_edge_disjoint
@@ -101,7 +106,7 @@ exact Set.subset_eq_empty h5 rfl
 
 def Clumps_separated
 (K1 K2: Clump G p m κ pr h)
-:=κ^(10*Nat.factorial (100*(Nat.max K1.k K2.k)))*(BSet K1∩ BSet K2).toFinset.card< m
+:=κ^(10*Nat.factorial (100*(Nat.max K1.k K2.k)))*(BSetPlusM K1∩ BSetPlusM K2).toFinset.card< m
 
 
 lemma clump_joining_max_unseparated
@@ -113,6 +118,7 @@ lemma clump_joining_max_unseparated
 (hK1K2: K1≠ K2)
 (hDecompose: Clump_Decomposition L KFam)
 (hIntersection: ¬ Clumps_separated K1 K2)
+(κggk: gg1 κ≥ (Nat.max K1.k K2.k))
 :
 ∃ (K: Clump G p m κ pr h),
 (K.Gr=K1.Gr⊔ K2.Gr)∧
@@ -164,8 +170,56 @@ lemma Clump_family_replace_two_sets_stays_edgedisjoint
 (hK: K.Gr=K1.Gr⊔ K2.Gr)
 :  Clump_family_edge_disjoint KFam2
 :=by
-sorry
+unfold Clump_family_edge_disjoint
+rw[hKFam2]
 
+intro k1 k2 hk1 hk2 hK1K2
+simp at hk1
+simp at hk2
+rcases hk1 with case1|case1
+rcases hk2 with case2|case2
+apply h_edge_disjoint
+exact case1.1
+exact case2.1
+exact hK1K2
+rw[case2, hK]
+simp
+have h1: k1.Gr.edgeSet ∩ K1.Gr.edgeSet=∅:=by
+  apply h_edge_disjoint
+  exact case1.1
+  exact hK1
+  exact case1.2.1
+have h2: k1.Gr.edgeSet ∩ K2.Gr.edgeSet=∅:=by
+  apply h_edge_disjoint
+  exact case1.1
+  exact hK2
+  exact case1.2.2
+rw [@Set.inter_distrib_left]
+rw[h1, h2]
+simp
+
+rcases hk2 with case2|case2
+rw[case1, hK]
+simp
+have h1: k2.Gr.edgeSet ∩ K1.Gr.edgeSet=∅:=by
+  apply h_edge_disjoint
+  exact case2.1
+  exact hK1
+  exact case2.2.1
+have h2: k2.Gr.edgeSet ∩ K2.Gr.edgeSet=∅:=by
+  apply h_edge_disjoint
+  exact case2.1
+  exact hK2
+  exact case2.2.2
+rw [@Set.inter_distrib_right]
+rw[Set.inter_comm] at h1
+rw[Set.inter_comm] at h2
+rw[h1, h2]
+simp
+
+exfalso
+rw[case1.symm] at case2
+exact hK1K2 (id case2.symm)
 
 
 
@@ -176,6 +230,7 @@ lemma Clump_family_improvement
 (hUnSeparated: ¬ Clump_family_separated KFam)
 (hNarrow: Clump_family_narrow KFam)
 (hNoWideClumps: ¬ L_contains_wide_clump p m κ pr h G L )
+
 : ∃ (KFam2: Finset (Clump G p m κ pr h)),
 Clump_Decomposition L KFam2
 ∧ KFam2.card< KFam.card
@@ -186,6 +241,50 @@ dsimp [Clump_family_separated] at hUnSeparated
 simp at hUnSeparated
 rcases hUnSeparated with ⟨K1, hK1, K2, hK2, hK1K2, hUnSeparated⟩
 
+have κggk: gg1 κ ≥ Nat.max K1.k K2.k:= by
+  have h1: gg1 κ ≥ 10000*κ^3:= by
+    apply gg1_1
+    exact Nat.le_refl (gg1 κ)
+    repeat assumption
+  have h2: gg1 κ≥ pr*pr*h:= by
+    calc
+      gg1 κ≥ 10000*κ^3:= by exact h1
+      _≥ 1*κ^3:= by
+        gcongr
+        simp
+      _=κ *κ *κ := by ring_nf
+      _≥ h*h*h:= by
+        gcongr
+        apply gg1_ge;
+        repeat assumption
+        apply gg1_ge;
+        repeat assumption
+        apply gg1_ge;
+        repeat assumption
+        --
+      _≥ pr*pr*h:= by
+        gcongr
+        apply gg1_ge;
+        repeat assumption
+        apply gg1_ge;
+        repeat assumption
+        --
+  refine Nat.max_le_of_le_of_le ?_ ?_
+  calc
+    gg1 κ≥ pr*pr*h:= by
+      exact h2
+    _≥ K1.k:= by
+      apply hNarrow
+      assumption
+  calc
+    gg1 κ≥ pr*pr*h:= by
+      exact h2
+    _≥ K2.k:= by
+      apply hNarrow
+      assumption
+
+
+
 have hKex: ∃ (K: Clump G p m κ pr h),
 (K.Gr=K1.Gr⊔ K2.Gr)∧
 (K.H=K1.H∪ K2.H)∧
@@ -193,6 +292,9 @@ have hKex: ∃ (K: Clump G p m κ pr h),
 (K.k≤ K1.k+K2.k):=by
   apply clump_joining_max_unseparated
   repeat assumption
+  --
+
+
 
 rcases hKex with ⟨K, hKGr, hKH, hKk1, hKk2⟩
 let KFam2:= KFam\ {K1, K2}∪ {K}
@@ -388,3 +490,6 @@ lemma Initial_Clump_Decomposition
 ∃ (KFam: Finset (Clump G p m κ pr h)),
 Clump_Decomposition L KFam
 -/
+
+
+ 

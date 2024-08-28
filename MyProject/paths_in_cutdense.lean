@@ -25,10 +25,7 @@ variable {hPositive: h >0}
 variable {prPositive: pr >0}
 variable {γPositive: γ >0}
 variable (iI:Inhabited (Clump G p m κ pr h))
-variable (iV:Inhabited V)
-variable {prggp: pr≫ p}
-variable {mggpr: m≫ pr}
-
+variable (iV:Inhabited V) 
 
 
 
@@ -148,6 +145,7 @@ B=C∪ (Nd'\ Nd)
 lemma Nd_in_verts
 (H: Subgraph G)
 (Nd: Set V)
+(v: V)
 (d: ℕ )
 (hNd:Nd={w: V| ∃ (P: SubgraphWalk H v w), P.Wa.length≤ d})
 :
@@ -170,6 +168,7 @@ exact h3 h2
 lemma Nd_in_Nd'
 (H: Subgraph G)
 (Nd: Set V)
+(v: V)
 (d: ℕ )
 (hNd:Nd={w: V| ∃ (P: SubgraphWalk H v w), P.Wa.length≤ d})
 (hNd':Nd' ={w: V| ∃ (P: SubgraphWalk H v w), P.Wa.length≤ d+1})

@@ -25,8 +25,8 @@ variable {hPositive: h >0}
 variable {prPositive: pr >0}
 variable {γPositive: γ >0}
 variable (hI:Inhabited (Clump G p m κ pr h))
-variable {prggp: pr≫ p}
-variable {mggpr: m≫ pr}
+
+
 
 
 
@@ -144,4 +144,3 @@ lemma Order_family_induction_step
 :=by-/
 
 --#check bipartite_induce
-

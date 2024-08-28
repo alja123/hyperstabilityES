@@ -1,6 +1,6 @@
 import MyProject
 
-import MyProject.long_path_avoiding
+import MyProject.J_bound
   --import MyProject.SimpleGraph
 
 open Classical
@@ -27,12 +27,97 @@ variable {γPositive: γ >0}
 variable (iI:Inhabited (Clump G p m κ pr h))
 variable (iV:Inhabited V)
 variable (iSub:Inhabited (Subgraph G))
-variable (iSP:Inhabited (SubgraphPath_implicit   G) )
 
-variable {prggp: pr≫ p}
-variable {mggpr: m≫ pr}
+-- only need m≥ 2p
+variable (pLarge: p≥ 20)
+variable (prggp: pr ≥ gg2 p)
+variable (hggp: h ≥ gg1 pr)
+variable (κggh: κ ≥ gg1 h)
+variable (mggκ :m≥ gg2 κ )
+--variable (iSP:Inhabited (SubgraphPath_implicit   G) )
 
 
+
+
+/-
+@[ext] structure Locally_Dense  (G: SimpleGraph V) (p m    h: ℕ ) where
+  Gr: Subgraph G
+  H: Finset (Subgraph G)
+  H_Edge_Disjoint:  HEdge_Disjoint H -- ∀ (A B: Subgraph G),  (A∈ H)→ (B∈ H)→ (A≠ B)→ (A.edgeSet ∩ B.edgeSet = ∅)
+  H_Cut_Dense: HCut_Dense_Family H p --∀ (A: Subgraph G), A ∈ H → cut_dense G A p
+  H_Order: HOrder_ge_m_Family H m -- ∀ (A: Subgraph G), A ∈ H → A.verts.toFinset.card ≥ m
+  H_Order_Upper_Bound: HOrder_le_hm_Family H m h -- ∀ (A: Subgraph G), A ∈ H → A.verts.toFinset.card ≥ m
+  H_In_K: FamilyContained_in_Graph H Gr--∀ (A: Subgraph G), A ∈ H → A ≤ Gr
+  H_Partition_K: sSup H= Gr-/
+
+
+
+lemma cut_dense_nonempty_edgeset
+(D: Subgraph G)
+(hcd: cut_dense G D p )
+(ord: D.verts.toFinset.card≥ (p*2))
+:
+Nonempty D.edgeSet:= by
+
+have hne: D.edgeSet.toFinset.card>0:= by
+      calc
+        D.edgeSet.toFinset.card
+        ≥ D.verts.toFinset.card^2/(p*2):=by
+          refine Nat.div_le_of_le_mul ?_
+          apply cut_dense_edges_lower_bound
+          assumption
+        _≥ (p*2)^2/(p*2):= by
+          gcongr
+        _= (p*2)*(p*2)/(p*2):= by ring_nf
+        _=(p*2):=by
+          apply  Nat.mul_div_left (p * 2)
+          apply mul_pos
+          assumption
+          simp
+        _>0:=by
+          apply mul_pos
+          assumption
+          simp
+have hne2: D.edgeSet.toFinset≠ ∅ := by
+      exact card_positive_implies_nonempty_finset hne
+simp at hne2
+exact Set.nonempty_iff_ne_empty'.mpr hne2
+
+lemma cut_dense_nonempty_edgeset_m
+(D: Subgraph G)
+(hcd: cut_dense G D p )
+(ord: D.verts.toFinset.card≥ m)
+:
+Nonempty D.edgeSet:= by
+apply cut_dense_nonempty_edgeset
+exact pPositive
+repeat assumption
+calc
+  D.verts.toFinset.card ≥ m:= by assumption
+  _≥ 10000*κ^3:= by
+    apply gg1_1
+    apply gg2_gg1
+    repeat assumption
+  _≥ 2*κ^1:= by
+    gcongr
+    simp
+    assumption
+    simp
+  _≥ 2*h:= by
+    ring_nf
+    gcongr
+    apply gg1_ge
+    repeat assumption
+  _≥ 2*pr:= by
+    ring_nf
+    gcongr
+    apply gg1_ge
+    repeat assumption
+  _≥ p * 2:=by
+    ring_nf
+    gcongr
+    apply gg2_ge
+    repeat assumption
 
 
 lemma locally_dense_find
@@ -60,7 +145,55 @@ let max: ℕ := sSup S
 
 have max_in_S: max ∈ S:=by
   refine Nat.sSup_mem ?h₁ Sboundedabove
-  sorry
+  use 0
+  dsimp[S]
+  simp only [card_eq_zero]
+
+  let H': Finset (Subgraph G):=∅
+  let Gr:Subgraph G:= sSup H'
+  have H_Edge_Disjoint:  HEdge_Disjoint H':= by
+    intro Hi _ hHi
+    exfalso
+    have con: ¬(H'=∅):= by exact ne_empty_of_mem hHi
+    exact con rfl
+  have H_Cut_Dense: HCut_Dense_Family H' p:=by
+    intro Hi hHi
+    exfalso
+    have con: ¬(H'=∅):= by exact ne_empty_of_mem hHi
+    exact con rfl
+  have H_Order: HOrder_ge_m_Family H' m:= by
+    intro Hi hHi
+    exfalso
+    have con: ¬(H'=∅):= by exact ne_empty_of_mem hHi
+    exact con rfl
+  have  H_Order_Upper_Bound: HOrder_le_hm_Family H' m h := by
+    intro Hi hHi
+    exfalso
+    have con: ¬(H'=∅):= by exact ne_empty_of_mem hHi
+    exact con rfl
+  have H_In_K: FamilyContained_in_Graph H' Gr:= by
+    intro Hi hHi
+    exfalso
+    have con: ¬(H'=∅):= by exact ne_empty_of_mem hHi
+    exact con rfl
+  have H_Partition_K: sSup H'= Gr:= by dsimp[Gr];
+  let L:Locally_Dense G p m h:=  ⟨Gr, H',H_Edge_Disjoint ,H_Cut_Dense,H_Order, H_Order_Upper_Bound, H_In_K, H_Partition_K⟩
+  use L
+  constructor
+  dsimp[Gr]
+  simp
+  intro Hi hHi
+  exfalso
+  have con: ¬(H'=∅):= by exact ne_empty_of_mem hHi
+  exact con rfl
+  dsimp[L]
+  dsimp[Gr]
+  simp
+  intro Hi hHi
+  exfalso
+  have con: ¬(H'=∅):= by exact ne_empty_of_mem hHi
+  exact con rfl
+
 
 have maxmax: ∀ (n: ℕ), n ∈ S → n ≤ max:=by
   intro n hn
@@ -169,7 +302,7 @@ have hDout: D∉ L.H:= by
   have edgescont: D.edgeSet⊆ L.Gr.edgeSet:= by
     exact subgraph_implies_edgesets_subsets hinL
   have oneedge: Nonempty D.edgeSet:= by
-    sorry
+
   let e: Sym2 V := oneedge.some
   have he1: e∈ D.edgeSet:= by
     exact Subtype.coe_prop oneedge.some
@@ -311,7 +444,14 @@ have hmore: L'.Gr.edgeSet.toFinset.card>L.Gr.edgeSet.toFinset.card:= by
   simp
 
   have oneedge: Nonempty D.edgeSet:= by
-    sorry
+    apply cut_dense_nonempty_edgeset_m
+    exact κPositive
+    exact pPositive
+    exact hPositive
+    exact prPositive
+    repeat assumption
+
+
   let e: Sym2 V := oneedge.some
   have he1: e∈ D.edgeSet:= by
     exact Subtype.coe_prop oneedge.some

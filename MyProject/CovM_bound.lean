@@ -25,8 +25,12 @@ variable {hPositive: h >0}
 variable {prPositive: pr >0}
 variable {γPositive: γ >0}
 variable (hI:Inhabited (Clump G p m κ pr h))
-variable {prggp: pr≫ p}
-variable {mggpr: m≫ pr}
+variable (iSub:Inhabited (Subgraph G))
+variable (pLarge: p≥ 20)
+variable (prggp: pr ≥ gg2 p)
+variable (hggp: h ≥ gg1 pr)
+variable (κggh: κ ≥ gg1 h)
+variable (mggκ :m≥ gg2 κ )
 
 
 
@@ -96,9 +100,20 @@ lemma clump_most_edges_of_Hi_in_Bgraph_simplified2
 :=by
 have h1:_:=by exact Bipartite_induce_edge_set Hi (BSetPlusM K) ((sSup K.M: Subgraph G).verts)
 rw[hHB, h1.symm]
-apply clump_most_edges_of_Hi_in_Bgraph_simplified K
+apply clump_most_edges_of_Hi_in_Bgraph_simplified _ _ K
 simp
 repeat assumption
+calc
+  m≥κ := by
+    apply gg2_ge
+    repeat assumption
+  _≥ h:= by
+    apply gg1_ge
+    repeat assumption
+  _≥ gg1 pr:=by
+    exact hggp
+repeat assumption
+
 
 lemma CovM_equals_union_HB
 (K: Clump G p m κ pr h)
@@ -461,7 +476,7 @@ _≥   (Hi).verts.toFinset.card^2+(HB).edgeSet.toFinset.card*p^2*4
   exact hHi
 
 _≥4*p^2*(Hi).edgeSet.toFinset.card:=by
-  apply clump_most_edges_of_Hi_in_Bgraph_simplified2 p m κ pr h K Hi HB
+  apply clump_most_edges_of_Hi_in_Bgraph_simplified2 p m κ pr h iSub _ _ _ _ _ K Hi HB
   repeat assumption
 _=p^2*4*(Hi).edgeSet.toFinset.card:=by
   ring_nf
@@ -497,16 +512,10 @@ _=∑ (Hi∈ K.H), (p^2*4*(bipartite_induce Hi  (BSetPlusM K) ((sSup K.M: Subgra
   exact sum_add_distrib.symm
 _≥ (∑ (Hi∈ K.H), p^2*4*(Hi).edgeSet.toFinset.card):= by
   gcongr with Hi hHi
-  apply clump_most_edges_of_Hi_in_Bgraph_different_numbers  p m κ pr h K Hi hHi
+  apply clump_most_edges_of_Hi_in_Bgraph_different_numbers  p m κ pr h iSub _ _ _ _ _  K Hi hHi
+  repeat assumption
 _=p^2*4*(∑ (Hi∈ K.H), (Hi).edgeSet.toFinset.card):= by
   exact (mul_sum K.H (fun i ↦ i.edgeSet.toFinset.card) (p ^ 2 * 4)).symm
 _=p^2*4*K.Gr.edgeSet.toFinset.card:=by
   congr
   exact (CovM_edgessum_equals_union_HB_final_Gr p m κ pr h K hCv).symm
-
-
-
-
-
-
-

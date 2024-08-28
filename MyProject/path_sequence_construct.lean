@@ -28,8 +28,12 @@ variable {prPositive: pr >0}
 variable {γPositive: γ >0}
 variable (iI:Inhabited (Clump G p m κ pr h))
 variable (iV:Inhabited V)
-variable {prggp: pr≫ p}
-variable {mggpr: m≫ pr}
+variable (pLarge: p≥ 20)
+variable (prggp: pr ≥ gg2 p)
+variable (hggp: h ≥ gg1 pr)
+variable (κggh: κ ≥ gg1 h)
+variable (mggκ :m≥ gg2 κ )
+
 
 
 
@@ -43,7 +47,7 @@ def Vertex_list_in_clump_list
 def Vertex_list_in_clump_list_BSet
   (Ord: List (Clump G p m κ pr h))
   (Ver: List V): Prop:=
-  ∀ (i: ℕ), (i< Ord.length-1)→ ((Ver.get! i)∈  ((BSet (Ord.get! i))∩(BSet (Ord.get! (i+1)))))
+  ∀ (i: ℕ), (i< Ord.length-1)→ ((Ver.get! i)∈  ((BSetPlusM (Ord.get! i))∩(BSetPlusM (Ord.get! (i+1)))))
 
 
 def Vertex_list_in_clump_list_BSetPlusM
@@ -103,7 +107,7 @@ def family_sparse
 
 
 structure ClumpPathSequence
- (β : ℕ )(KFam: Finset (Clump G p m κ pr h)) where
+ (β : ℕ )(KFam: Finset (Clump G p m κ pr h))   where
   (Ord: List (Clump G p m κ pr h))
   (Ord_eq_KFam: Ord.toFinset⊆  KFam)
   (LM: List (Subgraph G))
@@ -115,10 +119,11 @@ structure ClumpPathSequence
   (hlength: Ord.length ≥  h*pr)
   (hlengthM: LM.length=Ord.length)
   (hlengthVer: Ver.length=Ord.length-1)
-  --(LM_NoDup: LM.Nodup)
+  (LM_NoDup: LM.Nodup)
+  --(LM_In_H: ∀ (i: Fin (LM.length)), (LM.get i)≤ H )
 
 structure ClumpPathSequence_nolength
- (β : ℕ )(KFam: Finset (Clump G p m κ pr h)) where
+ (β : ℕ )(KFam: Finset (Clump G p m κ pr h))  where
   (Ord: List (Clump G p m κ pr h))
   (Ord_eq_KFam: Ord.toFinset⊆  KFam)
   (LM: List (Subgraph G))
@@ -127,7 +132,9 @@ structure ClumpPathSequence_nolength
   (Ver: List V)
   (VerNoDup: Ver.Nodup)
   (VerInOrd:Vertex_list_in_clump_list iI iV Ord Ver)
-   -- (hlength: Ord.length ≥  h*pr)
+  (LM_NoDup: LM.Nodup)
+  --(Ord_In_H: ∀ (i: Fin (LM.length)), (LM.get i)≤ H )
+  -- (hlength: Ord.length ≥  h*pr)
 
 
 structure ClumpPathSequence_nolength_noM
@@ -152,7 +159,6 @@ structure ClumpPathSequence_nolength_noM
 Has_length_d_path (Clump_Family_Union KFam) (h*m)
 :=by
 
-sorry
 -/
 
 lemma define_constant_list
@@ -222,6 +228,7 @@ dsimp [j]
 exact (get_eq_get2! iI L i hi).symm
 exact hL3
 
+
 lemma Wide_clump_implies_path_sequence
 (β: ℕ )
 (K: Clump G p m κ pr h)
@@ -230,12 +237,53 @@ lemma Wide_clump_implies_path_sequence
 : Nonempty (ClumpPathSequence iI iV β {K})
 :=by
 have hcard: (BSetPlusM K).toFinset.card ≥  (h*pr):=by
-  sorry
+   calc
+    (BSetPlusM K).toFinset.card ≥ m/pr:= by
+      exact Clump_BSetPlusM_lower_bound K
+    _≥ h*pr:= by
+      refine (Nat.le_div_iff_mul_le prPositive).mpr ?_
+      calc
+        m≥ 10000*κ^3:= by
+          apply gg1_1
+          apply gg2_gg1
+          repeat assumption
+        _=10000*κ *κ *κ := by
+          ring_nf
+        _≥ 1*h *h *h:= by
+          gcongr
+          simp
+          repeat apply gg1_ge; repeat assumption
+        _≥ 1*h *pr *pr:= by
+          gcongr
+          repeat apply gg1_ge; repeat assumption
+          --
+        _= _:= by
+          ring_nf
+
 have hVex: ∃(VS:Finset V), (VS⊆ (BSetPlusM K).toFinset)∧ (VS.card = (h*pr)):=by
   exact exists_smaller_set (BSetPlusM K).toFinset (h * pr) hcard
 
 have Mcard: K.M.card≥ h*pr+1 :=by
-  sorry
+  rw[K.M_Size]
+  calc
+    K.k≥ pr*pr*h:= by assumption
+    _≥ 10000*pr*h:= by
+      gcongr
+      apply gg1_large2
+      exact pPositive
+      apply gg2_gg1
+      repeat assumption
+
+    _≥ 2*pr*h:= by
+      gcongr
+      simp
+    _= h*pr+h*pr:= by
+      ring_nf
+    _≥ h*pr+1*1:= by
+      gcongr
+      repeat assumption
+    _= _:= by ring_nf
+
 
 
 have hMex: ∃(MS:Finset (Subgraph G)), (MS⊆ K.M)∧ (MS.card = (h*pr+1)):=by
@@ -260,7 +308,7 @@ refine
   { Ord := ?val.Ord, Ord_eq_KFam := ?_, LM := ?val.LM, LM_in_M := ?val.LM_in_M,
     LM_Sparse := ?val.LM_Sparse, Ver := ?val.Ver, VerNoDup := ?val.VerNoDup,
     VerInOrd := ?val.VerInOrd, hlength := ?val.hlength, hlengthM := ?val.hlengthM,
-    hlengthVer := ?val.hlengthVer}
+    hlengthVer := ?val.hlengthVer, LM_NoDup := ?val.LM_NoDup}
 
 
 exact LK
@@ -364,6 +412,8 @@ simp
 rw[VS2, hLK1]
 simp
 
+dsimp[ML]
+exact nodup_toList MS
 
 
 /-
@@ -381,7 +431,7 @@ unfold family_contains_dense_list at has_dense_sets
 rcases has_dense_sets with ⟨ LA, ⟨ hLA1, ⟨ hLA2, hLA3⟩ ⟩ ⟩
 unfold clump_list_dense at hLA3
 
-sorry
+
 
 structure ClumpPathSequence_nolength_noM
  (KFam: Finset (Clump G p m κ pr h)) where
@@ -446,7 +496,7 @@ def dense_clump_family
 :=
 ∀ (K: Clump G p m κ pr h),
 K∈ KFam→
-(α*(((BSet K)∩(Set.sUnion (Finset.image BSet (KFam\{K}) ).toSet)).toFinset.card)≥ m)
+(α*(((BSetPlusM K)∩(Set.sUnion (Finset.image BSetPlusM (KFam\{K}) ).toSet)).toFinset.card)≥ m)
 
 
 
@@ -464,9 +514,9 @@ lemma bigunion_comparision_one_direction_BSet
 (K: Clump G p m κ pr h)
 (a:V)
 :
-a ∈ (⋃ H ∈ F, BSet K ∩ BSet H).toFinset
+a ∈ (⋃ H ∈ F, BSetPlusM K ∩ BSetPlusM H).toFinset
 →
-a∈ (Finset.biUnion F (fun H=>(BSet K∩ BSet H).toFinset))
+a∈ (Finset.biUnion F (fun H=>(BSetPlusM K∩ BSetPlusM H).toFinset))
 
 
 := by
@@ -474,9 +524,9 @@ a∈ (Finset.biUnion F (fun H=>(BSet K∩ BSet H).toFinset))
 intro h
 refine mem_biUnion.mpr ?_
 
-have h0: a ∈ (⋃ H ∈ F, BSet K ∩ BSet H):= by
+have h0: a ∈ (⋃ H ∈ F, BSetPlusM K ∩ BSetPlusM H):= by
   exact Set.mem_toFinset.mp h
-have h1: ∃ H ∈ F, a ∈ BSet K ∩ BSet H:=by
+have h1: ∃ H ∈ F, a ∈ BSetPlusM K ∩ BSetPlusM H:=by
 
   have h3:_:= by apply Set.mem_iUnion.1 h0
   rcases h3 with ⟨ x, y⟩
@@ -487,9 +537,9 @@ have h1: ∃ H ∈ F, a ∈ BSet K ∩ BSet H:=by
 
 
 rcases h1 with ⟨ a1, ha1⟩
-have h12: a ∈ BSet K ∩ BSet a1:= by
+have h12: a ∈ BSetPlusM K ∩ BSetPlusM a1:= by
   exact ha1.2
-have h2:a ∈ (BSet K ∩ BSet a1).toFinset:= by
+have h2:a ∈ (BSetPlusM K ∩ BSetPlusM a1).toFinset:= by
   exact Set.mem_toFinset.mpr h12
 
 use a1
@@ -500,9 +550,9 @@ lemma bigunion_equality_Bset
 (F: Finset (Clump G p m κ pr h))
 (K: Clump G p m κ pr h)
 :
-(⋃ x ∈ F, BSet K ∩ BSet x).toFinset
+(⋃ x ∈ F, BSetPlusM K ∩ BSetPlusM x).toFinset
 =
-(Finset.biUnion F (fun x=>(BSet K∩ BSet x).toFinset))
+(Finset.biUnion F (fun x=>(BSetPlusM K∩ BSetPlusM x).toFinset))
 --(⋃ H ∈ F, H.verts).toFinset=(Finset.biUnion F (fun x=>x.verts.toFinset))
 --(⋃ H ∈ F, H.verts).toFinset.card≤∑ H∈ F, H.verts.toFinset.card
 := by
@@ -516,7 +566,7 @@ intro b
 refine Set.mem_toFinset.mpr ?_
 refine Set.mem_iUnion₂.mpr ?_
 
-have h1: ∃ H ∈ F, a ∈ (BSet K∩ BSet H).toFinset:=by
+have h1: ∃ H ∈ F, a ∈ (BSetPlusM K∩ BSetPlusM H).toFinset:=by
   exact mem_biUnion.mp b
 
 rcases h1 with ⟨ a1, ha1⟩
@@ -526,12 +576,20 @@ have h12:_:= by
   exact ha1.2
 use a1
 simp
-have h12: a ∈ (BSet K∩ BSet a1) := by exact Set.mem_toFinset.mp h12
+have h12: a ∈ (BSetPlusM K∩ BSetPlusM a1) := by exact Set.mem_toFinset.mp h12
 constructor
 exact Set.mem_of_mem_inter_left h12
 constructor
 exact h11
 exact Set.mem_of_mem_inter_right h12
+
+lemma pos_le
+{n:ℕ}
+(h:n>0)
+:
+(n≥ 1)
+:= by
+exact h
 
 lemma separated_weakening
 (KFam: Finset (Clump G p m κ pr h))
@@ -540,20 +598,29 @@ lemma separated_weakening
 (hK2: K2 ∈ KFam)
 (hdiff: K1 ≠ K2)
 (separated: Clump_family_separated KFam)
-:  κ * (BSet K1 ∩ BSet K2).toFinset.card ≤  m
+:  κ * (BSetPlusM K1 ∩ BSetPlusM K2).toFinset.card ≤  m
 :=by
-have h1: κ ^ (10 * (100 * K1.k.max K2.k).factorial) * (BSet K1 ∩ BSet K2).toFinset.card < m
+have h1: κ ^ (10 * (100 * K1.k.max K2.k).factorial) * (BSetPlusM K1 ∩ BSetPlusM K2).toFinset.card < m
   :=by
     apply separated
     repeat assumption
 calc
-κ * (BSet K1 ∩ BSet K2).toFinset.card
+κ * (BSetPlusM K1 ∩ BSetPlusM K2).toFinset.card
 ≤
-κ ^ (10 * (100 * K1.k.max K2.k).factorial) * (BSet K1 ∩ BSet K2).toFinset.card
+κ ^ (10 * (100 * K1.k.max K2.k).factorial) * (BSetPlusM K1 ∩ BSetPlusM K2).toFinset.card
 :=by
   gcongr
   --κ ≤ κ ^ (10 * (100 * K1.k.max K2.k).factorial)
-  sorry
+  calc
+    κ ^ (10 * (100 * K1.k.max K2.k).factorial)
+    ≥ κ^1:= by
+      gcongr
+      assumption
+      apply pos_le
+      apply mul_pos
+      simp
+      exact Nat.factorial_pos (100 * K1.k.max K2.k)
+    _= κ:= by ring_nf
 _≤ m:=by
   exact Nat.le_of_succ_le (separated K1 K2 hK1 hK2 hdiff)
 
@@ -568,7 +635,7 @@ lemma separated_Bset_int_union_bound
 --(narrow: Clump_family_narrow KFam)
 :
  κ *
-(⋃ x ∈ Av, ↑(BSet K).toFinset ∩ BSet x).toFinset.card
+(⋃ x ∈ Av, ↑(BSetPlusM K).toFinset ∩ BSetPlusM x).toFinset.card
 ≤ (Av.card*m)
 := by
 --unfold Clump_family_separated at separated
@@ -576,19 +643,19 @@ lemma separated_Bset_int_union_bound
 
 simp only [Set.coe_toFinset,  Fintype.card_ofFinset]
 calc
-κ * (⋃ x ∈ Av, BSet K ∩ BSet x).toFinset.card
-= κ * (Finset.biUnion Av (fun x=>(BSet K∩ BSet x).toFinset)).card:=by
+κ * (⋃ x ∈ Av, BSetPlusM K ∩ BSetPlusM x).toFinset.card
+= κ * (Finset.biUnion Av (fun x=>(BSetPlusM K∩ BSetPlusM x).toFinset)).card:=by
   congr
   exact bigunion_equality_Bset Av K
-_≤  κ *(∑  (x ∈ Av), (BSet K ∩ BSet x).toFinset.card):=by
+_≤  κ *(∑  (x ∈ Av), (BSetPlusM K ∩ BSetPlusM x).toFinset.card):=by
   gcongr
   simp
   exact card_biUnion_le
-_= (κ *(∑  (x ∈ Av), (BSet K ∩ BSet x).toFinset.card)):=by
+_= (κ *(∑  (x ∈ Av), (BSetPlusM K ∩ BSetPlusM x).toFinset.card)):=by
   ring_nf
-_= (∑  (x ∈ Av), κ *(BSet K ∩ BSet x).toFinset.card):=by
+_= (∑  (x ∈ Av), κ *(BSetPlusM K ∩ BSetPlusM x).toFinset.card):=by
   congr
-  exact mul_sum Av (fun i ↦ (BSet K ∩ BSet i).toFinset.card) κ
+  exact mul_sum Av (fun i ↦ (BSetPlusM K ∩ BSetPlusM i).toFinset.card) κ
 _≤ (∑  (x ∈ Av), m):=by
   gcongr with Ki hKi
   apply separated_weakening KFam K Ki
@@ -608,13 +675,15 @@ lemma dense_family_subfamily
 (KLInFam: KL∈ KFam)
 --(narrow: Clump_family_narrow KFam)
 (separated: Clump_family_separated KFam)
-(dense_family: @dense_clump_family V G FinV FinV2 p m κ pr h α  KFam   )
+(dense_family: @dense_clump_family V G FinV  p m κ pr h α  KFam   )
 
 (Av: Finset (Clump G p m κ pr h))
 (AvoidContained: Av⊆ KFam)
 (AvoidCard: Av.card≤ h*pr)
+(κggα: κ ≥ gg1 α )
+(αggh: α ≥ h)
 :
-@dense_clump_family V G FinV FinV2 p m κ pr h (2*α)  (KFam\ Av)
+@dense_clump_family V G FinV  p m κ pr h (2*α)  (KFam\ Av)
 :=by
 
 unfold dense_clump_family
@@ -628,7 +697,7 @@ unfold dense_clump_family at dense_family
 simp at dense_family
 
 
-have hAvSum: κ *( (⋃ x ∈ Av,(BSet K).toFinset ∩ BSet x).toFinset).card ≤ (Av.card*m):=by
+have hAvSum: κ *( (⋃ x ∈ Av,(BSetPlusM K).toFinset ∩ BSetPlusM x).toFinset).card ≤ (Av.card*m):=by
   apply separated_Bset_int_union_bound KFam Av;
   repeat assumption
   simp at hK
@@ -642,10 +711,14 @@ have hK_in_KFam: K ∈ KFam:=by
   simp at hK
   exact hK.1
 
+have αPositive: α >0:= by
+  calc
+    α ≥ h:= by assumption
+    _>0:= by assumption
 
 calc
-  2 * α * (BSet K ∩ ((image BSet ((KFam \ Av) \ {K})).toSet).sUnion).toFinset.card
-  ≥ 2 * α * (BSet K ∩ (((image BSet (((KFam ) \ {K}))).toSet.sUnion)\ ((image BSet   Av).toSet.sUnion))).toFinset.card:=by
+  2 * α * (BSetPlusM K ∩ ((image BSetPlusM ((KFam \ Av) \ {K})).toSet).sUnion).toFinset.card
+  ≥ 2 * α * (BSetPlusM K ∩ (((image BSetPlusM (((KFam ) \ {K}))).toSet.sUnion)\ ((image BSetPlusM   Av).toSet.sUnion))).toFinset.card:=by
     gcongr
     simp
     gcongr
@@ -654,21 +727,21 @@ calc
     simp
     intro Ki hKi1 hKi2
     by_cases case: Ki∈ Av
-    have h1:BSet Ki ⊆ (⋃ x ∈ Av, BSet x):=by
+    have h1:BSetPlusM Ki ⊆ (⋃ x ∈ Av, BSetPlusM x):=by
       exact Set.subset_biUnion_of_mem case
     exact
-      Set.subset_union_of_subset_left h1 (⋃ x, ⋃ (_ : (x ∈ KFam ∧ x ∉ Av) ∧ ¬x = K), BSet x)
+      Set.subset_union_of_subset_left h1 (⋃ x, ⋃ (_ : (x ∈ KFam ∧ x ∉ Av) ∧ ¬x = K), BSetPlusM x)
 
     have h2: (Ki ∈ KFam ∧ Ki ∉ Av) ∧ ¬Ki = K:=by
       aesop
-    have h1: BSet Ki ⊆ ⋃ x, ⋃ (_ : (x ∈ KFam ∧ x ∉ Av) ∧ ¬x = K), BSet x:=by
+    have h1: BSetPlusM Ki ⊆ ⋃ x, ⋃ (_ : (x ∈ KFam ∧ x ∉ Av) ∧ ¬x = K), BSetPlusM x:=by
       exact Set.subset_biUnion_of_mem h2
-    exact Set.subset_union_of_subset_right h1 (⋃ x ∈ Av, BSet x)
+    exact Set.subset_union_of_subset_right h1 (⋃ x ∈ Av, BSetPlusM x)
 
   _= 2 * α * (
-  (BSet K ∩ ((image BSet (((KFam ) \ {K}))).toSet.sUnion))
+  (BSetPlusM K ∩ ((image BSetPlusM (((KFam ) \ {K}))).toSet.sUnion))
   \
-  (BSet K ∩ ((image BSet   Av).toSet.sUnion))
+  (BSetPlusM K ∩ ((image BSetPlusM   Av).toSet.sUnion))
   ).toFinset.card:=by
     simp
     congr
@@ -677,10 +750,10 @@ calc
     apply finset_diff_int
 
   _≥ 2 * α * (((
-  (BSet K ∩ ((image BSet (((KFam ) \ {K}))).toSet.sUnion))
+  (BSetPlusM K ∩ ((image BSetPlusM (((KFam ) \ {K}))).toSet.sUnion))
   ).toFinset.card)
   -
-  ((BSet K ∩ ((image BSet   Av).toSet.sUnion)).toFinset.card)
+  ((BSetPlusM K ∩ ((image BSetPlusM   Av).toSet.sUnion)).toFinset.card)
   ):=by
 
     gcongr
@@ -699,12 +772,12 @@ calc
     simp only [Set.mem_diff, mem_coe, Set.mem_singleton_iff, ge_iff_le]
     calc
       2 * α *
-     (((BSet K).toFinset ∩ (⋃ x, ⋃ (_ : x ∈ KFam ∧ ¬x = K), BSet x).toFinset).card -
-      ((BSet K).toFinset ∩ (⋃ x ∈ Av, BSet x).toFinset).card)
+     (((BSetPlusM K).toFinset ∩ (⋃ x, ⋃ (_ : x ∈ KFam ∧ ¬x = K), BSetPlusM x).toFinset).card -
+      ((BSetPlusM K).toFinset ∩ (⋃ x ∈ Av, BSetPlusM x).toFinset).card)
       =
       2 * α *
-     (( (BSet K).toFinset ∩ (⋃ x, ⋃ (_ : x ∈ KFam ∧ ¬x = K), BSet x).toFinset).card -
-      ( (⋃ x ∈ Av,(BSet K).toFinset ∩ BSet x).toFinset).card)
+     (( (BSetPlusM K).toFinset ∩ (⋃ x, ⋃ (_ : x ∈ KFam ∧ ¬x = K), BSetPlusM x).toFinset).card -
+      ( (⋃ x ∈ Av,(BSetPlusM K).toFinset ∩ BSetPlusM x).toFinset).card)
       :=by
         congr
         simp
@@ -722,42 +795,66 @@ calc
 
       _=
 
-      2*α *( (BSet K).toFinset ∩ (⋃ x, ⋃ (_ : x ∈ KFam ∧ ¬x = K), BSet x).toFinset).card -
-      2 * α *( (⋃ x ∈ Av,(BSet K).toFinset ∩ BSet x).toFinset).card
+      2*α *( (BSetPlusM K).toFinset ∩ (⋃ x, ⋃ (_ : x ∈ KFam ∧ ¬x = K), BSetPlusM x).toFinset).card -
+      2 * α *( (⋃ x ∈ Av,(BSetPlusM K).toFinset ∩ BSetPlusM x).toFinset).card
       :=by
         simp
         exact
           Nat.mul_sub_left_distrib (2 * α)
-            ((BSet K).toFinset ∩ (⋃ x, ⋃ (_ : x ∈ KFam ∧ ¬x = K), BSet x).toFinset).card
-            (filter (fun x ↦ x ∈ BSet K ∧ ∃ x_1 ∈ Av, x ∈ BSet x_1) univ).card
+            ((BSetPlusM K).toFinset ∩ (⋃ x, ⋃ (_ : x ∈ KFam ∧ ¬x = K), BSetPlusM x).toFinset).card
+            (filter (fun x ↦ x ∈ BSetPlusM K ∧ ∃ x_1 ∈ Av, x ∈ BSetPlusM x_1) univ).card
       _=
 
-      α *( (BSet K).toFinset ∩ (⋃ x, ⋃ (_ : x ∈ KFam ∧ ¬x = K), BSet x).toFinset).card*2 -
-      2 * α *( (⋃ x ∈ Av,(BSet K).toFinset ∩ BSet x).toFinset).card
+      α *( (BSetPlusM K).toFinset ∩ (⋃ x, ⋃ (_ : x ∈ KFam ∧ ¬x = K), BSetPlusM x).toFinset).card*2 -
+      2 * α *( (⋃ x ∈ Av,(BSetPlusM K).toFinset ∩ BSetPlusM x).toFinset).card
       :=by
         ring_nf
 
       _≥
-      α *( (BSet K).toFinset ∩ (⋃ x, ⋃ (_ : x ∈ KFam ∧ ¬x = K), BSet x).toFinset).card*2 -
-      κ *( (⋃ x ∈ Av,(BSet K).toFinset ∩ BSet x).toFinset).card / (h*pr)
+      α *( (BSetPlusM K).toFinset ∩ (⋃ x, ⋃ (_ : x ∈ KFam ∧ ¬x = K), BSetPlusM x).toFinset).card*2 -
+      κ *( (⋃ x ∈ Av,(BSetPlusM K).toFinset ∩ BSetPlusM x).toFinset).card / (h*pr)
       :=by
-        sorry
+        gcongr
+        refine (Nat.le_div_iff_mul_le ?h.k0).mpr ?h.a
+        apply mul_pos
+        repeat assumption
+        calc
+        _= (2 * α * h * pr) * (⋃ x ∈ Av, (BSetPlusM K).toFinset ∩ BSetPlusM x).toFinset.card := by
+          ring_nf
+        _≤ κ *(⋃ x ∈ Av, (BSetPlusM K).toFinset ∩ BSetPlusM x).toFinset.card:= by
+          gcongr
+          calc
+            κ ≥ 10000*α^3:= by
+              apply gg1_1
+              repeat assumption
+            _=10000*α*α *α := by ring_nf
+            _≥2*α *h*h:= by
+              gcongr
+              simp
+              repeat assumption
+            _≥ 2*α *h*pr:= by
+              gcongr
+              apply gg1_ge
+              repeat assumption
+
+
+
 
       _≥
-      α *( (BSet K).toFinset ∩ (⋃ x, ⋃ (_ : x ∈ KFam ∧ ¬x = K), BSet x).toFinset).card*2 -
+      α *( (BSetPlusM K).toFinset ∩ (⋃ x, ⋃ (_ : x ∈ KFam ∧ ¬x = K), BSetPlusM x).toFinset).card*2 -
       (Av.card*m)/ (h*pr)
       :=by
 
         gcongr
 
       _≥
-      α *( (BSet K).toFinset ∩ (⋃ x, ⋃ (_ : x ∈ KFam ∧ ¬x = K), BSet x).toFinset).card*2 -
+      α *( (BSetPlusM K).toFinset ∩ (⋃ x, ⋃ (_ : x ∈ KFam ∧ ¬x = K), BSetPlusM x).toFinset).card*2 -
       (h*pr*m)/ (h*pr)
       :=by
         gcongr
 
       _=
-      α *( (BSet K).toFinset ∩ (⋃ x, ⋃ (_ : x ∈ KFam ∧ ¬x = K), BSet x).toFinset).card*2 -
+      α *( (BSetPlusM K).toFinset ∩ (⋃ x, ⋃ (_ : x ∈ KFam ∧ ¬x = K), BSetPlusM x).toFinset).card*2 -
       m
       :=by
         congr
@@ -779,9 +876,9 @@ calc
       _= m*2-m*1:=by ring_nf
       _= m*(2-1):=by exact (Nat.mul_sub_left_distrib m 2 1).symm
       _= m:=by simp
--- 2 * α * ((BSet K).toFinset ∩ (⋃ x, ⋃ (_ : (x ∈ KFam ∧ x ∉ Av) ∧ ¬x = K), BSet x).toFinset).card
---  ≥  2 * α * ((BSet K).toFinset ∩ (⋃ x, ⋃ (_ : (x ∈ KFam ∧ x ∉ Av) ∧ ¬x = K), BSet x).toFinset).card:=by sorry
---  _≥ m:=by sorry
+-- 2 * α * ((BSetPlusM K).toFinset ∩ (⋃ x, ⋃ (_ : (x ∈ KFam ∧ x ∉ Av) ∧ ¬x = K), BSetPlusM x).toFinset).card
+--  ≥  2 * α * ((BSetPlusM K).toFinset ∩ (⋃ x, ⋃ (_ : (x ∈ KFam ∧ x ∉ Av) ∧ ¬x = K), BSetPlusM x).toFinset).card:=by
+--  _≥ m:=by
 
 
 lemma dense_list_implies_larger_list_no_Av
@@ -792,34 +889,70 @@ lemma dense_list_implies_larger_list_no_Av
 (hVOld: VOld.card≤ h*pr)
 --(narrow: Clump_family_narrow KFam)
 --(separated: Clump_family_separated KFam)
-(dense_family: @dense_clump_family V G FinV FinV2 p m κ pr h α  KFam   )
+(dense_family: @dense_clump_family V G FinV  p m κ pr h α  KFam   )
+(κggα: κ ≥ α )
+(αPositive: α >0)
 :
 ∃ (K': Clump G p m κ pr h),
 ∃ (v': V),
 (K'∈  KFam
-∧ (v'∈ (BSet K' ∩ BSet KL))
+∧ (v'∈ (BSetPlusM K' ∩ BSetPlusM KL))
 ∧ (v' ∉ VOld)
 ∧ K'≠ KL)
 :=by
 unfold dense_clump_family at dense_family
-have hKint: α * (BSet KL ∩ ((image BSet (KFam \ {KL})).toSet).sUnion).toFinset.card ≥ m:=by
+have hKint: α * (BSetPlusM KL ∩ ((image BSetPlusM (KFam \ {KL})).toSet).sUnion).toFinset.card ≥ m:=by
   apply dense_family KL
   repeat assumption
 
-have hsizebigger:  (BSet KL ∩ ((image BSet (KFam \ {KL})).toSet).sUnion).toFinset.card ≥  VOld.card+1:=by
-  sorry
 
-have hnonempty:  ((BSet KL ∩ ((image BSet (KFam \ {KL})).toSet).sUnion).toFinset\ VOld).card >0:=by
+have hsizebigger:  (BSetPlusM KL ∩ ((image BSetPlusM (KFam \ {KL})).toSet).sUnion).toFinset.card ≥  VOld.card+1:=by
   calc
-  ((BSet KL ∩ ((image BSet (KFam \ {KL})).toSet).sUnion).toFinset\ VOld).card
-  ≥ (BSet KL ∩ ((image BSet (KFam \ {KL})).toSet).sUnion).toFinset.card- VOld.card:=by
-    exact le_card_sdiff VOld (BSet KL ∩ ((image BSet (KFam \ {KL})).toSet).sUnion).toFinset
+    (BSetPlusM KL ∩ ((image BSetPlusM (KFam \ {KL})).toSet).sUnion).toFinset.card ≥ m/α := by
+      exact Nat.div_le_of_le_mul (dense_family KL KLInFam)
+    _≥  h*pr+1:= by
+      refine (Nat.le_div_iff_mul_le ?k0).mpr ?_
+      assumption
+      calc
+        m≥ 10000*κ^3 := by
+          apply gg1_1
+          apply gg2_gg1
+          repeat assumption
+        _=10000*κ*κ *κ := by ring_nf
+        _≥ 2*h*h *α:= by
+          gcongr
+          simp
+          apply gg1_ge
+          repeat assumption
+          apply gg1_ge
+          repeat assumption
+        _≥ 2*h*pr *α := by
+          gcongr
+          apply gg1_ge
+          repeat assumption
+        _=h*pr *α +h*pr *α := by
+          ring_nf
+        _≥ h*pr *α +1*1*α := by
+          gcongr
+          repeat assumption
+        _=_:= by ring_nf
+
+    _≥ VOld.card+1:= by
+      gcongr
+
+
+
+have hnonempty:  ((BSetPlusM KL ∩ ((image BSetPlusM (KFam \ {KL})).toSet).sUnion).toFinset\ VOld).card >0:=by
+  calc
+  ((BSetPlusM KL ∩ ((image BSetPlusM (KFam \ {KL})).toSet).sUnion).toFinset\ VOld).card
+  ≥ (BSetPlusM KL ∩ ((image BSetPlusM (KFam \ {KL})).toSet).sUnion).toFinset.card- VOld.card:=by
+    exact le_card_sdiff VOld (BSetPlusM KL ∩ ((image BSetPlusM (KFam \ {KL})).toSet).sUnion).toFinset
   _≥ VOld.card+1-VOld.card:=by
     gcongr ?_-VOld.card
   _>0:=by
     simp
 
-have hnonempty: Finset.Nonempty ((BSet KL ∩ ((image BSet (KFam \ {KL})).toSet).sUnion).toFinset\ VOld):=by
+have hnonempty: Finset.Nonempty ((BSetPlusM KL ∩ ((image BSetPlusM (KFam \ {KL})).toSet).sUnion).toFinset\ VOld):=by
   simp
   simp at hnonempty
   exact card_pos.mp hnonempty
@@ -842,7 +975,7 @@ lemma dense_list_implies_larger_list_and_v
 (KLInFam: KL∈ KFam)
 --(narrow: Clump_family_narrow KFam)
 (separated: Clump_family_separated KFam)
-(dense_family: @dense_clump_family V G FinV FinV2 p m κ pr h α  KFam   )
+(dense_family: @dense_clump_family V G FinV  p m κ pr h α  KFam   )
 
 (Av: Finset (Clump G p m κ pr h))
 (AvoidContained: Av⊆ KFam)
@@ -850,39 +983,72 @@ lemma dense_list_implies_larger_list_and_v
 
 (VOld: Finset V)
 (hVOld: VOld.card≤ h*pr)
+(κggα: κ ≥ gg1 α )
+(αggh: α ≥ h)
 :
 ∃ (K': Clump G p m κ pr h),
 ∃ (v': V),
 (K'∈  KFam
-∧ (v'∈ (BSet K' ∩ BSet KL))
+∧ (v'∈ (BSetPlusM K' ∩ BSetPlusM KL))
 ∧ (v' ∉ VOld)
 ∧  K'∉Av)
 :=by
+have αPositive: α >0:= by
+  calc
+    α ≥ h:= by assumption
+    _>0:= by assumption
+
 let KFam2:= KFam\ (Av\ {KL})
 have KLInFam2: KL∈ KFam2:=by
   aesop
 have hAvCont: Av \ {KL}⊆ Av:=by
   exact sdiff_subset Av {KL}
 have Fam2Separated: Clump_family_separated KFam2:=by
-  sorry
-have Fam2_dense: @dense_clump_family V G FinV FinV2 p m κ pr h (2*α)  KFam2:=by
+  dsimp[KFam2]
+  have h1: KFam \ (Av \ {KL})⊆ KFam:=by
+    exact sdiff_subset KFam (Av \ {KL})
+  unfold Clump_family_separated
+  intro K1 K2 hK1 hK2 hdiff
+  apply separated K1 K2
+  exact h1 hK1
+  exact h1 hK2
+  exact hdiff
+
+
+have Fam2_dense: @dense_clump_family V G FinV   p m κ pr h (2*α)  KFam2:=by
   apply dense_family_subfamily
   repeat assumption
   exact fun ⦃a⦄ a_1 ↦ AvoidContained (hAvCont a_1)
   calc
     (Av \ {KL}).card ≤ Av.card:=by exact card_le_of_subset hAvCont
     _≤ h * pr:= by exact AvoidCard
+  repeat assumption
+
 
 have hEx1:
   ∃ (K': Clump G p m κ pr h),
   ∃ (v': V),
   (K'∈  KFam2
-  ∧ (v'∈ (BSet K' ∩ BSet KL))
+  ∧ (v'∈ (BSetPlusM K' ∩ BSetPlusM KL))
   ∧ (v' ∉ VOld)
   ∧ K'≠ KL)
   :=by
     apply dense_list_implies_larger_list_no_Av
     repeat assumption
+    calc
+      κ ≥ 10000*α^3:= by
+        apply gg1_1
+        repeat assumption
+      _≥ 2*α ^1:= by
+        gcongr
+        simp
+        repeat assumption
+        simp
+      _=_:= by ring_nf
+    apply mul_pos
+    simp
+    assumption
+    --
 
 rcases hEx1 with ⟨ Knew, ⟨ v', ⟨ h1, ⟨ h2, ⟨ h3, h4⟩⟩⟩⟩⟩
 use Knew
@@ -908,24 +1074,24 @@ lemma dense_list_implies_larger_list_no_Av2
 :
 ∃ (Knew: Clump G p m κ pr h),
 Knew∈ KFam
-∧ (BSet Knew ∩ BSet KL).toFinset.card> h*pr
+∧ (BSetPlusM Knew ∩ BSetPlusM KL).toFinset.card> h*pr
 :=by
 unfold dense_clump_family at dense_family
-have hKint: α * (BSet KL ∩ ((image BSet (KFam \ {KL})).toSet).sUnion).toFinset.card ≥ m:=by
+have hKint: α * (BSetPlusM KL ∩ ((image BSetPlusM (KFam \ {KL})).toSet).sUnion).toFinset.card ≥ m:=by
   apply dense_family KL
   repeat assumption
 by_contra contr
 simp at contr
-have hunion: (BSet KL ∩ ((image BSet (KFam \ {KL})).toSet).sUnion).toFinset.card≤ h*pr*KFam.card:=by
+have hunion: (BSetPlusM KL ∩ ((image BSetPlusM (KFam \ {KL})).toSet).sUnion).toFinset.card≤ h*pr*KFam.card:=by
   simp only [coe_image, coe_sdiff, coe_singleton, Set.sUnion_image, mem_coe,
     Set.mem_singleton_iff, Set.toFinset_inter]
   simp
 
   calc
-    ((BSet KL).toFinset ∩ (⋃ x, ⋃ (_ : x ∈ KFam ∧ ¬x = KL), BSet x).toFinset).card
+    ((BSetPlusM KL).toFinset ∩ (⋃ x, ⋃ (_ : x ∈ KFam ∧ ¬x = KL), BSetPlusM x).toFinset).card
 
     =
-    ((⋃ x ∈ KFam\ {KL},(BSet KL).toFinset ∩ BSet x).toFinset).card:=by
+    ((⋃ x ∈ KFam\ {KL},(BSetPlusM KL).toFinset ∩ BSetPlusM x).toFinset).card:=by
         congr
         simp
         ext a
@@ -942,25 +1108,25 @@ have hunion: (BSet KL ∩ ((image BSet (KFam \ {KL})).toSet).sUnion).toFinset.ca
         exact h.1
         aesop
     _=
-    ((⋃ x ∈ KFam\ {KL},(BSet KL) ∩ BSet x).toFinset).card:=by
+    ((⋃ x ∈ KFam\ {KL},(BSetPlusM KL) ∩ BSetPlusM x).toFinset).card:=by
       simp
 
-    _= (Finset.biUnion (KFam\ {KL}) (fun x=>(BSet KL∩ BSet x).toFinset)).card:=by
+    _= (Finset.biUnion (KFam\ {KL}) (fun x=>(BSetPlusM KL∩ BSetPlusM x).toFinset)).card:=by
         congr
         exact bigunion_equality_Bset (KFam\ {KL}) KL
 
 
     _≤
-    ∑ x ∈ KFam\ {KL},(((BSet KL) ∩ BSet x).toFinset.card):=by
+    ∑ x ∈ KFam\ {KL},(((BSetPlusM KL) ∩ BSetPlusM x).toFinset.card):=by
       exact card_biUnion_le
 
     _≤
     ∑ x ∈ KFam\ {KL},(h*pr):=by
       gcongr with Ki hKi
       calc
-        (BSet KL ∩ BSet Ki).toFinset.card
+        (BSetPlusM KL ∩ BSetPlusM Ki).toFinset.card
         =
-        ((BSet Ki).toFinset ∩ (BSet KL).toFinset).card:=by
+        ((BSetPlusM Ki).toFinset ∩ (BSetPlusM KL).toFinset).card:=by
           simp
           rw [@inter_comm]
 
@@ -990,14 +1156,14 @@ have hc1: α * h*pr*(KFam.card)≥ m:=by
     α * (h*pr*(KFam.card)):= by
       ring_nf
     _≥
-    α *((BSet KL ∩ ((image BSet (KFam \ {KL})).toSet).sUnion).toFinset.card):=by
+    α *((BSetPlusM KL ∩ ((image BSetPlusM (KFam \ {KL})).toSet).sUnion).toFinset.card):=by
       gcongr α * ?_
     _≥ m:=by
       exact dense_family KL KLInFam
 
 
 
-sorry
+
 
 lemma dense_list_implies_larger_list2
 (KFam: Finset (Clump G p m κ pr h))
@@ -1019,8 +1185,8 @@ Knew∈ KFam
 unfold dense_clump_family at dense_family
 have hInt: _ :=by apply dense_family KL KLInFam
 
-sorry
 -/
+
 
 
 
@@ -1030,7 +1196,8 @@ lemma dense_list_implies_dense_subfamily
 :
 ∃ (KFam2: Finset (Clump G p m κ pr h)),
 KFam2⊆ KFam
-∧ @dense_clump_family V G FinV FinV2 p m κ pr h α  KFam2
+∧ @dense_clump_family V G FinV   p m κ pr h α  KFam2
+∧ KFam2.Nonempty
 :=by
 unfold family_contains_dense_list at has_dense_sets
 rcases has_dense_sets with ⟨ KL, ⟨ hKL1, ⟨ hKL2, hKL3⟩ ⟩ ⟩
@@ -1040,7 +1207,7 @@ constructor
 
 dsimp[KFam2]
 exact hKL1
-
+constructor
 unfold dense_clump_family
 intro K hK
 have K_in_KL:K∈ KL:=by exact List.mem_dedup.mp hK
@@ -1052,9 +1219,14 @@ have h_list_dense: clump_list_dense_at_1 p m κ pr h α iI (KL.rotate i):=by
   apply hKL3
 unfold clump_list_dense_at_1 at h_list_dense
 
-have hnonemp: (KL.rotate ↑i)≠  []:=by sorry
-have hnonemp2: (KL.rotate ↑i).length > 0:=by sorry
-have hnonemp3: (KL).length > i:=by sorry
+have hnonemp3: (KL).length > i:=by exact i.2
+have hnonemp2: (KL.rotate ↑i).length > 0:=by
+  simp only [List.length_rotate]
+  calc
+    (KL).length > i:= by exact i.2
+    _≥ 0:= by
+      exact Nat.zero_le ↑i
+have hnonemp: (KL.rotate ↑i)≠  []:=by exact List.length_pos.mp hnonemp2
 
 have head_eq: (KL.rotate ↑i).head! = K:=by
   calc
@@ -1096,7 +1268,7 @@ have K_eq_head: K=((KL.rotate ↑i).head hnonemp):=by
       exact hi
 
 
-have htaileq: list_union_dropping_first p m κ pr h (KL.rotate ↑i)=((image BSet (KFam2 \ {K})).toSet).sUnion:=by
+have htaileq: list_union_dropping_first p m κ pr h (KL.rotate ↑i)=((image BSetPlusM (KFam2 \ {K})).toSet).sUnion:=by
   unfold list_union_dropping_first
   unfold list_union
   unfold list_BSet
@@ -1153,6 +1325,19 @@ exact h_list_dense
 
 
 
+dsimp[KFam2]
+simp
+unfold clump_list_dense at hKL3
+unfold clump_list_dense_at_1 at hKL3
+by_contra contr
+rw[contr] at hKL3
+unfold list_union_dropping_first at hKL3
+unfold list_union at hKL3
+unfold list_BSet at hKL3
+simp at hKL3
+have mne: m≠ 0:= by
+  exact Nat.not_eq_zero_of_lt mPositive
+exact mne hKL3
 
 
 
@@ -1164,7 +1349,9 @@ lemma dense_family_implies_path_sequence
 (ht: t≤ h*pr)
 --(narrow: Clump_family_narrow KFam)
 (separated: Clump_family_separated KFam)
-(has_dense_sets: @dense_clump_family V G FinV FinV2 p m κ pr h α  KFam)
+(has_dense_sets: @dense_clump_family V G FinV  p m κ pr h α  KFam)
+(κggα: κ ≥ gg1 α )
+(αggh: α ≥ h)
 :
 ∃ (S: ClumpPathSequence_nolength_noM iI iV KFam), S.Ord.length=t+1∧ S.Ver.length=t∧ S.Ord.Nodup
 :=by
@@ -1202,7 +1389,7 @@ have KvExistence:
   ∃ (K': Clump G p m κ pr h),
   ∃ (v': V),
   (K'∈  KFam
-  ∧ (v'∈ (BSet K' ∩ BSet KLast))
+  ∧ (v'∈ (BSetPlusM K' ∩ BSetPlusM KLast))
   ∧ (v' ∉ S'.Ver.toFinset)
   ∧  K'∉S'.Ord.toFinset)
   :=by
@@ -1214,23 +1401,29 @@ have KvExistence:
     repeat assumption
     apply S'.Ord_eq_KFam
     --S'.Ord.toFinset.card ≤ h * pr
-    sorry
+    calc
+      S'.Ord.toFinset.card ≤ S'.Ord.length:= by
+        exact List.toFinset_card_le S'.Ord
+      _= t'+1:= by
+        exact hS'1
+      _≤ h * pr:= by
+        exact ht
     --S'.Ver.toFinset.card ≤ h * pr
-    sorry
+    calc
+      S'.Ver.toFinset.card ≤ S'.Ver.length:= by
+        exact List.toFinset_card_le S'.Ver
+      _= t':= by
+        exact hS'2
+      _≤ h * pr:= by
+        exact hineq
+    repeat assumption
+    --
+
 
 
 rcases KvExistence with ⟨ Knew, ⟨ vNew, ⟨ hKnew1, ⟨ hvNew1, ⟨ hvNew2, hKnew2⟩⟩⟩⟩⟩
 
-/-
-have hnewKEx: ∃ (Knew: Clump G p m κ pr h), Knew∈ KFam∧ Knew∉S'.Ord ∧ (Knew.Gr.verts ∩ KLast.Gr.verts).toFinset.card> h*pr:=by
-  sorry
-rcases hnewKEx with ⟨ Knew, ⟨ hKnew1, ⟨ hKnew2, hKnew3⟩ ⟩ ⟩
 
-have hv_ex: ∃ (v: V), v∈ (Knew.Gr.verts ∩ KLast.Gr.verts).toFinset\ S'.Ver.toFinset:= by
-  sorry
-
-rcases hv_ex with ⟨ vNew, hvNew⟩
--/
 
 let OrdNew: List (Clump G p m κ pr h):= S'.Ord ++ [Knew]
 let VerNew: List V:= S'.Ver ++ [vNew]
@@ -1377,6 +1570,8 @@ lemma dense_list_implies_path_sequence
 --(narrow: Clump_family_narrow KFam)
 (separated: Clump_family_separated KFam)
 (has_dense_sets: family_contains_dense_list p m κ pr h α iI KFam  )
+(κggα: κ ≥ gg1 α )
+(αggh: α ≥ h)
 :
 ∃ (S: ClumpPathSequence_nolength_noM iI iV KFam), S.Ord.length=t+1∧ S.Ver.length=t∧ S.Ord.Nodup
 :=by
@@ -1384,24 +1579,29 @@ lemma dense_list_implies_path_sequence
 have h1:
   ∃ (KFam2: Finset (Clump G p m κ pr h)),
   KFam2⊆ KFam
-  ∧ @dense_clump_family V G FinV FinV2 p m κ pr h α  KFam2
+  ∧ @dense_clump_family V G FinV p m κ pr h α  KFam2
+  ∧ KFam2.Nonempty
   :=by
     apply dense_list_implies_dense_subfamily
     repeat assumption
 
-rcases h1 with ⟨ KFam2, ⟨ hKFam2, hKFam2_dense⟩ ⟩
+rcases h1 with ⟨ KFam2, ⟨ hKFam2, hKFam2_dense, hKFam2_Nonempty⟩ ⟩
 
 have h2:
   ∃ (S: ClumpPathSequence_nolength_noM iI iV KFam2), S.Ord.length=t+1∧ S.Ver.length=t∧ S.Ord.Nodup
   :=by
     apply dense_family_implies_path_sequence
     repeat assumption
-    --KFam2.Nonempty
-    sorry
-    exact ht
     --Clump_family_separated KFam2
-    sorry
-    exact hKFam2_dense
+    unfold Clump_family_separated
+    intro K1 K2 hK1 hK2 hdiff
+    apply separated K1 K2
+    exact hKFam2 hK1
+    exact hKFam2 hK2
+    exact hdiff
+    repeat assumption
+
+
 
 rcases h2 with ⟨ S, ⟨ hS1, ⟨ hS2, hS3⟩ ⟩ ⟩
 
@@ -1419,7 +1619,9 @@ lemma Clump_M_nonempty
 (K: Clump G p m κ pr h)
 : Nonempty K.M
 := by
-sorry
+refine Nonempty.to_subtype ?_
+exact clump_M_nonempty
+
 
 lemma Dense_list_implies_path_sequence_with_M
 (KFam: Finset (Clump G p m κ pr h))
@@ -1429,6 +1631,8 @@ lemma Dense_list_implies_path_sequence_with_M
 --(narrow: Clump_family_narrow KFam)
 (separated: Clump_family_separated KFam)
 (has_dense_sets: family_contains_dense_list p m κ pr h α iI KFam  )
+(κggα: κ ≥ gg1 α )
+(αggh: α ≥ h)
 :
 Nonempty (ClumpPathSequence iI iV κ KFam)
 :=by
@@ -1437,6 +1641,7 @@ have hex:∃ (S: ClumpPathSequence_nolength_noM iI iV KFam), S.Ord.length=(h*pr)
   repeat assumption
   exact Nat.le_refl (h * pr)
   repeat assumption
+
 rcases hex with ⟨S, ⟨hS1, ⟨hS2, hS3 ⟩  ⟩  ⟩
 
 let M: List (Subgraph G):= List.map (fun K => (Clump_M_nonempty K).some) S.Ord
@@ -1446,8 +1651,8 @@ refine
     LM_in_M := ?intro.intro.intro.val.LM_in_M, LM_Sparse := ?intro.intro.intro.val.LM_Sparse,
     Ver := ?intro.intro.intro.val.Ver, VerNoDup := ?intro.intro.intro.val.VerNoDup,
     VerInOrd := ?intro.intro.intro.val.VerInOrd, hlength := ?intro.intro.intro.val.hlength,
-    hlengthM := ?intro.intro.intro.val.hlengthM, hlengthVer := ?intro.intro.intro.val.hlengthVer,
-     }
+    hlengthM := ?intro.intro.intro.val.hlengthM, hlengthVer := ?intro.intro.intro.val.hlengthVer
+    ,LM_NoDup := ?val.LM_NoDup }
 
 
 exact S.Ord
@@ -1474,9 +1679,66 @@ simp
 --family_sparse κ m M.toFinset
 unfold family_sparse
 intro Mi Mj hMi hMj hne
+dsimp[M] at hMi hMj
+simp at hMi hMj
+rcases hMi with ⟨ Ki, hKi1,hKi2 ⟩
+have hKi3: Mi∈ Ki.M:= by
+  rw[hKi2.symm]
+  exact coe_mem (Clump_M_nonempty Ki).some
+rcases hMj with ⟨ Kj, hKj1,hKj2 ⟩
+have hKj3: Mj∈ Kj.M:= by
+  rw[hKj2.symm]
+  exact coe_mem (Clump_M_nonempty Kj).some
 --- κ * (Mi.verts ∩ Mj.verts).toFinset.card ≤ m.
----here we want to change the definiton of separated to use BSetPlusM rather than BSet
-sorry
+---here we want to change the definiton of separated to use BSetPlusM rather than BSetPlusM
+unfold Clump_family_separated  at separated
+unfold Clumps_separated at separated
+calc
+  κ * (Mi.verts ∩ Mj.verts).toFinset.card
+  ≤κ * (BSetPlusM Ki ∩ BSetPlusM Kj).toFinset.card:= by
+    gcongr
+    refine Set.toFinset_subset_toFinset.mpr ?bc.a.a
+    have h1: Mi.verts ⊆ BSetPlusM Ki:= by
+      unfold BSetPlusM
+      simp
+      calc
+        Mi.verts ⊆  ⋃ G' ∈ Ki.M, G'.verts:= by
+          exact Set.subset_biUnion_of_mem hKi3
+        _⊆ BSet Ki ∪ ⋃ G' ∈ Ki.M, G'.verts:= by
+          exact Set.subset_union_right (BSet Ki) (⋃ G' ∈ Ki.M, G'.verts)
+    have h2: Mj.verts ⊆ BSetPlusM Kj:= by
+      unfold BSetPlusM
+      simp
+      calc
+        Mj.verts ⊆  ⋃ G' ∈ Kj.M, G'.verts:= by
+          exact Set.subset_biUnion_of_mem hKj3
+        _⊆ BSet Kj ∪ ⋃ G' ∈ Kj.M, G'.verts:= by
+          exact Set.subset_union_right (BSet Kj) (⋃ G' ∈ Kj.M, G'.verts)
+    exact Set.inter_subset_inter h1 h2
+
+  _=κ^1 * (BSetPlusM Ki ∩ BSetPlusM Kj).toFinset.card:= by
+    ring_nf
+  _≤ κ ^ (10 * (100 * Ki.k.max Kj.k).factorial)* (BSetPlusM Ki ∩ BSetPlusM Kj).toFinset.card:= by
+    gcongr
+    assumption
+    rw [@Nat.succ_le_iff]
+    apply mul_pos
+    simp
+    exact Nat.factorial_pos (100 * Ki.k.max Kj.k)
+  _≤ m:= by
+    apply le_of_lt
+    apply separated Ki Kj
+    apply S.Ord_eq_KFam
+    simp
+    assumption
+    apply S.Ord_eq_KFam
+    simp
+    assumption
+    by_contra contr
+    rw[contr] at hKi2
+    rw[hKi2] at hKj2
+    exact hne hKj2
+
 
 exact S.Ver
 exact S.VerNoDup
@@ -1484,17 +1746,133 @@ exact S.VerNoDup
 --Vertex_list_in_clump_list iI iV S.Ord S.Ver
 unfold Vertex_list_in_clump_list_BSetPlusM
 intro i hi
-have h0: S.Ver.get! i ∈ BSet (S.Ord.get! i) ∩ BSet (S.Ord.get! (i + 1)):=by
+have h0: S.Ver.get! i ∈ BSetPlusM (S.Ord.get! i) ∩ BSetPlusM (S.Ord.get! (i + 1)):=by
   apply S.VerInOrd
   exact hi
---- here in h0 it should switch from BSet to BSetPlusM
-sorry
+--- here in h0 it should switch from BSetPlusM to BSetPlusM
+assumption
 
 exact Nat.le.intro (id hS1.symm)
 dsimp[M]
 simp
 rw[hS1, hS2]
 exact rfl
+
+refine (List.nodup_map_iff_inj_on hS3).mpr ?val.LM_NoDup.a
+intro Ki   hKi Kj hKj hdiff
+
+by_contra contr
+simp at contr
+let Mi: Subgraph G:= (Clump_M_nonempty Ki).some
+let Mj: Subgraph G:= (Clump_M_nonempty Kj).some
+have h1:_:= by
+  calc
+    κ * (Mi.verts ∩ Mj.verts).toFinset.card
+    ≤κ * (BSetPlusM Ki ∩ BSetPlusM Kj).toFinset.card:= by
+      gcongr
+      apply Set.toFinset_subset_toFinset.mpr
+      have h1: Mi.verts ⊆ BSetPlusM Ki:= by
+        unfold BSetPlusM
+        simp
+        calc
+          Mi.verts ⊆  ⋃ G' ∈ Ki.M, G'.verts:= by
+            apply Set.subset_biUnion_of_mem
+            dsimp[Mi]
+            simp
+            exact Subtype.coe_prop (Clump_M_nonempty Ki).some
+          _⊆ BSet Ki ∪ ⋃ G' ∈ Ki.M, G'.verts:= by
+            exact Set.subset_union_right (BSet Ki) (⋃ G' ∈ Ki.M, G'.verts)
+      have h2: Mj.verts ⊆ BSetPlusM Kj:= by
+        unfold BSetPlusM
+        simp
+        calc
+          Mj.verts ⊆  ⋃ G' ∈ Kj.M, G'.verts:= by
+            apply Set.subset_biUnion_of_mem
+            dsimp[Mj]
+            simp
+            exact Subtype.coe_prop (Clump_M_nonempty Kj).some
+          _⊆ BSet Kj ∪ ⋃ G' ∈ Kj.M, G'.verts:= by
+            exact Set.subset_union_right (BSet Kj) (⋃ G' ∈ Kj.M, G'.verts)
+      exact Set.inter_subset_inter h1 h2
+
+    _=κ^1 * (BSetPlusM Ki ∩ BSetPlusM Kj).toFinset.card:= by
+      ring_nf
+    _≤ κ ^ (10 * (100 * Ki.k.max Kj.k).factorial)* (BSetPlusM Ki ∩ BSetPlusM Kj).toFinset.card:= by
+      gcongr
+      assumption
+      rw [@Nat.succ_le_iff]
+      apply mul_pos
+      simp
+      exact Nat.factorial_pos (100 * Ki.k.max Kj.k)
+    _≤ m:= by
+      apply le_of_lt
+      apply separated Ki Kj
+      apply S.Ord_eq_KFam
+      simp
+      assumption
+      apply S.Ord_eq_KFam
+      simp
+      assumption
+      exact contr
+have h2:  Mi=Mj:= by
+  dsimp[Mi, Mj]
+  assumption
+rw[h2] at h1
+simp only [Set.inter_self] at h1
+have h3: m>m:= by
+  calc
+  m≥ κ * Mj.verts.toFinset.card:= by assumption
+  _≥ κ * (m/pr):= by
+    gcongr
+    apply near_regular_vertices_lower_bound
+    apply Kj.M_Near_Regular
+    dsimp[Mj]
+    simp
+
+  _>m:= by
+    calc
+      κ * (m / pr)
+      ≥(κ * m) / pr-κ := by
+        refine Nat.sub_le_of_le_add ?h
+        exact div_assoc_le2 prPositive
+      _≥  m+1:= by
+        apply Nat.le_sub_of_add_le
+        refine (Nat.le_div_iff_mul_le prPositive).mpr ?h.a
+        ring_nf
+        calc
+          m * κ
+          ≥
+          m*(10000*h^3):= by
+            gcongr
+            apply gg1_1
+            repeat assumption
+            --
+          _≥m*(10000*pr^3):= by
+            gcongr
+            apply gg1_ge
+            repeat assumption
+            --
+          _≥ m*(3*pr^1):=by
+            gcongr
+            simp
+            assumption
+            simp
+          _= m*pr+ m*pr+m*pr:= by
+            ring_nf
+          _≥m*pr+ κ *pr+1*pr:=by
+            gcongr
+            apply gg2_ge
+            repeat assumption
+          _= m * pr + κ * pr + pr:= by
+            ring_nf
+
+      _>m:= by
+        simp
+
+have h4: ¬ (m>m):= by
+  exact Nat.lt_irrefl m
+exact h4 h3
+
 
 
 /-structure ClumpPathSequence

@@ -25,15 +25,14 @@ variable {hPositive: h >0}
 variable {prPositive: pr >0}
 variable {γPositive: γ >0}
 variable (hI:Inhabited (Clump G p m κ pr h))
-variable {prggp: pr≫ p}
-variable {mggpr: m≫ pr}
+
 
 
 
 
 noncomputable def list_BSet --(p m κ pr h : ℕ )
 (Li: List (Clump G p m κ pr h))
-: Finset (Set V):= Finset.image BSet Li.toFinset
+: Finset (Set V):= Finset.image BSetPlusM Li.toFinset
 
 def list_union
 (Li: List (Clump G p m κ pr h))
@@ -53,11 +52,8 @@ def list_union_dropping_first --(p m κ pr h : ℕ )
 
 def clump_list_dense_at_1 --( p m κ pr h α: ℕ )
 (Li: List (Clump G p m κ pr h))
-:=(α*(( BSet (List.head! Li ))∩( list_union_dropping_first p m κ pr h  Li)).toFinset.card≥ m)
+:=(α*(( BSetPlusM (List.head! Li ))∩( list_union_dropping_first p m κ pr h  Li)).toFinset.card≥ m)
 
---def clump_list_dense_at_i ( p m κ pr h α i: ℕ )
---(Li: List (Clump G p m κ pr h))(:  Clump G p m κ pr h)
---:=(α*(( BSet (List.getD Li i ))∩( list_union_from_i p m κ pr h  Li  i)).toFinset.card≥ m)
 
 def clump_list_sparse_up_to_n (n:ℕ )--( p m κ pr h α n: ℕ )
 (Li: List (Clump G p m κ pr h))
@@ -474,125 +470,3 @@ have drop_n_eq:  (List.drop n Li')=(Tail.rotate i):=by
 rw[drop_n_eq]
 
 exact hi
-
-/-
-lemma Order_separated_family_induction_step
-(n: ℕ )
-(KFam: Finset (Clump G p m κ pr h))
-(heqFam: Li.toFinset= KFam)
-(Li: List (Clump G p m κ pr h))
-(hNoDup: Li.Nodup)
-(hn: n< Li.length)
-(hSeparated: list_separated_up_to p m κ pr h α Li   n)
---(Clump_Decomposition L KFam2)
---(Clump_family_narrow KFam2)
-(: Clump G p m κ pr h)
-(hSeparatedFam: Clump_family_separated KFam)
-: ∃ (Li: List (Clump G p m κ pr h)),
-(Li.toFinset= KFam)∧ (Li.Nodup)
-∧ (list_separated_up_to p m κ pr h α Li   (n+1))
-:=by
-by_cases hcase: ∃ (i: ℕ ), i>n∧  i≤ Li.length   ∧ (∀ (j: ℕ ), (i≠ j)→ (n<j)→ (j≤ Li.length)→ (α*(( BSet (List.getD Li i ))∩( BSet (List.getD Li i ))).toFinset.card≥ m))
-rcases hcase with ⟨i, hi, hii, hiii⟩
--/
-/-
-lemma Order_separated_family
-(KFam: Finset (Clump G p m κ pr h))
---(Clump_Decomposition L KFam2)
---(Clump_family_narrow KFam2)
-(: Clump G p m κ pr h)
-(hSeparatedFam: Clump_family_separated KFam)
-: ∃ (Li: List (Clump G p m κ pr h)),
-(Li.toFinset= KFam)∧ (Li.Nodup)
-∧ (separated_list p m κ pr h α Li  )
-:=by
-let Li0:= KFam.toList
-
-let S: Set ℕ:={n| ∃ (Li: List (Clump G p m κ pr h)),
-(Li.toFinset= KFam)∧ (Li.Nodup)
-∧ (list_separated_up_to p m κ pr h α Li   n)}
-
-by_cases hcase: ∃ (n: ℕ ), n∈ S ∧ n≥ KFam.card
-
-rcases hcase with ⟨n, hS, hn⟩
-dsimp [S] at hS
-rcases hS with ⟨Li, hLi, hLi2, hLi3⟩
-use Li
-constructor
-exact hLi
-constructor
-exact hLi2
-unfold separated_list
-intro  i j hij hj
-have h1: i≤ n:= by
-   calc
-    i≤ j:= by exact Nat.le_of_succ_le hij
-    _≤ Li.length:=by exact hj
-    _=KFam.card:=by rw[hLi.symm]; exact (List.toFinset_card_of_nodup hLi2).symm
-    _≤ n:=by exact hn
-apply hLi3 i j hij h1 hj
--/
-
-
-
-/-lemma Clump_decomposition_of_locally_dense
-(L: Locally_Dense G p m h)
-(: Clump G p m κ pr h)
-(hNoWideClumps: ¬ L_contains_wide_clump p m κ pr h G L )
-: ∃ (KFam2: Finset (Clump G p m κ pr h)),
-Clump_Decomposition L KFam2
-∧ Clump_family_narrow KFam2
-∧ Clump_family_separated KFam2
-:=by-/
-
-
---def list_union_from_i (p m κ pr h : ℕ )
---(Li: List (Clump G p m κ pr h))(:  Clump G p m κ pr h) (i: ℕ )
---: Set V
---:=Set.sUnion {B: Set V| ∃ (j: ℕ ), B=BSet (List.getD Li j )∧ i<j ∧ j≤ Li.length}
-
-
-/-
-def flower_intersections
-(G: SimpleGraph V)
-(p m κ pr h γ: ℕ )
-(K0: Clump G p m κ pr h)
-(F: Finset (Clump G p m κ pr h))
-:=∀ (K:Clump G p m κ pr h), (K∈ F)→ (γ*(BSet K0 ∩ BSet K).toFinset.card ≥  m)
-
-@[ext] structure Clump_Flower  (G: SimpleGraph V) (p m κ pr h γ: ℕ ) where
-  F: Finset (Clump G p m κ pr h)
-  K0:  Clump G p m κ pr h
-  hCenter_in_Fam: K0 ∈ F
-  Large_Intersections:flower_intersections G p m κ pr h γ (K0) (F)
-
-def flower_contained_in_Gr
-(Gr: Subgraph G )
-(F: Clump_Flower G p m κ pr h γ)
-:=∀ (K:Clump G p m κ pr h), (K∈ F.F)→ (K.Gr≤ Gr)
-
-def L_contains_clump_flower
---(KFam: Finset (Clump G p m κ pr h))
-(p m κ pr h γ:ℕ )
-(G: SimpleGraph V)
-(L: Locally_Dense G p m h)
-:=∃ (F: Clump_Flower G p m κ pr h γ), flower_contained_in_Gr L.Gr F
-
-def L_no_clump_flowers
---(KFam: Finset (Clump G p m κ pr h))
-(p m κ pr h γ:ℕ )
-(G: SimpleGraph V)
-(L: Locally_Dense G p m h)
-:=∀  (F: Clump_Flower G p m κ pr h γ), ¬ flower_contained_in_Gr L.Gr F
-
-
-def separated_list --(p m κ pr h α : ℕ )
-(Li: List (Clump G p m κ pr h))
-:=∀(i j : ℕ ), (i<j)→ (j≤ Li.length)→ (α*(( BSet (List.get! Li i ))∩( BSet (List.get! Li i ))).toFinset.card≥ m)
-
-
-def list_separated_up_to --(p m κ pr h α t: ℕ )
-(Li: List (Clump G p m κ pr h))(t:ℕ )
-:=∀(i j : ℕ ), (i<j)→ (i≤ t)→ (j≤ Li.length)→ (α*(( BSet (List.get! Li i ))∩( BSet (List.get! Li i ))).toFinset.card≥ m)
-
--/

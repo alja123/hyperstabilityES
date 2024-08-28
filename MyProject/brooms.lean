@@ -1,6 +1,7 @@
 import MyProject
 
 import MyProject.locally_dense_find
+import MyProject.paths_in_cytdense
   --import MyProject.SimpleGraph
 
 open Classical
@@ -29,8 +30,6 @@ variable (iV:Inhabited V)
 variable (iSub:Inhabited (Subgraph G))
 variable (iSP:Inhabited (SubgraphPath_implicit   G) )
 
-variable {prggp: pr≫ p}
-variable {mggpr: m≫ pr}
 
 
 
