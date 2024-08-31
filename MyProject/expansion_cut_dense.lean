@@ -25,9 +25,7 @@ variable {hPositive: h >0}
 variable {prPositive: pr >0}
 variable {γPositive: γ >0}
 variable (iI:Inhabited (Clump G p m κ pr h))
-variable (iV:Inhabited V)
-variable {prggp: pr≫ p}
-variable {mggpr: m≫ pr}
+variable (iV:Inhabited V) 
 
 
 

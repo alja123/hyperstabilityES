@@ -1,7 +1,9 @@
 
 import MyProject
 
-import MyProject.build_path
+import MyProject.path_sequence_construct
+import MyProject.brooms
+
   --import MyProject.SimpleGraph
 
 open Classical
@@ -27,9 +29,25 @@ variable {prPositive: pr >0}
 variable {γPositive: γ >0}
 variable (iI:Inhabited (Clump G p m κ pr h))
 variable (iV:Inhabited V)
-variable {prggp: pr≫ p}
-variable {mggpr: m≫ pr}
+variable (pLarge: p≥ 20)
+variable (prggp: pr ≥ gg2 p)
+variable (hggp: h ≥ gg1 pr)
+variable (κggh: κ ≥ gg1 h)
+variable (mggκ :m≥ gg2 κ )
 
+
+lemma clump_path_sequence_gives_path2
+(H: Subgraph G)
+(KFam: Finset (Clump G p m κ pr h))
+(Seq: ClumpPathSequence iI iV α KFam)
+(k: ℕ )
+(kLarge: k>2)
+(Ord_length: Seq.Ord.length>k+8)
+--should have assumption   (K_In_L: K.Gr≤ L.Gr)
+:
+∃  (u v: V), ∃  (P: SubgraphPath H u v), P.Wa.length ≥  (k*m)
+:= by
+sorry
 
 /-structure ClumpPathSequence
  (β : ℕ )(KFam: Finset (Clump G p m κ pr h)) where
@@ -47,6 +65,7 @@ variable {mggpr: m≫ pr}
 
 
 lemma Wide_clump_implies_path
+--(H: Subgraph G)
 (L: Locally_Dense G p m h)
 (K: Clump G p m κ pr h)
 (K_In_L: K.Gr≤ L.Gr)
@@ -55,15 +74,60 @@ lemma Wide_clump_implies_path
 :
 Has_length_d_path (L.Gr) (h*m):=by
 have hNonemp: Nonempty (ClumpPathSequence iI iV α {K}):=by
-  exact Wide_clump_implies_path_sequence iI iV α K hWide1 hWide2
-let KSeq:= hNonemp.some
-have h1: Has_length_d_path (Clump_Family_Union {K}) (h*m):=by
-  apply clump_path_sequence_gives_path iI iV {K} KSeq
+  apply Wide_clump_implies_path_sequence --iI iV _ _ _ _  α K hWide1 hWide2
+  repeat assumption
 
-apply has_path_monotone   (Clump_Family_Union {K})  L.Gr (h*m) _ (h1)
-calc
-  Clump_Family_Union {K} = K.Gr:= by exact Clump_Family_Union_singleton K
-  _ ≤ L.Gr:= by exact K_In_L
+let KSeq:= hNonemp.some
+have h1: ∃  (u v: V), ∃  (P: SubgraphPath (L.Gr) u v), P.Wa.length ≥  (h*m):= by
+  apply clump_path_sequence_gives_path2
+  calc
+    (h)≥ 10000:= by
+      apply gg1_large2
+      exact prPositive
+      assumption
+    _>2:=by simp
+  calc
+    KSeq.Ord.length≥ h*pr:= by
+      exact KSeq.hlength
+    _≥ h*10000:= by
+      gcongr
+      apply gg1_large2
+      exact pPositive
+      apply gg2_gg1
+      repeat assumption
+    _≥ h*2:= by
+      gcongr
+      simp
+    _= h+h:= by ring_nf
+    _≥ h+10000:= by
+      gcongr
+      apply gg1_large2
+      exact prPositive
+      repeat assumption
+    _> h+8:= by
+      gcongr
+      simp
+
+  --
+
+
+
+rcases h1 with ⟨u,v, SP, hSP ⟩
+
+  --
+--have h1: Has_length_d_path (Clump_Family_Union {K}) (h*m):=by
+
+unfold Has_length_d_path
+
+use u
+use v
+use SP
+--  apply clump_path_sequence_gives_path iI iV {K} KSeq
+
+--apply has_path_monotone   (Clump_Family_Union {K})  L.Gr (h*m) _ (h1)
+--calc
+--  Clump_Family_Union {K} = K.Gr:= by exact Clump_Family_Union_singleton K
+--  _ ≤ L.Gr:= by exact K_In_L
 
 
 lemma family_union_from_familycontainedinL
@@ -84,16 +148,51 @@ lemma dense_list_implies_path
 --(narrow: Clump_family_narrow KFam)
 (separated: Clump_family_separated KFam)
 (has_dense_sets: family_contains_dense_list p m κ pr h α iI KFam  )
+(κggα: κ ≥ gg1 α )
+(αggh: α ≥ h)
 :
 Has_length_d_path (L.Gr) (h*m):=by
 have hNonemp: Nonempty (ClumpPathSequence iI iV κ KFam):=by
-  apply Dense_list_implies_path_sequence_with_M iI iV KFam KFam_Nonempty
+  apply Dense_list_implies_path_sequence_with_M iI iV
   repeat assumption
+
 
   --exact Dense_list_implies_path_sequence_with_M iI iV KFam KFam_Nonempty separated has_dense_sets
 let KSeq:= hNonemp.some
-have h1: Has_length_d_path (Clump_Family_Union KFam) (h*m):=by
-  apply clump_path_sequence_gives_path iI iV KFam KSeq
+have h1: ∃  (u v: V), ∃  (P: SubgraphPath (L.Gr) u v), P.Wa.length ≥  (h*m):= by
+  apply clump_path_sequence_gives_path2
+  calc
+    (h)≥ 10000:= by
+      apply gg1_large2
+      exact prPositive
+      assumption
+    _>2:=by simp
+  calc
+    KSeq.Ord.length≥ h*pr:= by
+      exact KSeq.hlength
+    _≥ h*10000:= by
+      gcongr
+      apply gg1_large2
+      exact pPositive
+      apply gg2_gg1
+      repeat assumption
+    _≥ h*2:= by
+      gcongr
+      simp
+    _= h+h:= by ring_nf
+    _≥ h+10000:= by
+      gcongr
+      apply gg1_large2
+      exact prPositive
+      repeat assumption
+    _> h+8:= by
+      gcongr
+      simp
 
-apply has_path_monotone   (Clump_Family_Union KFam)  L.Gr (h*m) _ (h1)
-exact family_union_from_familycontainedinL L KFam KFam_In_L
+rcases h1 with ⟨u,v, SP, hSP ⟩
+
+unfold Has_length_d_path
+
+use u
+use v
+use SP

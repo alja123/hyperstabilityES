@@ -25,7 +25,7 @@ variable {hPositive: h >0}
 variable {prPositive: pr >0}
 variable {γPositive: γ >0}
 variable (iI:Inhabited (Clump G p m κ pr h))
-variable (iV:Inhabited V) 
+variable (iV:Inhabited V)
 
 
 
@@ -145,7 +145,7 @@ B=C∪ (Nd'\ Nd)
 lemma Nd_in_verts
 (H: Subgraph G)
 (Nd: Set V)
-(v: V)
+{v: V}
 (d: ℕ )
 (hNd:Nd={w: V| ∃ (P: SubgraphWalk H v w), P.Wa.length≤ d})
 :
@@ -168,7 +168,7 @@ exact h3 h2
 lemma Nd_in_Nd'
 (H: Subgraph G)
 (Nd: Set V)
-(v: V)
+{v: V}
 (d: ℕ )
 (hNd:Nd={w: V| ∃ (P: SubgraphWalk H v w), P.Wa.length≤ d})
 (hNd':Nd' ={w: V| ∃ (P: SubgraphWalk H v w), P.Wa.length≤ d+1})
@@ -277,7 +277,7 @@ have B_lower: 2*B.toFinset.card≥ H.verts.toFinset.card:=by
       simp only [Set.toFinset_diff]
       refine card_sdiff ?_
       simp
-      exact Nd_in_verts H Nd d hNd
+      exact Nd_in_verts H Nd  d hNd
     _=2 * (H.verts).toFinset.card-2*Nd.toFinset.card:=by
       exact Nat.mul_sub_left_distrib 2 H.verts.toFinset.card Nd.toFinset.card
     _≥ 2 * (H.verts).toFinset.card-(H.verts).toFinset.card:= by

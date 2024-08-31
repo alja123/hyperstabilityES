@@ -2,7 +2,7 @@ import MyProject
 
 import MyProject.Basic
 
-def gg1 (b: ℕ ): ℕ := 10000 *b^4*2^b
+def gg1 (b: ℕ ): ℕ := 10000 *b^4*4^(b^3)*(b ^ 16 * 75557863725914323419136)
 
 def gg2 (b: ℕ ): ℕ := gg1 (b^4) * gg1 b*(2*b)*gg1 ( gg1 (b^4))*b ^ (10 * (100 * (gg1 b) ).factorial)*gg1 (b*2) * (b ^ (10 * (100 * (gg1 b)).factorial) * b ^ (10 * (100 * (gg1 b)).factorial))
 
@@ -26,10 +26,12 @@ a≥10000 *b^3
 calc
 a≥ gg1 b:= by
   exact h
-_≥ 10000 *b^4*1:= by
+_≥ 10000 *b^4*1*(1^(16)*1):= by
   unfold gg1
   gcongr
-  exact Nat.one_le_two_pow
+  exact Nat.one_le_pow' (b ^ 3) 3
+  assumption
+  simp
 
 _= 10000 *b^4:= by
   ring_nf
@@ -39,6 +41,48 @@ _≥10000 *b^3:= by
   exact Nat.le_of_ble_eq_true rfl
 
 
+lemma gg1_4
+{a b: ℕ}
+(h: a ≥ gg1 b)
+(bPositive: b>0)
+:
+a≥(b ^ 16 * 75557863725914323419136)
+:= by
+calc
+a≥ gg1 b:= by
+  exact h
+_≥ 1 *1^4*1*(b ^ 16 * 75557863725914323419136):= by
+  unfold gg1
+  gcongr
+  simp
+  assumption
+  exact Nat.one_le_pow' (b ^ 3) 3
+
+
+_= (b ^ 16 * 75557863725914323419136):= by
+  ring_nf
+
+
+lemma gg1_5
+{a b: ℕ}
+(h: a ≥ gg1 b)
+(bPositive: b>0)
+:
+a≥b*4^(b*b*b)
+:= by
+calc
+a≥ gg1 b:= by
+  exact h
+_≥ 1 *b^1*4^(b^3)*(1^(16)*1):= by
+  unfold gg1
+  gcongr
+  simp
+  assumption
+  simp
+  assumption
+  simp
+_= _:= by
+  ring_nf
 
 lemma gg1_2
 {a b: ℕ}
@@ -50,11 +94,13 @@ a≥b^4
 calc
 a≥ gg1 b:= by
   exact h
-_≥ 1 *b^4*1:= by
+_≥ 1 *b^4*1*(1^(16)*1):= by
   unfold gg1
   gcongr
   simp
-  exact Nat.one_le_two_pow
+  exact Nat.one_le_pow' (b ^ 3) 3
+  assumption
+  simp
 _= b^4:= by
   ring_nf
 
@@ -68,10 +114,12 @@ a≥10000 *b^4
 calc
 a≥ gg1 b:= by
   exact h
-_≥ 10000 *b^4*1:= by
+_≥ 10000 *b^4*1*(1^(16)*1):= by
   unfold gg1
   gcongr
-  exact Nat.one_le_two_pow
+  exact Nat.one_le_pow' (b ^ 3) 3
+  assumption
+  simp
 
 _= 10000 *b^4:= by
   ring_nf
@@ -139,15 +187,15 @@ lemma gg1_pos
 gg1 b>0
 := by
 calc
-  gg1 b=10000 *b^4*2^b:= by
-    unfold gg1
-    exact rfl
+  gg1 b≥ 10000 *b^3:= by
+    apply gg1_1
+    exact Nat.le_refl (gg1 b)
+    assumption
   _>0:= by
     apply mul_pos
-    apply mul_pos
     simp
-    exact Nat.pos_pow_of_pos 4 bPositive
-    exact Nat.two_pow_pos b
+    exact Nat.pos_pow_of_pos 3 bPositive
+
 
 
 
@@ -456,6 +504,12 @@ calc
     exact Nat.pos_pow_of_pos 4 bPositive
     apply Nat.pos_pow_of_pos
     simp
+    apply mul_pos
+    apply Nat.pos_pow_of_pos
+    apply Nat.pos_pow_of_pos
+    assumption
+    simp
+
     apply gg1_pos
     assumption
     apply mul_pos

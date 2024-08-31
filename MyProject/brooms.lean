@@ -1,7 +1,7 @@
 import MyProject
 
 import MyProject.locally_dense_find
-import MyProject.paths_in_cytdense
+import MyProject.long_path_avoiding
   --import MyProject.SimpleGraph
 
 open Classical
@@ -42,6 +42,7 @@ lemma dense_graph_in_broom
 (hN: ∀ (v: V), v∈ N→4*p*H.degree v ≥ d)
 (Norder: N.toFinset.card = d/(4*p))
 (pPositive: p>0)
+(dggp: d≥ p*8)
 :
 64*p^2*(H.edgeSet.toFinset.card)≥   d^2
 --32*p*p*(2*H.edgeSet.toFinset.card)≥   d^2
@@ -79,7 +80,8 @@ _≥ d*d:= by
   apply mul_pos
   exact Nat.zero_lt_succ 3
   exact pPositive
-  sorry--d ≥ 2 * (4 * p)
+  ring_nf
+  assumption
 _=  d^2:= by ring_nf
 
 
@@ -96,6 +98,7 @@ _=  d^2:= by ring_nf
 (hk:k ≤ d)
 (min_degree: ∀ v : V, v∈ H.verts → p*H.degree v ≥ d)
 (no_dense_subgraphs: ¬ (∃ (D : Subgraph G), D≤ H∧ D.verts.toFinset.card≤ 2*d∧ 64*p^2*D.edgeSet.toFinset.card≥  d^2))
+(dggp: d≥ p*8)
 --∀ (D : Subgraph G), D≤ H→ D.verts.toFinset.card≤ 2*d→ γ*D.edgeSet.toFinset.card≤ d^2)
 :
 ∃ (w: V), ∃ (P: SubgraphPath H v w),
@@ -146,7 +149,17 @@ calc
     apply min_degree
     exact hv
   _≥ d:= by
-    sorry -- d>4*p
+    apply Nat.le_sub_of_add_le
+    calc
+      4*d≥ 2*d:=by gcongr;simp
+      _= d+d:=by ring_nf
+      _≥ _:= by
+        gcongr
+        calc
+          d≥ 8*p:=by ring_nf; exact dggp
+          _≥ 4*p:=by gcongr;simp
+        --
+     -- d>4*p
 
 ---------------induction
 
@@ -434,7 +447,8 @@ have contra1:(∃ (D : Subgraph G), D≤ H∧ D.verts.toFinset.card≤ 2*d∧ 64
 
         _≤  d+d:=by
           gcongr d+?_
-          sorry-- 4 * p * 2 ≤ d
+          ring_nf
+          exact dggp-- 4 * p * 2 ≤ d
         _=2*d:= by
           ring_nf
 
@@ -454,6 +468,8 @@ have contra1:(∃ (D : Subgraph G), D≤ H∧ D.verts.toFinset.card≤ 2*d∧ 64
   simp
   exact hN2
   exact pPositive
+  exact dggp
+
 
 
 
@@ -461,6 +477,7 @@ have contra1:(∃ (D : Subgraph G), D≤ H∧ D.verts.toFinset.card≤ 2*d∧ 64
 
 
 exact no_dense_subgraphs contra1
+
 /-
 structure SubgraphPath
 (H: Subgraph G) (u v: V) where
