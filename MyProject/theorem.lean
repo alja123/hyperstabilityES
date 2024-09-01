@@ -4,6 +4,7 @@ import MyProject
 import MyProject.wide_or_separated_gives_path
 import MyProject.brooms
 import MyProject.locally_dense_find
+import MyProject.JSet_properties
 
 open Classical
 open Finset
@@ -56,6 +57,7 @@ p*(Ord.get! i).Gr.edgeSet.toFinset.card
 )
 ∧
 Clump_family_narrow  (Ord.toFinset)
+∧ Ord.Nodup
 :=by
 
 have hNoWideClumps: ¬ L_contains_wide_clump p m κ pr h G L :=by
@@ -156,7 +158,9 @@ calc
 
 repeat assumption
 rw[hOrd1]
+constructor
 exact hKFamNarrow
+exact hOrd2
 /-
 lemma Order_family
 (KFam: Finset (Clump G p m κ pr h))
@@ -183,6 +187,49 @@ p*J.edgeSet.toFinset.card
 ≥
 p*K.Gr.edgeSet.toFinset.card
 -/
+
+theorem version2
+(L: Locally_Dense G p m h)
+(LNonempty: L.H.Nonempty )
+(no_paths: ¬ Has_length_d_path (L.Gr) (h*m))
+:
+∃(Sub: Subgraph G), ∃ (Com Cov: List (Set V)),
+Components_cover_graph Sub Com
+∧
+Components_disjoint Com
+∧
+No_edges_between_components Sub Com
+∧
+Components_covered_by_covers Sub Com Cov
+∧
+Covers_small κ m Cov
+∧
+(p*Sub.edgeSet.toFinset.card+ L.Gr.edgeSet.toFinset.card≥ p*L.Gr.edgeSet.toFinset.card)
+:=by
+have hex:
+  ∃ (Ord: List (Clump G p m κ pr h)),
+  Clump_Decomposition L (Ord.toFinset)
+  ∧
+  (∀ (i: ℕ ),
+  i≤ Ord.length→
+  p*(JClump p m κ pr h iI i Ord).edgeSet.toFinset.card
+  +
+  ((Ord.get! i)).Gr.edgeSet.toFinset.card
+  ≥
+  p*(Ord.get! i).Gr.edgeSet.toFinset.card
+  )
+  ∧
+  Clump_family_narrow  (Ord.toFinset)
+  ∧ Ord.Nodup:= by
+    apply version1
+    repeat assumption
+    --
+rcases hex with ⟨Ord, hOrd1, hOrd2, hOrd3, hOrd4 ⟩
+apply theorem_conversion2
+repeat assumption
+
+
+/-
 theorem version2
 (L: Locally_Dense G p m h)
 (LNonempty: L.H.Nonempty )
@@ -194,7 +241,7 @@ theorem version2
 ∧ (∀ (x: V), (f x).toFinset.card≤ (κ *m))
 ∧ (p*Sub.edgeSet.toFinset.card+ L.Gr.edgeSet.toFinset.card≥ p*L.Gr.edgeSet.toFinset.card)
 :=by
-sorry
+sorry-/
 /-
 have hex:
   ∃ (Ord: List (Clump G p m κ pr h)),

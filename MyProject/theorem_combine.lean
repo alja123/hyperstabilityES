@@ -48,7 +48,9 @@ theorem average_degree_implies_min_degree_3
 :
 ∃ (K: Subgraph G),
 (∀ (v:V),(v∈ K.verts)
-→  (K.degree v)≥d  ):= by
+→  (K.degree v)≥d  )
+∧ (K≤ H)
+∧ (Nonempty K.verts):= by
 apply average_degree_implies_min_degree_subgraph
 assumption
 have h1: Fintype.card H.verts=(H.verts.toFinset.card-1)+1:= by
@@ -97,20 +99,22 @@ have h1: (H.edgeSet.toFinset.card)≥ (d/p)*(H.verts.toFinset.card):= by
 
 
 have h2: ∃ (K: Subgraph G),
-  (∀ (v:V),(v∈ K.verts)
-  →  (K.degree v)≥(d/p)  ):= by
+(∀ (v:V),(v∈ K.verts)
+→  (K.degree v)≥d/p  )
+∧ (K≤ H)
+∧ (Nonempty K.verts):= by
     apply average_degree_implies_min_degree_3
     exact Nat.div_pos hd pPositive
     exact order
     exact h1
-rcases h2 with ⟨K, hK ⟩
+rcases h2 with ⟨K, hK, hK2, hK3 ⟩
 use K
 constructor
 --K≤ H (need to add this to original lemma)
-sorry
+exact hK2
 constructor
 --K.verts.Nonempty
-sorry
+exact Set.nonempty_of_nonempty_subtype
 intro v hv
 calc
   2 * p * K.degree v ≥
@@ -1006,7 +1010,7 @@ exact h1 hfin
 
 
 
- 
+
 /-
 lemma Cut_dense_long_path
 (H: Subgraph G)

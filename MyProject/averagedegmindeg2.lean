@@ -335,7 +335,14 @@ simp
 
     --have h5:g s(v,x)=x:= by
 
-theorem average_degree_implies_min_degree_subgraph (hd: d>0)(n: ℕ ): (H: Subgraph G)→ (hOrder: Fintype.card (H.verts)=n+1)→  (hAverageDeg: Fintype.card (H.edgeSet)≥ d*(n+1))→ ( ∃ (K: Subgraph G), (∀ (v:V),(v∈ K.verts)→ Fintype.card (K.neighborSet v)≥d  )):= by
+theorem average_degree_implies_min_degree_subgraph
+(hd: d>0)
+(n: ℕ ):
+(H: Subgraph G)
+→ (hOrder: Fintype.card (H.verts)=n+1)
+→  (hAverageDeg: Fintype.card (H.edgeSet)≥ d*(n+1))
+→ ( ∃ (K: Subgraph G), (∀ (v:V),(v∈ K.verts)
+→ Fintype.card (K.neighborSet v)≥d  )∧ (K≤ H)∧ (Nonempty K.verts)):= by
 induction' n with n hi
 intro H  hOrder hAverageDegree
 
@@ -363,8 +370,22 @@ exact hnonemp2 hzeroedges
 intro H  hOrder hAverageDegree
 by_cases hcase:∀ v ∈ H.verts, Fintype.card ↑(H.neighborSet v) ≥ d
 use H
+constructor
 simp at hcase
-rcases hcase with ⟨x, hx ⟩
+exact hcase
+constructor
+simp
+have hnonemp: H.verts.toFinset.Nonempty :=by
+  refine card_pos.mp ?_
+  calc
+  _=Fintype.card ↑H.verts:= by
+    simp
+  _=n+1+1:= by exact hOrder
+  _>0:= by simp
+simp at hnonemp
+exact Set.Nonempty.to_subtype hnonemp
+push_neg at hcase
+rcases hcase with ⟨x, hx⟩
 --let xS:Set V:= {x}
 let K:Subgraph G:=H.deleteVerts {x}
 have KOrder:Fintype.card (K.verts)=n+1:= by calc
@@ -413,6 +434,14 @@ have  KAverageDegree: Fintype.card (↑K.edgeSet) ≥  d * (n + 1):= by calc
   _= d*(n+1):= by exact Nat.sub_eq_of_eq_add rfl
 
 
-
-apply hi K KOrder KAverageDegree
---#check H.2
+have hex44:_:= by apply hi K KOrder KAverageDegree
+rcases hex44 with ⟨J, hJ1, hJ2, hJ3 ⟩
+use J
+constructor
+exact hJ1
+constructor
+have hcont: K≤ H:= by
+  dsimp[K]
+  exact Subgraph.deleteVerts_le
+exact Preorder.le_trans J K H hJ2 hcont
+exact hJ3
