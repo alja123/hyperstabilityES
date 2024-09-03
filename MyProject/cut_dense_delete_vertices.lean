@@ -25,9 +25,7 @@ variable {hPositive: h >0}
 variable {prPositive: pr >0}
 variable {γPositive: γ >0}
 variable (iI:Inhabited (Clump G p m κ pr h))
-variable (iV:Inhabited V)
-variable {prggp: pr≫ p}
-variable {mggpr: m≫ pr}
+variable (iV:Inhabited V) 
 
 /-def cut_dense (G : SimpleGraph V)(H: Subgraph G)(k : ℕ ): Prop :=
 ∀ (A B: Finset V), (H.verts.toFinset= A ∪ B)→  k*(Rel.interedges H.Adj A B).card ≥ A.card*B.card
@@ -68,15 +66,7 @@ lemma cut_dense_delete_vertices1
 --let S: Set V:= S2\ B
 let A':Finset V:= A ∪ (S.toFinset)
 
-/-have hUnion: (H.deleteVerts S).verts.toFinset = A ∪ B:= by
-  sorry
 
-have S_small:  4*p*S.toFinset.card ≤ H.verts.toFinset.card:= by
-  sorry
-
-have SinH: S ⊆ H.verts:= by
-  sorry
--/
 have SBdisj: (S.toFinset) ∩ B=∅:= by
   simp at hUnion
   have h2: B⊆ A ∪ B:= by
@@ -517,5 +507,5 @@ calc
 γ
 
 _≥ A.card * B.card:= by
-  sorry
+
 -/

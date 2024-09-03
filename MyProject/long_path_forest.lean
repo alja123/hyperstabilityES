@@ -29,8 +29,6 @@ variable (iV:Inhabited V)
 variable (iSub:Inhabited (Subgraph G))
 variable (iSP:Inhabited (SubgraphPath_implicit   G) )
 
-variable {prggp: pr≫ p}
-variable {mggpr: m≫ pr}
 
 
 
@@ -204,7 +202,7 @@ lemma long_path_forest_specified_ends
 (k kmax: ℕ )
 
 (HL_sparse: family_sparse  κ m (HL.toFinset) )
-(HL_order: HOrder_ge_m_Family (HL.toFinset) (2*m))
+(HL_order: HOrder_ge_m_Family (HL.toFinset) (m/pr))
 
 (SinH: vertex_list_in_graph_list iV iSub S HL (HL.length))
 (EinH: vertex_list_in_graph_list iV iSub E HL (HL.length))
@@ -231,7 +229,8 @@ lemma long_path_forest_specified_ends
 (hkMax: k≤ kmax)
 
 (cutdense: cut_dense_list  HL p )--∀(i: ℕ ), (i< k)→ (cut_dense G  (HL.get! i) p))
-(Fbcard: small_intersection_list  HL Fb p (m +8*p*(2*1*kmax)))--∀(i: ℕ ), (i< k)→ (8*p*(((HL.get! i).verts∩ Fb).toFinset.card≤ (HL.get! i).verts.toFinset.card)))
+(Fbcard: small_intersection_list  HL Fb p ((8*p*kmax*m/κ)  +8*p*(2*1*kmax)))--∀(i: ℕ ), (i< k)→ (8*p*(((HL.get! i).verts∩ Fb).toFinset.card≤ (HL.get! i).verts.toFinset.card)))
+(mggp: m ≥ 18 * p)
 :
 ∃ (Fo: PathForest iV iSP H),
 Fo.S=S
@@ -242,7 +241,7 @@ Fo.S=S
 --∧ (Path_forest_support iV iSP Fo )⊆  41*p*k
 ∧ Path_forest_avoids iV iSP Fo {v:V|v∈ (List.drop k S)}
 ∧ Path_forest_avoids  iV iSP Fo {v:V|v∈ (List.drop k E)}
-∧ Path_forest_long  iV iSP Fo (m/(40*p))
+∧ Path_forest_long  iV iSP Fo (m / pr / (40 * p))
 ∧ Path_forest_in_HL iV iSub iSP HL Fo
 := by
 
@@ -328,7 +327,7 @@ have hex: ∃ (Fo: PathForest iV iSP H),Fo.S=S
   --∧ ((Path_forest_support iV iSP Fo ).toFinset.card≤ 41*p*k)
   ∧ Path_forest_avoids iV iSP Fo {v:V|v∈ (List.drop k S)}
   ∧ Path_forest_avoids iV iSP Fo {v: V|v∈ (List.drop k E)}
-  ∧ Path_forest_long  iV iSP Fo (m/(40*p))
+  ∧ Path_forest_long  iV iSP Fo (m / pr / (40 * p))
   ∧ Path_forest_in_HL iV iSub iSP HL Fo:= by
 
     apply hd1
@@ -441,7 +440,7 @@ have Fb2_eq_old: Fb2=Fb2Old:=by
 
 
 
-have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.length≥  (m/(40*p)) ∧ (Disjoint ({v | v ∈ PN.Wa.support})  Fb2):=by
+have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.length≥  (m/pr/(40*p)) ∧ (Disjoint ({v | v ∈ PN.Wa.support})  Fb2):=by
   apply Cut_Dense_path_avoiding_connecting_long_2 --_ _ _ p m _ _ _ _ _ _ _ _ Fb2
   repeat assumption
 
@@ -537,9 +536,9 @@ have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.l
     +8*p*(2*1*kmax):=by
       ring_nf
     _≤8*p*((Fb∩ (HL.get! (k)).verts).toFinset.card)
-    +m
+    +8*p*kmax*m/κ
     +8*p*(2*1*kmax):=by
-      gcongr
+      gcongr 8*p*((Fb∩ (HL.get! (k)).verts).toFinset.card)+?_+8*p*(2*1*kmax)
       unfold family_sparse at HL_sparse
       calc
         8 * p * ({v | ∃ t < k, v ∈ (Fo.P.get! t).Pa.Wa.support} ∩ (HL.get! k).verts).toFinset.card
@@ -577,18 +576,25 @@ have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.l
         _≤ 8 * p * (∑  (x∈ Finset.Ico 0 k), (((HL.get! x).verts.toFinset∩ (HL.get! k).verts.toFinset).card)):=by
           gcongr
           exact card_biUnion_le
-        _≤ (κ*(∑  (x∈ Finset.Ico 0 k), (((HL.get! x).verts.toFinset∩ (HL.get! k).verts.toFinset).card)))/kmax:=
-          by sorry--- p<κ/kmax
-        _= (∑  (x∈ Finset.Ico 0 k), (κ *((HL.get! x).verts.toFinset∩ (HL.get! k).verts.toFinset).card))/kmax:=by
+        _= 8*p*κ*(∑  (x∈ Finset.Ico 0 k), (((HL.get! x).verts.toFinset∩ (HL.get! k).verts.toFinset).card))/κ :=
+          by
+            apply Nat.eq_div_of_mul_eq_right
+            exact Nat.not_eq_zero_of_lt κPositive
+            ring_nf
+
+            --sorry--- p<κ/kmax
+        _=8*p*(κ*∑  (x∈ Finset.Ico 0 k), (((HL.get! x).verts.toFinset∩ (HL.get! k).verts.toFinset).card))/κ:= by
+          ring_nf
+        _= 8*p*(∑  (x∈ Finset.Ico 0 k), (κ *((HL.get! x).verts.toFinset∩ (HL.get! k).verts.toFinset).card))/κ:=by
           congr
           exact
             mul_sum (Ico 0 k)
               (fun i ↦ ((HL.get! i).verts.toFinset ∩ (HL.get! k).verts.toFinset).card) κ
-        _=(∑  (x∈ Finset.Ico 0 k), (κ *(((HL.get! x).verts∩ (HL.get! k).verts).toFinset).card))/kmax:=by
+        _=8*p*(∑  (x∈ Finset.Ico 0 k), (κ *(((HL.get! x).verts∩ (HL.get! k).verts).toFinset).card))/κ:=by
           congr
           simp
 
-        _≤(∑  (x∈ Finset.Ico 0 k), (m))/kmax:= by--change m/kmax to m/4*kmax*pr
+        _≤8*p*(∑  (x∈ Finset.Ico 0 k), (m))/κ := by--change m/kmax to m/4*kmax*pr
           gcongr with j hj
 
           have h91: j< HL.length:= by
@@ -623,27 +629,27 @@ have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.l
           exact h88 h79
 
 
-        _=((Finset.Ico 0 k).card*m)/kmax:=by
+        _=8*p*((Finset.Ico 0 k).card*m)/κ:=by
           congr
           exact sum_const_nat fun x ↦ congrFun rfl
-        _=(k*m)/kmax:=by
+        _=8*p*(k*m)/κ:=by
           congr
           rw [Nat.card_Ico]
           simp
-        _≤ kmax*m/kmax:=by
+        _≤ 8*p*(kmax*m)/κ:=by
           gcongr; exact Nat.le_of_succ_le hkMax
-        _= m:=by
-          refine (Nat.eq_div_of_mul_eq_right ?hc rfl).symm;
-          exact Nat.not_eq_zero_of_lt hkMax
+        _=  8*p*kmax*m/κ:=by
+          ring_nf
 
+      --
     --_≤8*p*((Fb∩ (HL.get! (k)).verts).toFinset.card)+m +8*p*(2*1*kmax):=by
     --  gcongr --(4*p*((Fb∩ (HL.get! (k)).verts).toFinset.card)+?_)
     --  exact pPositive; exact?
-    _=8*p*((Fb∩ (HL.get! (k)).verts).toFinset.card)+(m +8*p*(2*1*kmax)):=by
+    _=8*p*((Fb∩ (HL.get! (k)).verts).toFinset.card)+(8*p*kmax*m/κ  +8*p*(2*1*kmax)):=by
       ring_nf
     --_≤ 8*p*((Fb∩ (HL.get! (k)).verts).toFinset.card)+m +8*p*(2*1*kmax):=by
     --  gcongr; exact Nat.le_of_ble_eq_true rfl
-    _=8*p*((Fb∩ (HL.get ⟨ k, kUb2 ⟩ ).verts).toFinset.card)+(m +8*p*(2*1*kmax)):= by
+    _=8*p*((Fb∩ (HL.get ⟨ k, kUb2 ⟩ ).verts).toFinset.card)+(8*p*kmax*m/κ +8*p*(2*1*kmax)):= by
       rw[hKLget2]
     _≤ ((HL.get  ⟨ k, kUb2 ⟩ ).verts.toFinset.card):= by
       apply Fbcard ⟨k , kUb2 ⟩
@@ -910,13 +916,19 @@ have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.l
       exact List.getD_eq_get HL default h9
     rw[h10]
     exact List.get_mem HL k h9
-  calc
+
+  apply HL_order
+  simp only [List.mem_toFinset]
+  exact h5
+  /-calc
     _ ≥ (2*m):= by
       apply HL_order
       simp only [List.mem_toFinset]
       exact h5
     _≥ 1*m:=by gcongr; exact NeZero.one_le
-    _=m:= by ring_nf
+    _=m:= by ring_nf-/
+  --m/pr≥ 18*p
+  sorry
 
 
 

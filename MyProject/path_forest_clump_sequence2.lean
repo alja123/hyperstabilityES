@@ -134,6 +134,11 @@ lemma clump_path_sequence_gives_path2
 (k: ℕ )
 (kLarge: k>2)
 (Ord_length: Seq.Ord.length>k+8)
+(Ord_length_upper: Seq.Ord.length≤ 4*k+100)
+(ineq1: 8 * γ *(82 * γ * k+2*k)≤ m/(2*pr))
+(ineq2: 2 * (k + 4) + (4*k+100) + 2≤  m / pr)
+(LM_in_H:∀ i < k , Seq.LM.get! i ≤ H)
+(prllγ :pr≤ γ)
 :
 ∃  (u v: V), ∃  (P: SubgraphPath H u v), P.Wa.length ≥  (k*m)
 
@@ -203,7 +208,16 @@ have ex_pairs: _:= by
   exact LM_length_ge2
   exact Ord_length_ge2
   --2 * k + Seq.Ver.length + 2 ≤ m / pr
-  sorry
+  rw[Seq.hlengthVer]
+  calc
+    _≤ 2 * (k + 4) + (Seq.Ord.length) + 2:= by
+      gcongr
+      simp
+    _≤ 2 * (k + 4) + (4*k+100) + 2:= by
+      gcongr
+    _≤  m / pr:= by
+      exact ineq2
+
   --
 
 rcases ex_pairs with ⟨S, E, hS, hE, hSE, hSVer, hEVer, hSNoDup, hENoDup, hSInLM, hEInLM⟩
@@ -617,7 +631,7 @@ let Fb3: Set V:=  ({v:V| v∈ Path_forest_support iV iSP F1}∪ {v:V| v∈ Path_
 
 
 have hF3Ex: _:= by
-  apply long_path_forest_specified_ends_simplified_altnum iV iSub iSP H S E Seq.LM  k  m γ Fb3
+  apply long_path_forest_specified_ends_simplified_altnum iV iSub iSP H S E Seq.LM  k  m γ pr Fb3
   --LMSparse
   exact Seq.LM_Sparse
   --LMgeMfamily
@@ -639,7 +653,10 @@ have hF3Ex: _:= by
     apply h
     rw[Seq.hlengthM.symm]
     exact j.isLt
-  sorry -- using lower bound on size of graphs in M here (which is m/pr) currently
+  apply near_regular_vertices_lower_bound
+  apply (Seq.Ord.get! ↑j).M_Near_Regular
+  apply h78
+   -- using lower bound on size of graphs in M here (which is m/pr) currently
   --vertex_list_in_graph_list iV iSub S HS (k + 1)
   intro i hi
   apply hSInLM i;
@@ -659,7 +676,7 @@ have hF3Ex: _:= by
   rw[hE]; simp
   exact LM_length_ge
   -- ∀ i < k + 1, Seq.LM.get! i ≤ H
-  sorry
+  exact LM_in_H
   --vertex_list_outside_set iV S Fb3 (k + 1)
   intro i hi2
   have hi: i< k+1:= by exact Nat.lt_add_right 1 hi2
@@ -688,14 +705,22 @@ have hF3Ex: _:= by
   --Enodup
   exact hENoDup
   --LMnodup
-  sorry --- should be part of path sequence definition
+  exact Seq.LM_NoDup
+  --- should be part of path sequence definition
   --cut_dense
   intro i hi2
   have hi: i< k+1:= by exact Nat.lt_add_right 1 hi2
   have h23: (Seq.LM.get! i)∈ (Seq.Ord.get! i).M:= by
     apply LM_get i hi
   --now apply that M graphs are gut dense
-  sorry
+  have hcd: G.cut_dense (Seq.LM.get! i) pr:= by
+    apply ((Seq.Ord.get! i).M_Near_Regular (Seq.LM.get! i) h23).2
+    --
+
+  apply Cut_Dense_monotone
+  exact prllγ
+  exact hcd
+  --
 
   --small_intersection_list
   intro i hi2
@@ -703,14 +728,14 @@ have hF3Ex: _:= by
   calc
     _
     =
-    8 * γ * (Fb3 ∩ (Seq.LM.get!  i).verts).toFinset.card + (m + 8 * γ * (2 * (k )))
+    8 * γ * (Fb3 ∩ (Seq.LM.get!  i).verts).toFinset.card + (m/(2*pr) + 8 * γ * (2 * (k )))
     :=by
       simp
     _≤
-    8 * γ * (Fb3).toFinset.card + (m + 8 * γ * (2 * (k ))):= by
+    8 * γ * (Fb3).toFinset.card + (m/(2*pr) + 8 * γ * (2 * (k ))):= by
       gcongr
       simp
-    _≤ 8 * γ * (82 * γ * k)+ (m + 8 * γ * (2 * (k ))):= by
+    _≤ 8 * γ * (82 * γ * k)+ (m/(2*pr) + 8 * γ * (2 * (k ))):= by
       gcongr
       dsimp[Fb3]
       calc
@@ -729,10 +754,30 @@ have hF3Ex: _:= by
         _≤ 41 * γ * k+41 * γ * k:= by
           gcongr
         _=82 * γ * k:= by ring_nf
+    _≤ m/pr:= by
+      calc
+        8 * γ * (82 * γ * k) + (m / (2 * pr) + 8 * γ * (2 * k))
+        =8 * γ *(82 * γ * k+2*k)+(m / (2 * pr) ):= by
+          ring_nf
+        _≤ (m / (2 * pr) )+(m / (2 * pr) ):= by
+          gcongr
+
+        _= 2*(m/(2*pr)):= by ring_nf
+        _≤ (2*m)/(2*pr):= by
+          exact Nat.mul_div_le_mul_div_assoc 2 m (2 * pr)
+        _=(2*m/2/pr):= by
+          exact (Nat.div_div_eq_div_mul (2 * m) 2 pr).symm
+        _= m / pr:= by
+          congr
+          rw [Nat.mul_div_cancel_left m (Nat.le.step Nat.le.refl)]
+
     _≤ (Seq.LM.get! i).verts.toFinset.card:=by
       have h23: (Seq.LM.get! i)∈ (Seq.Ord.get! i).M:= by
         apply LM_get i hi        --now use that M-graphs are big
-      sorry
+      apply near_regular_vertices_lower_bound
+      apply (Seq.Ord.get! i).M_Near_Regular
+      exact h23
+
   exact γPositive
 
 

@@ -289,6 +289,13 @@ have B_lower: 2*B.toFinset.card≥ H.verts.toFinset.card:=by
       exact (Nat.mul_sub_right_distrib 2 1 H.verts.toFinset.card).symm
     _=H.verts.toFinset.card:=by
       simp
+have BcardPos: B.toFinset.card>0:= by
+  have h4: 2*B.toFinset.card>0:= by
+    calc
+      2*B.toFinset.card
+      ≥  H.verts.toFinset.card:= by exact B_lower
+      _>0:= by exact Nat.zero_lt_of_lt contr
+  exact Nat.pos_of_mul_pos_left h4
 
 
 have hineq1: 4*p*(Rel.interedges (H.Adj) (Nd.toFinset) (B.toFinset)).card≤ 2*(Nd.toFinset.card)*(B.toFinset.card):=by
@@ -338,9 +345,22 @@ have hstrict: 4*(Nd.toFinset.card)*(B.toFinset.card)≤ 2*(Nd.toFinset.card)*(B.
 have hstrict2: 4*(Nd.toFinset.card)*(B.toFinset.card)> 2*(Nd.toFinset.card)*(B.toFinset.card):=by
   gcongr
   -- 0 < B.toFinset.card
-  sorry
+
   --  0 < Nd.toFinset.card
-  sorry
+  refine card_pos.mpr ?bc.a0.a
+  simp
+  use v
+  rw[hNd]
+  simp
+  let Wv:G.Walk v v:=  Walk.nil' v
+  have Wv_In_H: Wv.toSubgraph≤ H:= by
+    dsimp[Wv]
+    simp
+    exact v_in_H
+  use ⟨Wv, Wv_In_H ⟩
+  dsimp[Wv]
+  simp
+  
   exact Nat.lt_of_sub_eq_succ rfl
 
 have hstr3: ¬( 4*(Nd.toFinset.card)*(B.toFinset.card)> 2*(Nd.toFinset.card)*(B.toFinset.card)):=by

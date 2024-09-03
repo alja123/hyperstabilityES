@@ -98,7 +98,7 @@ exact contained h1
 repeat assumption
 
 
---Used
+
 lemma long_path_forest_specified_ends_simplified_altnum
 (H: Subgraph G)
 (S E: List V)
@@ -161,7 +161,7 @@ lemma long_path_forest_specified_ends_simplified_altnum
 := by
 sorry
 
----Not used
+
 lemma long_path_forest_specified_ends_simplified
 (H: Subgraph G)
 (S E: List V)
@@ -519,7 +519,7 @@ exact hFod
 
 
 
---Used
+
 lemma path_forest_specified_ends_simplified_prefix
 (H: Subgraph G)
 (S E: List V)
@@ -567,7 +567,7 @@ Fo.S= S.take k
 sorry
 
 
---not used
+
 lemma path_forest_specified_ends_simplified
 (H: Subgraph G)
 (S E: List V)
@@ -1042,7 +1042,7 @@ have h2: v∈ T.toFinset:= by exact List.mem_toFinset.mpr cont
 exact h1 h2
 
 
---used
+
 lemma find_pairs_in_M_list
 (Ord: List (Clump G p m κ pr h))
 (Ver: List V)
@@ -1360,7 +1360,7 @@ exact ein3
 
 
 
---used
+
 lemma add_Ver_to_M_list
 (H: Subgraph G)
 (Ord: List (Clump G p m κ pr h))
@@ -1691,7 +1691,7 @@ exact neg (hpathsdisjoint i j hi hj')
 
 
 
---not used
+
 lemma add_Ver_to_M_list_starts
 (H: Subgraph G)
 (Ord: List (Clump G p m κ pr h))
@@ -1925,7 +1925,7 @@ sorry
 
 
 
---used
+
 lemma add_Ver_to_M_list_starts_alt
 (H: Subgraph G)
 (Ord: List (Clump G p m κ pr h))

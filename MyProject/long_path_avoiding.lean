@@ -29,8 +29,7 @@ variable (iV:Inhabited V)
 variable (iSub:Inhabited (Subgraph G))
 variable (iSP:Inhabited (SubgraphPath_implicit   G) )
 
-variable {prggp: pr≫ p}
-variable {mggpr: m≫ pr}
+
 
 
 /-
@@ -467,7 +466,14 @@ have Fb2Small: 2*(4*p*(Fb2∩ H.verts).toFinset.card )≤ 2*(H.verts.toFinset.ca
       exact v_in_H
     _≤ H.verts.toFinset.card+H.verts.toFinset.card:= by
       gcongr
-      sorry
+      calc
+        H.verts.toFinset.card≥ 8 * p * (d+1):=by
+          exact Nat.le_of_succ_le hd
+        _≥ 8 * p * (1):= by
+          gcongr
+          simp
+        _=_:= by
+          ring_nf
     _= 2*H.verts.toFinset.card:=by ring_nf
 have Fb2Small: 4*p*(Fb2∩ H.verts).toFinset.card ≤ H.verts.toFinset.card:= by
   apply Nat.le_of_mul_le_mul_left
@@ -692,6 +698,7 @@ lemma Cut_Dense_path_avoiding_connecting_long_2
 --(hd: p*d < H.verts.toFinset.card)
 --(hd: 8*p*(d+1) < H.verts.toFinset.card)
 (Horder: H.verts.toFinset.card≥ m)
+(mggp:  m≥ 18*p)
 :
 ∃ (P: SubgraphPath H u v), P.Wa.length≥ (m/(40*p)) ∧ (Disjoint {v:V| v∈ P.Wa.support}  Fb)
 := by
@@ -727,6 +734,33 @@ calc
       _≤ m:= by
         exact Nat.mul_div_le m (16 * p)
   _<m:= by
-    sorry--m / 2 + 8 * p < m
+    calc
+      m / 2 + 8 * p
+      < m/2+m/2:= by
+        gcongr
+        refine (Nat.le_div_iff_mul_le ?bc.k0).mpr ?bc.a
+        simp
+        simp
+        ring_nf
+        rw[mul_comm]
+        calc
+          m≥ 18*p:= by exact mggp
+          _= 2*p+16*p:= by ring_nf
+          _≥ 2*1 + 16 * p:=by
+            gcongr
+            exact pPositive
+          _=_:= by ring_nf
+
+      _=2*(m/2):= by
+        ring_nf
+      _≤ 2*m/2:= by
+        exact Nat.mul_div_le_mul_div_assoc 2 m 2
+
+      _=1*m:= by
+        refine Nat.div_eq_of_eq_mul_right ?H1 ?H2
+        simp
+        ring_nf
+      _=m:=by ring_nf
+    --m / 2 + 8 * p < m
   _≤ H.verts.toFinset.card:= by
     exact Horder

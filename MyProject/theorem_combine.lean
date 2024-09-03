@@ -12,7 +12,7 @@ open scoped BigOperators
 namespace SimpleGraph
 
 
-set_option maxHeartbeats 270000
+set_option maxHeartbeats 0
 
 universe u
 variable {V : Type u} {G : SimpleGraph V}
@@ -26,7 +26,7 @@ variable {mPositive: m >0}
 variable {hPositive: h >0}
 variable {prPositive: pr >0}-/
 --variable {γPositive: γ >0}
-variable (iI:Inhabited (Clump G p m κ pr h))
+--variable (iI:Inhabited (Clump G p m κ pr h))
 variable (iV:Inhabited V)
 variable (iSub:Inhabited (Subgraph G))
 /-
@@ -39,6 +39,30 @@ variable (κggα: κ ≥ gg1 α )
 variable (αggh: α ≥ h)
 -/
 
+
+lemma clumps_nonempty
+(m κ  pr p h: ℕ)
+(prggp: pr ≥ gg2 p)
+(hggp: h ≥ gg1 pr)
+(κggh: κ ≥ gg1 h)
+(mggκ :m≥ gg2 κ )
+(κPositive: κ>0)
+(pPositive: p>0)
+(hPositive: h>0)
+(prPositive: pr>0)
+{L: Subgraph G}
+(hLorderm: L.verts.toFinset.card ≥ m)
+(hLorderhm: L.verts.toFinset.card ≤  h*m)
+(hL: cut_dense G L p)
+:
+Nonempty (Clump G p m κ pr h)
+:= by
+have hex: ∃ (X: Clump G p m κ pr h), graph_forms_clump L X:= by
+  apply initial_clump_construction_2
+  repeat assumption
+  --
+rcases hex with ⟨X, hX⟩
+exact Nonempty.intro X
 
 theorem average_degree_implies_min_degree_3
 (hd: d>0)
@@ -140,19 +164,31 @@ theorem version3
 (HNonempty: H.edgeSet.toFinset.card>0)
 (Hedges: ε *H.edgeSet.toFinset.card ≥ d*H.verts.toFinset.card)
 :
-∃ (f: V→ Set V), ∃ (Sub: Subgraph G),
+∃(Sub: Subgraph G), ∃ (Com Cov: List (Set V)),
+Components_cover_graph Sub Com
+∧
+Components_disjoint Com
+∧
+No_edges_between_components Sub Com
+∧
+Components_covered_by_covers Sub Com Cov
+∧
+Covers_small (gg1 (gg1 (gg2 (gg1 ε)))) d Cov
+∧
+(ε *Sub.edgeSet.toFinset.card+ H.edgeSet.toFinset.card≥ ε *H.edgeSet.toFinset.card)
+/-∃ (f: V→ Set V), ∃ (Sub: Subgraph G),
 (∀ (x: V), Sub.neighborSet x ⊆  f x)
 ∧ (∀ ( x y: V), f x ≠ f y → (Disjoint (f x) (f y)))
 ∧ (∀ (x: V), (f x).toFinset.card≤ ((gg2 ε)*d))
 ∧ (ε *Sub.edgeSet.toFinset.card+H.edgeSet.toFinset.card≥ ε *H.edgeSet.toFinset.card)
-:=by
+-/:=by
 
 
 --have p:ℕ := by sorry
 --have pr:ℕ := by sorry
 --have h:ℕ := by sorry
 --have κ :ℕ := by sorry
-have num_ex: ∃ (p pr h κ α : ℕ),  p≥ 20 ∧ pr ≥ gg2 p ∧ h ≥ gg1 pr ∧ κ ≥ gg1 h∧ κ ≥ gg1 α ∧ α ≥ h∧ p≥ gg1 ε ∧ d≥gg2 κ *h := by
+have num_ex: ∃ (p pr h κ α : ℕ),  p≥ 20 ∧ pr ≥ gg2 p ∧ h ≥ gg1 pr ∧ κ ≥ gg1 h∧ κ ≥ gg1 α ∧ α ≥ h∧ p≥ gg1 ε ∧ d≥gg2 κ *h ∧ (gg1 (gg1 (gg2 (gg1 ε))))= κ:= by
   let p: ℕ := gg1 ε
   let pr: ℕ := gg2 p
   let h: ℕ := gg1 pr
@@ -194,12 +230,16 @@ have num_ex: ∃ (p pr h κ α : ℕ),  p≥ 20 ∧ pr ≥ gg2 p ∧ h ≥ gg1 p
   dsimp[p]
   apply Nat.le_refl
 
+  constructor
   dsimp[κ, h, pr, p]
   sorry--exact dggε
 
+  dsimp[κ, h, pr, p]
 
 
-rcases num_ex with ⟨p,pr,h,κ,α, pLarge, prggp, hggp,κggh, κggα, αggh, pggε, dgg⟩
+
+
+rcases num_ex with ⟨p,pr,h,κ,α, pLarge, prggp, hggp,κggh, κggα, αggh, pggε, dgg, κeq⟩
 --let p: ℕ := gg1 ε
 --let pr: ℕ := gg2 p
 --let h: ℕ := gg1 pr
@@ -362,6 +402,7 @@ have dm1:  h*m ≥ p*d:= by
 
     _=p*d:= by exact Nat.mul_div_right (p * d) hPositive
 
+
 have dm2:  m * p * 32 ≤ d:= by
   calc
     m * p * 32= (p*32)*((p*d)/h)+p*32:= by
@@ -408,6 +449,17 @@ have dm2:  m * p * 32 ≤ d:= by
     _=2*(d/2):= by ring_nf
     _≤ d:=by
       exact Nat.mul_div_le d 2
+
+
+have dm3:  m ≤ d:= by
+  calc
+    d≥ m * p * 32:= by assumption
+    _≥ m*1*1:= by
+      gcongr
+      assumption
+      simp
+    _=m:= by ring_nf
+
 
 have hLex: ∃ (L : Locally_Dense G p m h),
   ∃ (R: Subgraph G),
@@ -732,18 +784,7 @@ have Rsparse:δ *R.edgeSet.toFinset.card≤  d*R.verts.toFinset.card:= by
     exact Nat.le_of_eq (id hP1.symm)
   exact no_paths ex
 
-
-
-have Ldec:
-  ∃ (f: V→ Set V), ∃ (Sub: Subgraph G),
-  (∀ (x: V), Sub.neighborSet x ⊆  f x)
-  ∧ (∀ ( x y: V), f x ≠ f y → (Disjoint (f x) (f y)))
-  ∧ (∀ (x: V), (f x).toFinset.card≤ (κ *m))
-  ∧ (p*Sub.edgeSet.toFinset.card+ L.Gr.edgeSet.toFinset.card≥ p*L.Gr.edgeSet.toFinset.card)
-  := by
-    apply version2
-    repeat assumption
-    --L.H.Nonempty
+have Lnonempty: L.H.Nonempty:= by
     by_contra cont6
     have h1: L.Gr.verts=∅ :=by
       rw[L.H_Partition_K.symm]
@@ -811,6 +852,36 @@ have Ldec:
 
     exact h10 h9
 
+have clumpsnonemp: Nonempty (Clump G p m κ pr h):= by
+  sorry
+  --
+
+inhabit (Clump G p m κ pr h)
+
+have Ldec:
+  ∃(Sub: Subgraph G), ∃ (Com Cov: List (Set V)),
+  Components_cover_graph Sub Com
+  ∧
+  Components_disjoint Com
+  ∧
+  No_edges_between_components Sub Com
+  ∧
+  Components_covered_by_covers Sub Com Cov
+  ∧
+  Covers_small κ m Cov
+  ∧
+  (p*Sub.edgeSet.toFinset.card+ L.Gr.edgeSet.toFinset.card≥ p*L.Gr.edgeSet.toFinset.card)
+  := by
+    apply version2
+    exact κPositive
+    exact pPositive
+    exact mPositive
+    exact hPositive
+    exact prPositive
+    exact inhabited_h
+    repeat assumption
+    --L.H.Nonempty
+
     --¬Has_length_d_path L.Gr (h * m)
     by_contra cont5
     rcases cont5 with ⟨v, w, hvw ⟩
@@ -838,16 +909,31 @@ have Ldec:
     exact no_paths ex
 
 
-rcases Ldec with ⟨f, Sub, hf1, hf2, hf3, hSub ⟩
-use f
+rcases Ldec with ⟨Sub, Com, Cov, hf1, hf2, hf3, hf4, hf5, hSub ⟩
 use Sub
+use Com
+use Cov
+
+constructor
+assumption
+constructor
+assumption
 constructor
 assumption
 constructor
 assumption
 constructor
 --small covers
-sorry
+intro i hi
+calc
+   (Cov.get! i).toFinset.card ≤κ *m :=by
+    apply hf5
+    exact hi
+  _≤ κ *d:= by
+    gcongr
+  _=_:= by rw[κeq]
+
+
 
 --ε * Sub.edgeSet.toFinset.card + H.edgeSet.toFinset.card ≥ ε * H.edgeSet.toFinset.card
 
@@ -1005,13 +1091,26 @@ exact h1 hfin
 
 
 
-
-
-
-
-
-
 /-
+
+
+
+lemma initial_clump_construction_2
+{L: Subgraph G}
+(hLorderm: L.verts.toFinset.card ≥ m)
+(hLorderhm: L.verts.toFinset.card ≤  h*m)
+(hL: cut_dense G L p)
+--(pLarge: p≥ 20)
+--(mggpr: m≥ gg1 pr)
+(prggp: pr ≥ gg2 p)
+(hggp: h ≥ gg1 pr)
+(κggh: κ ≥ gg1 h)
+(mggκ :m≥ gg2 κ )
+:
+∃ (X: Clump G p m κ pr h), graph_forms_clump L X
+
+
+
 lemma Cut_dense_long_path
 (H: Subgraph G)
 (H_cut_dense: cut_dense G H p)

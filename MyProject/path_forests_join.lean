@@ -259,7 +259,7 @@ exact lt_add_one t
 exact h2
 
 
-
+/-
 lemma join_three_forests
 (H: Subgraph G)
 (F1 F2 F3: PathForest iV iSP H)
@@ -812,4 +812,5 @@ structure SubgraphPath
   Wa_Is_Path: Wa.IsPath
   Wa_In_H: Wa.toSubgraph≤ H
 
+-/
 -/

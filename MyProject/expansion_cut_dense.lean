@@ -25,7 +25,7 @@ variable {hPositive: h >0}
 variable {prPositive: pr >0}
 variable {γPositive: γ >0}
 variable (iI:Inhabited (Clump G p m κ pr h))
-variable (iV:Inhabited V) 
+variable (iV:Inhabited V)
 
 
 
@@ -258,7 +258,9 @@ have h2: (4*p*(Nd).toFinset.card< (4*p+1)*H.verts.toFinset.card):= by
   _< (4*p+1)*H.verts.toFinset.card:= by
     gcongr
     --0 < H.verts.toFinset.card
-    sorry
+    refine card_pos.mpr ?bc.a0.a
+    simp
+    use v
     exact lt_add_one (4 * p)
 
 have h3: ¬ (4*p*(Nd).toFinset.card≥ (4*p+1)*H.verts.toFinset.card):= by
@@ -481,6 +483,31 @@ exact List.Nodup.sublist h2 h1
 
 exact disj
 
+lemma subgraphwalk_end_in_H
+(H: Subgraph G)
+(u v: V)
+(W: SubgraphWalk H u v)
+:
+v∈ H.verts:= by
+have h1: v∈ W.Wa.toSubgraph.verts:= by
+  simp
+have h2: W.Wa.toSubgraph.verts⊆ H.verts:= by
+  apply subgraphs_vertex_sets_subsets G
+  exact W.Wa_In_H
+exact h2 h1
+
+lemma subgraphpath_end_in_H
+(H: Subgraph G)
+(u v: V)
+(W: SubgraphPath H u v)
+:
+v∈ H.verts:= by
+have h1: v∈ W.Wa.toSubgraph.verts:= by
+  simp
+have h2: W.Wa.toSubgraph.verts⊆ H.verts:= by
+  apply subgraphs_vertex_sets_subsets G
+  exact W.Wa_In_H
+exact h2 h1
 
 
 lemma Cut_dense_long_path
@@ -519,7 +546,9 @@ rcases hex with ⟨v, ⟨P, hP⟩⟩
 
 
 have v_in_H: v ∈ H.verts:= by
-  sorry
+  apply subgraphpath_end_in_H
+  exact P
+
 
 let N: Set V:=H.neighborSet v
 
@@ -639,6 +668,8 @@ exact Walk.length_support W
 -/
 
 
+/-
+This was uncommented before, but I couldn't see it used anywhere
 
 lemma extend_path_in_cutdense
 (u v w: V)
@@ -655,3 +686,4 @@ Q.Wa.length≤20*p
 
 #check cut_dense_subgraph_monotone
 sorry
+-/

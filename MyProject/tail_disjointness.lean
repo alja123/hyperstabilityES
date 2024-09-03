@@ -27,9 +27,7 @@ variable (iI:Inhabited (Clump G p m κ pr h))
 variable (iV:Inhabited V)
 variable (iSub:Inhabited (Subgraph G))
 variable (iSP:Inhabited (SubgraphPath_implicit   G) )
-
-variable {prggp: pr≫ p}
-variable {mggpr: m≫ pr}
+ 
 
 
 
