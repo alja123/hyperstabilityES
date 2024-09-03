@@ -1,6 +1,6 @@
 import MyProject
 
-import MyProject.brooms
+import MyProject.path_forests
   --import MyProject.SimpleGraph
 
 open Classical
@@ -10,7 +10,7 @@ open scoped BigOperators
 namespace SimpleGraph
 
 
-set_option maxHeartbeats 200000
+set_option maxHeartbeats 100000
 
 universe u
 variable {V : Type u} {G : SimpleGraph V}
@@ -27,185 +27,19 @@ variable {γPositive: γ >0}
 variable (iI:Inhabited (Clump G p m κ pr h))
 variable (iV:Inhabited V)
 variable (iSub:Inhabited (Subgraph G))
-variable (iSP:Inhabited (SubgraphPath_implicit   G) )
 
 
 
 
-/-
-lemma long_path_forest_specified_ends
+
+lemma path_forest_specified_ends_altk
 (H: Subgraph G)
 (S E: List V)
 (HL: List (Subgraph G))
 (k kmax: ℕ )
 
-(HL_sparse: family_sparse  κ m (HL.toFinset) )
-
 (SinH: vertex_list_in_graph_list iV iSub S HL (HL.length))
-(EinH: vertex_list_in_graph_list iV iSub E HL (HL.length))
-
-(SE_Disjoint : List.Disjoint S E)
-
-
-(Slength: S.length> k)
-(Elength: E.length> k)
-
-(Smaxlength: S.length≤  kmax)
-(Emaxlength: E.length≤  kmax)
-
-(HLlength: HL.length> k)
-(HL_in_H: ∀ (i: Fin (HL.length) ), (HL.get i≤ H))
-(Fb: Set V)
-
-(SoutsideFb: vertex_list_outside_set iV S Fb (HL.length))
-(EoutsideFb: vertex_list_outside_set iV E Fb (HL.length))
-
-(Snodup: S.Nodup)
-(Enodup: E.Nodup)
-
-(hkMax: k≤ kmax)
-
-(cutdense: cut_dense_list  HL p )--∀(i: ℕ ), (i< k)→ (cut_dense G  (HL.get! i) p))
-(Fbcard: small_intersection_list  HL Fb p (172*p*p*kmax))--∀(i: ℕ ), (i< k)→ (8*p*(((HL.get! i).verts∩ Fb).toFinset.card≤ (HL.get! i).verts.toFinset.card)))
-:
-∃ (Fo: PathForest iV iSP H),
-Fo.S=S
-∧ Fo.E=E
-∧ Fo.k=k
-∧ Fo.P.length=k
-∧ Path_forest_avoids iV iSP Fo Fb
-∧ (Path_forest_support iV iSP Fo ).toFinset.card≤ 41*p*k
-∧ Path_forest_avoids iV iSP Fo {v:V|v∈ (List.drop k S)}
-∧ Path_forest_avoids  iV iSP Fo {v:V|v∈ (List.drop k E)}
-∧ Path_forest_long  iV iSP Fo (m/40*p)
-:= by
---#check clump_path_sequence_gives_path
-
--/
-
-/-
-
-lemma Cut_Dense_path_avoiding_connecting_long_2
-(H: Subgraph G)
-(H_cut_dense: cut_dense G H p)
-(u v: V)
-(v_in_H: v ∈ H.verts)
-(u_in_H: u ∈ H.verts)
-(Fb: Set V)
-(FbSmall: 8*p*(Fb∩ H.verts).toFinset.card ≤ H.verts.toFinset.card)
-(hu: u ∉ Fb)
-(hv: v ∉ Fb)
-(uvdiff: u ≠ v)
---(d: ℕ)
---(hd: p*d < H.verts.toFinset.card)
---(hd: 8*p*(d+1) < H.verts.toFinset.card)
-(Horder: H.verts.toFinset.card≥ m)
-:
-∃ (P: SubgraphPath H u v), P.Wa.length≥ (m/(40*p)) ∧ (Disjoint {v:V| v∈ P.Wa.support}  Fb)
-:= by
--/
-
-
-
-lemma finsets4card_alt
-(A B C D T: Finset V)
-:
-((A∪ B∪ C∪ D)∩ T).card≤ (A∩ T).card+(B∩ T).card+C.card+D.card:=by
-calc
-((A∪ B∪ C∪ D)∩ T).card
-≤ (A ∩ T ∪ (B∩ T) ∪ C ∪ D).card:= by
-  gcongr
-  intro x hx
-  simp
-  simp at hx
-  simp_all only [gt_iff_lt,
-    and_true]
-_≤ (A∩ T).card+(B∩ T).card+C.card+D.card:= by
-  exact card_union_4 (A ∩ T) (B∩ T) C D
-/-
-lemma sets4card
-(A B C D T: Set V)
-:
-((A∪ B∪ C∪ D)∩ T).toFinset.card≤ (A∩ T).toFinset.card+B.toFinset.card+C.toFinset.card+D.toFinset.card:=by
-calc
-((A∪ B∪ C∪ D)∩ T).toFinset.card
-_= ((A.toFinset ∪ B.toFinset∪ C.toFinset∪ D.toFinset)∩ T.toFinset).card:= by
-  simp
-_≤ (A.toFinset ∩ T.toFinset).card+B.toFinset.card
-+C.toFinset.card
-+D.toFinset.card:= by
-  apply finsets4card
-_=(A∩ T).toFinset.card+B.toFinset.card+C.toFinset.card+D.toFinset.card:=by
-  congr; simp
-
-
-
-lemma sets4cardinequality
-(A B C D T: Set V)
-(a b c d: ℕ)
-(ha: (A∩ T).toFinset.card≤ a)
-(hb: B.toFinset.card≤ b)
-(hc: C.toFinset.card≤ c)
-(hd: D.toFinset.card≤ d)
-:
-((A∪ B∪ C∪ D)∩ T).toFinset.card≤ a+b+c+d:=by
-calc
-((A∪ B∪ C∪ D)∩ T).toFinset.card
-≤ (A∩ T).toFinset.card+B.toFinset.card+C.toFinset.card+D.toFinset.card:= by
-  apply sets4card
-_≤ a+b+c+d:= by
-  gcongr
-
--/
-
-
-lemma finsets4cardinequality_alt
-(A B C D T: Finset V)
-(a b c d: ℕ)
-(ha: (A∩ T).card≤ a)
-(hb: (B∩ T).card≤ b)
-(hc: C.card≤ c)
-(hd: D.card≤ d)
-:
-((A∪ B∪ C∪ D)∩ T).card≤ a+b+c+d:=by
-calc
-((A∪ B∪ C∪ D)∩ T).card
-≤ (A∩ T).card+(B∩ T).card+C.card+D.card:= by
-  apply finsets4card_alt
-_≤ a+b+c+d:= by
-  gcongr
-
-
-
-def Path_forest_long
-{H: Subgraph G}
-(Fo: PathForest iV iSP H)
-(l: ℕ )
-:=
-∀ (i: ℕ ), i< Fo.k→ (Fo.P.get! i).Pa.Wa.length≥ l
-
-
-def Path_forest_in_HL
-{H: Subgraph G}
-(HL: List (Subgraph G))
-(Fo: PathForest iV iSP H)
- :=
-∀ (i: ℕ ), i< Fo.k→ {v:V|v∈ (Fo.P.get! i).Pa.Wa.support}⊆ (HL.get! i).verts
-
-
-
-
-lemma long_path_forest_specified_ends
-(H: Subgraph G)
-(S E: List V)
-(HL: List (Subgraph G))
-(k kmax: ℕ )
-
-(HL_sparse: family_sparse  κ m (HL.toFinset) )
-(HL_order: HOrder_ge_m_Family (HL.toFinset) (m/pr))
-
-(SinH: vertex_list_in_graph_list iV iSub S HL (HL.length))
-(EinH: vertex_list_in_graph_list iV iSub E HL (HL.length))
+(EinH: vertex_list_in_graph_list iV iSub E HL (k))
 
 (SE_Disjoint : List.Disjoint S E)
 
@@ -219,9 +53,9 @@ lemma long_path_forest_specified_ends
 (HLlength: HL.length≥  k)
 (HL_in_H: ∀ (i: Fin (HL.length) ), (HL.get i≤ H))
 (Fb: Set V)
-(HL_nodup: HL.Nodup)
+
 (SoutsideFb: vertex_list_outside_set iV S Fb (HL.length))
-(EoutsideFb: vertex_list_outside_set iV E Fb (HL.length))
+(EoutsideFb: vertex_list_outside_set iV E Fb (k))
 
 (Snodup: S.Nodup)
 (Enodup: E.Nodup)
@@ -229,8 +63,8 @@ lemma long_path_forest_specified_ends
 (hkMax: k≤ kmax)
 
 (cutdense: cut_dense_list  HL p )--∀(i: ℕ ), (i< k)→ (cut_dense G  (HL.get! i) p))
-(Fbcard: small_intersection_list  HL Fb p ((8*p*kmax*m/κ)  +8*p*(2*1*kmax)))--∀(i: ℕ ), (i< k)→ (8*p*(((HL.get! i).verts∩ Fb).toFinset.card≤ (HL.get! i).verts.toFinset.card)))
-(mggp: m ≥ 18 * p)
+(Fbcard: small_intersection_list  HL Fb p (172*p*p*kmax))--∀(i: ℕ ), (i< k)→ (8*p*(((HL.get! i).verts∩ Fb).toFinset.card≤ (HL.get! i).verts.toFinset.card)))
+--(Fbcard: small_intersection_list  HL Fb p ((8*p*kmax*m/κ)  +8*p*(2*1*kmax)))
 :
 ∃ (Fo: PathForest iV iSP H),
 Fo.S=S
@@ -238,11 +72,9 @@ Fo.S=S
 ∧ Fo.k=k
 ∧ Fo.P.length=k
 ∧ Path_forest_avoids iV iSP Fo Fb
---∧ (Path_forest_support iV iSP Fo )⊆  41*p*k
+∧ (Path_forest_support iV iSP Fo ).toFinset.card≤ 41*p*k
 ∧ Path_forest_avoids iV iSP Fo {v:V|v∈ (List.drop k S)}
 ∧ Path_forest_avoids  iV iSP Fo {v:V|v∈ (List.drop k E)}
-∧ Path_forest_long  iV iSP Fo (m / pr / (40 * p))
-∧ Path_forest_in_HL iV iSub iSP HL Fo
 := by
 
 induction' k with k hd1
@@ -278,7 +110,6 @@ have Paths_disjoint: paths_disjoint  iSP  P0 0:= by
   by_contra
   exact Nat.not_succ_le_zero j hji
 
-
 have h3: P0.length = 0:= by exact rfl
 
 let F0:PathForest iV iSP H:= ⟨S, E, P0, 0, Starts_equal, Ends_equal, Graphs_equal, Paths_disjoint , h3⟩
@@ -291,50 +122,42 @@ dsimp[F0] at hi
 by_contra
 exact Nat.not_succ_le_zero i hi
 
---constructor
---unfold Path_forest_support
---simp
---exact filter_False univ
+constructor
+unfold Path_forest_support
+simp
+exact filter_False univ
 
 constructor
 intro i hi
 dsimp[F0] at hi
 by_contra
 exact Nat.not_succ_le_zero i hi
-constructor
-
 intro i hi
 dsimp[F0] at hi
 by_contra
 exact Nat.not_succ_le_zero i hi
 
-constructor
-intro i hi
-dsimp[F0] at hi
-by_contra
-exact Nat.not_succ_le_zero i hi
-
-intro i hi
-dsimp[F0] at hi
-by_contra
-exact Nat.not_succ_le_zero i hi
-------------induction
 
 have hex: ∃ (Fo: PathForest iV iSP H),Fo.S=S
   ∧ Fo.E=E∧ Fo.k=k
   ∧ (Fo.P.length=k)
   ∧ (Path_forest_avoids iV iSP Fo Fb)
-  --∧ ((Path_forest_support iV iSP Fo ).toFinset.card≤ 41*p*k)
+  ∧ ((Path_forest_support iV iSP Fo ).toFinset.card≤ 41*p*k)
   ∧ Path_forest_avoids iV iSP Fo {v:V|v∈ (List.drop k S)}
-  ∧ Path_forest_avoids iV iSP Fo {v: V|v∈ (List.drop k E)}
-  ∧ Path_forest_long  iV iSP Fo (m / pr / (40 * p))
-  ∧ Path_forest_in_HL iV iSub iSP HL Fo:= by
+  ∧ Path_forest_avoids iV iSP Fo {v: V|v∈ (List.drop k E)}:= by
 
     apply hd1
+    intro i hi
+    apply EinH
+    exact Nat.lt_add_right 1 hi
     --
     exact Nat.le_of_succ_le Slength
-    exact Nat.le_of_succ_le Elength
+    exact  Nat.le_of_succ_le Elength
     exact Nat.le_of_succ_le HLlength
+
+    intro i hi
+    apply EoutsideFb
+    exact Nat.lt_add_right 1 hi
     exact Nat.le_of_succ_le hkMax--
 
 
@@ -347,26 +170,26 @@ have hex: ∃ (Fo: PathForest iV iSP H),Fo.S=S
 
 
 --rcases hex with ⟨Fo, ⟨FS, ⟨FE, ⟨Fk⟩⟩⟩⟩
-rcases hex with ⟨Fo, ⟨FS, ⟨FE, ⟨Fk, ⟨ FFoL, ⟨ FAvoid,  ⟨ FAvoidS, FAvoidE, FLong, FinHL⟩    ⟩ ⟩ ⟩⟩⟩⟩
+rcases hex with ⟨Fo, ⟨FS, ⟨FE, ⟨Fk, ⟨ FFoL, ⟨ FAvoid, ⟨ FSupport, ⟨ FAvoidS, FAvoidE⟩   ⟩ ⟩ ⟩ ⟩⟩⟩⟩
 
 --let k:ℕ := Fo.k
 
 
 have kUb2: k< HL.length:= by
-  exact   HLlength
+  exact  HLlength
 have hKLget2: (HL.get! (k ))=HL.get ⟨k, kUb2⟩:= by
   simp
   exact List.getD_eq_get HL default kUb2
 
 have kUB_S: k< S.length:= by
   exact  Slength
-have hSget: (S.get! (k ))=S.get ⟨k, kUB_S⟩:= by
+have hSget: (S.get! (k + 1))=S.get ⟨k+1, kUB_S⟩:= by
   simp
   exact List.getD_eq_get S default kUB_S
 
-have kUB_E: k< E.length:= by
-  exact  Elength
-have hEget: (E.get! (k ))=E.get ⟨k, kUB_E⟩:= by
+have kUB_E: k+1< E.length:= by
+  exact Nat.succ_le_of_lt Elength
+have hEget: (E.get! (k + 1))=E.get ⟨k+1, kUB_E⟩:= by
   simp
   exact List.getD_eq_get E default kUB_E
 
@@ -379,7 +202,7 @@ have hEget: (E.get! (k ))=E.get ⟨k, kUB_E⟩:= by
   constructor
   intro h
 -/
-
+/-
 let Fb2: Set V:= Fb∪ {v | ∃ Pi ∈ Fo.P, v ∈ Pi.Pa.Wa.support} ∪ {v | v ∈ List.drop (k + 1) S}∪ {v | v ∈ List.drop (k + 1) E}
 --{v | ∃ Pi ∈ Fo.P, v ∈ Pi.Pa.Wa.support}
 
@@ -435,8 +258,8 @@ have Fb2_eq_old: Fb2=Fb2Old:=by
 
 
 
-have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.length≥  (m/pr/(40*p)) ∧ (Disjoint ({v | v ∈ PN.Wa.support})  Fb2):=by
-  apply Cut_Dense_path_avoiding_connecting_long_2 --_ _ _ p m _ _ _ _ _ _ _ _ Fb2
+have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.length≤ 40*p∧ (Disjoint (PN.Wa.support.toFinset.toSet)  Fb2):=by
+  apply Cut_Dense_path_avoiding
   repeat assumption
 
   unfold cut_dense_list at cutdense
@@ -444,217 +267,18 @@ have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.l
   apply cutdense
 
   apply EinH
-  exact kUb2
+  simp
+  --exact kUb2
 
   apply SinH
   exact kUb2
 
   unfold small_intersection_list at Fbcard
-  rw[Fb2_eq_old]
-  dsimp [Fb2Old]
+  dsimp [Fb2]
 
 
-  --8 * p *
-  --  ((Fb ∪ {v | ∃ Pi ∈ Fo.P, v ∈ Pi.Pa.Wa.support} ∪ {v | v ∈ List.drop (k + 1) S} ∪ {v | v ∈ List.drop (k + 1) E}) ∩
-  --        (HL.get! k).verts).toFinset.card ≤
-  --(HL.get! k).verts.toFinset.card
+
   calc
-    _
-    =8 * p *
-    ((Fb ∪ {v | ∃ t < k, v ∈ (Fo.P.get! t).Pa.Wa.support}
-    ∪ {v | v ∈ List.drop (k + 1) S}
-    ∪ {v | v ∈ List.drop (k + 1) E})
-    ∩ (HL.get! k).verts).toFinset.card:= by simp
-    _≤ 8 * p * (
-    (Fb∩ (HL.get! (k)).verts).toFinset.card
-    +
-     ({v | ∃ t < k, v ∈ (Fo.P.get! t).Pa.Wa.support}∩(HL.get! (k)).verts).toFinset.card
-    +
-    kmax
-    +
-    kmax
-    ):=by
-      gcongr 4*p*?_
-      simp only [List.get!_eq_getD, Set.toFinset_inter, Set.mem_setOf_eq, Set.toFinset_union,
-        ]
-      apply finsets4cardinequality_alt --_ _ _ _ 1 1 1 1 _ _ _ _
-      exact card_le_of_subset fun ⦃a⦄ a ↦ a
-      --{v | ∃ i < k, v ∈ (Fo.P.get! i).Pa.Wa.support}.toFinset.card ≤ k * p
-
-      exact card_le_of_subset fun ⦃a⦄ a ↦ a
-
-      calc
-        {v | v ∈ List.drop (k + 1) S}.toFinset.card
-        =(List.drop (k + 1) S).toFinset.card:= by
-          congr
-          ext v
-          constructor
-          intro h
-          simp
-          simp at h
-          exact h
-          intro h
-          simp
-          simp at h
-          exact h
-        _≤ (List.drop (k + 1) S).length:= by exact List.toFinset_card_le (List.drop (k + 1) S)
-        _≤ S.length:= by
-          have h3: List.Sublist (List.drop (k + 1) S) S:= by
-            exact List.drop_sublist (k + 1) S
-          exact List.Sublist.length_le h3
-        _≤ kmax:=by exact Smaxlength
-
-
-      --{v | v ∈ List.drop (k + 1) S}.toFinset.card ≤ k
-      calc
-        {v | v ∈ List.drop (k + 1) E}.toFinset.card
-        =(List.drop (k + 1) E).toFinset.card:= by
-          congr
-          ext v
-          constructor
-          intro h
-          simp
-          simp at h
-          exact h
-          intro h
-          simp
-          simp at h
-          exact h
-        _≤ (List.drop (k + 1) E).length:= by exact List.toFinset_card_le (List.drop (k + 1) E)
-        _≤ E.length:= by
-          have h3: List.Sublist (List.drop (k + 1) E) E:= by
-            exact List.drop_sublist (k + 1) E
-          exact List.Sublist.length_le h3
-        _≤ kmax:=by exact Emaxlength
-    _=8*p*((Fb∩ (HL.get! (k)).verts).toFinset.card)
-    +8*p*({v | ∃ t < k, v ∈ (Fo.P.get! t).Pa.Wa.support}∩(HL.get! (k)).verts).toFinset.card
-    +8*p*(2*1*kmax):=by
-      ring_nf
-    _≤8*p*((Fb∩ (HL.get! (k)).verts).toFinset.card)
-    +8*p*kmax*m/κ
-    +8*p*(2*1*kmax):=by
-      gcongr 8*p*((Fb∩ (HL.get! (k)).verts).toFinset.card)+?_+8*p*(2*1*kmax)
-      unfold family_sparse at HL_sparse
-      calc
-        8 * p * ({v | ∃ t < k, v ∈ (Fo.P.get! t).Pa.Wa.support} ∩ (HL.get! k).verts).toFinset.card
-        =8 * p * ({v | ∃ t < k, v ∈ (Fo.P.get! t).Pa.Wa.support}.toFinset ∩ (HL.get! k).verts.toFinset).card:=by
-          congr
-          simp
-
-
-        _≤ 8 * p * ((Finset.biUnion (Finset.Ico 0 k) (fun x=>(HL.get! x).verts.toFinset)) ∩ (HL.get! k).verts.toFinset).card:=by
-          gcongr
-          intro w hw
-          simp only [Nat.Ico_zero_eq_range, mem_biUnion, mem_range,
-            Set.mem_toFinset]
-          simp at hw
-          rcases hw with ⟨t, hw2t, hw2tt⟩
-          use t
-          constructor
-          exact hw2t
-          have h24: {v:V|v∈ (Fo.P.get! t).Pa.Wa.support}⊆ (HL.get! t).verts:= by
-            apply  FinHL
-            rw[Fk]
-            exact hw2t
-          have h34:w∈ {v:V|v∈ (Fo.P.get! t).Pa.Wa.support}:= by
-            simp
-            exact hw2tt
-          exact h24 hw2tt
-
-
-        _=8 * p * ((Finset.biUnion (Finset.Ico 0 k) (fun x=>(HL.get! x).verts.toFinset∩ (HL.get! k).verts.toFinset)) ).card:=by
-          congr
-          simp
-          exact
-            biUnion_inter (range k) (fun x ↦ (HL.getD x default).verts.toFinset)
-              (HL.getD k default).verts.toFinset
-        _≤ 8 * p * (∑  (x∈ Finset.Ico 0 k), (((HL.get! x).verts.toFinset∩ (HL.get! k).verts.toFinset).card)):=by
-          gcongr
-          exact card_biUnion_le
-        _= 8*p*κ*(∑  (x∈ Finset.Ico 0 k), (((HL.get! x).verts.toFinset∩ (HL.get! k).verts.toFinset).card))/κ :=
-          by
-            apply Nat.eq_div_of_mul_eq_right
-            exact Nat.not_eq_zero_of_lt κPositive
-            ring_nf
-
-            --sorry--- p<κ/kmax
-        _=8*p*(κ*∑  (x∈ Finset.Ico 0 k), (((HL.get! x).verts.toFinset∩ (HL.get! k).verts.toFinset).card))/κ:= by
-          ring_nf
-        _= 8*p*(∑  (x∈ Finset.Ico 0 k), (κ *((HL.get! x).verts.toFinset∩ (HL.get! k).verts.toFinset).card))/κ:=by
-          congr
-          exact
-            mul_sum (Ico 0 k)
-              (fun i ↦ ((HL.get! i).verts.toFinset ∩ (HL.get! k).verts.toFinset).card) κ
-        _=8*p*(∑  (x∈ Finset.Ico 0 k), (κ *(((HL.get! x).verts∩ (HL.get! k).verts).toFinset).card))/κ:=by
-          congr
-          simp
-
-        _≤8*p*(∑  (x∈ Finset.Ico 0 k), (m))/κ := by--change m/kmax to m/4*kmax*pr
-          gcongr with j hj
-
-          have h91: j< HL.length:= by
-              simp at hj
-              exact Nat.lt_trans hj kUb2
-          have h101: (HL.get! j)=HL.get ⟨j, h91⟩:= by
-              simp
-              exact List.getD_eq_get HL default h91
-          have h52: HL.get! j∈ HL:= by
-            rw[h101]
-            exact List.get_mem HL j h91
-          have h9: k< HL.length:= by
-              exact kUb2
-          have h10: (HL.get! k)=HL.get ⟨k, h9⟩:= by
-              simp
-              exact List.getD_eq_get HL default h9
-          have h53: HL.get! k∈ HL:= by
-            rw[h10]
-            exact List.get_mem HL k h9
-          apply HL_sparse
-          exact List.mem_toFinset.mpr h52
-          exact List.mem_toFinset.mpr h53
-          simp at hj
-          rw[h10, h101]
-          by_contra cont
-          have h78:HL.get ⟨j, h91⟩ = HL.get ⟨k, h9⟩↔ _=_:=by
-            apply  List.Nodup.get_inj_iff
-            exact HL_nodup
-          have h79: _:=by exact h78.1 cont
-          simp at h79
-          have h88:j≠ k:= by exact Nat.ne_of_lt hj
-          exact h88 h79
-
-
-        _=8*p*((Finset.Ico 0 k).card*m)/κ:=by
-          congr
-          exact sum_const_nat fun x ↦ congrFun rfl
-        _=8*p*(k*m)/κ:=by
-          congr
-          rw [Nat.card_Ico]
-          simp
-        _≤ 8*p*(kmax*m)/κ:=by
-          gcongr; exact Nat.le_of_succ_le hkMax
-        _=  8*p*kmax*m/κ:=by
-          ring_nf
-
-      --
-    --_≤8*p*((Fb∩ (HL.get! (k)).verts).toFinset.card)+m +8*p*(2*1*kmax):=by
-    --  gcongr --(4*p*((Fb∩ (HL.get! (k)).verts).toFinset.card)+?_)
-    --  exact pPositive; exact?
-    _=8*p*((Fb∩ (HL.get! (k)).verts).toFinset.card)+(8*p*kmax*m/κ  +8*p*(2*1*kmax)):=by
-      ring_nf
-    --_≤ 8*p*((Fb∩ (HL.get! (k)).verts).toFinset.card)+m +8*p*(2*1*kmax):=by
-    --  gcongr; exact Nat.le_of_ble_eq_true rfl
-    _=8*p*((Fb∩ (HL.get ⟨ k, kUb2 ⟩ ).verts).toFinset.card)+(8*p*kmax*m/κ +8*p*(2*1*kmax)):= by
-      rw[hKLget2]
-    _≤ ((HL.get  ⟨ k, kUb2 ⟩ ).verts.toFinset.card):= by
-      apply Fbcard ⟨k , kUb2 ⟩
-
-    _= ((HL.get! (k)).verts.toFinset.card):= by
-      rw[hKLget2.symm]
-
-
-
-  /-calc
     _
     =4 * p *
     ((Fb ∪ {v | ∃ Pi ∈ Fo.P, v ∈ Pi.Pa.Wa.support}
@@ -745,7 +369,7 @@ have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.l
 
     _= ((HL.get! (k)).verts.toFinset.card):= by
       rw[hKLget2.symm]
-  -/
+
 
   rw[Fb2_eq_old]
   dsimp [Fb2Old]
@@ -760,7 +384,7 @@ have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.l
   --unfold Path_forest_avoids at FAvoidS
   have h7: S.get! k∈(List.drop k S):= by
     have h9: k+0< S.length:= by
-      exact  Slength
+      exact Nat.lt_of_succ_lt Slength
     have h10: (S.get! k)=S.get ⟨k+0, h9⟩:= by
       simp
       exact List.getD_eq_get S default h9
@@ -792,11 +416,11 @@ have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.l
 
   apply getk_nin_dropk
   exact Snodup
-  exact  Slength
+  exact Nat.lt_of_succ_lt Slength
 
   have h5: S.get! k∈ S:= by
     have h9: k< S.length:= by
-      exact  Slength
+      exact Nat.lt_of_succ_lt Slength
     have h10: (S.get! k)=S.get ⟨k, h9⟩:= by
       simp
       exact List.getD_eq_get S default h9
@@ -820,12 +444,13 @@ have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.l
   constructor
   constructor
   apply EoutsideFb
-  exact kUb2
+  simp
+  --exact kUb2
 
   intro x hx
   have h7: E.get! k∈(List.drop k E):= by
     have h9: k+0< E.length:= by
-      exact  Elength
+      exact Nat.lt_of_succ_lt Elength
     have h10: (E.get! k)=E.get ⟨k+0, h9⟩:= by
       simp
       exact List.getD_eq_get E default h9
@@ -859,7 +484,7 @@ have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.l
 
   have h5: E.get! k∈ E:= by
     have h9: k< E.length:= by
-      exact  Elength
+      exact Nat.lt_of_succ_lt Elength
     have h10: (E.get! k)=E.get ⟨k, h9⟩:= by
       simp
       exact List.getD_eq_get E default h9
@@ -877,60 +502,7 @@ have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.l
 
   apply getk_nin_dropk
   exact Enodup
-  exact   Elength
-
-    -------------------E S disjoint
-  have h5: E.get! k∈ E:= by
-    have h9: k< E.length:= by
-      exact  Elength
-    have h10: (E.get! k)=E.get ⟨k, h9⟩:= by
-      simp
-      exact List.getD_eq_get E default h9
-    rw[h10]
-    exact List.get_mem E k h9
-  have h5: E.get! k∉ S:= by
-    exact id (List.Disjoint.symm SE_Disjoint) h5
-  --have h13: List.Sublist (List.drop (k + 1) E) E:= by
-  --  exact List.drop_sublist (k + 1) E
-  have h6: S.get! k∈ S:= by
-    have h9: k< S.length:= by
-      exact  Slength
-    have h10: (S.get! k)=S.get ⟨k, h9⟩:= by
-      simp
-      exact List.getD_eq_get S default h9
-    rw[h10]
-    exact List.get_mem S k h9
-  exact ne_of_mem_of_not_mem h6 h5
-
-
-  have h5: HL.get! k∈ HL:= by
-    have h9: k< HL.length:= by
-      exact kUb2
-    have h10: (HL.get! k)=HL.get ⟨k, h9⟩:= by
-      simp
-      exact List.getD_eq_get HL default h9
-    rw[h10]
-    exact List.get_mem HL k h9
-
-  apply HL_order
-  simp only [List.mem_toFinset]
-  exact h5
-  /-calc
-    _ ≥ (2*m):= by
-      apply HL_order
-      simp only [List.mem_toFinset]
-      exact h5
-    _≥ 1*m:=by gcongr; exact NeZero.one_le
-    _=m:= by ring_nf-/
-  --m/pr≥ 18*p
-  sorry
-
-
-
-
-
-
-
+  exact Nat.lt_of_succ_lt Elength
 
   /-unfold Path_forest_avoids at FAvoidE
   intro x hx
@@ -1208,7 +780,7 @@ exact hPN2a
 
 
 
-/-dsimp[F1]
+dsimp[F1]
 unfold Path_forest_support
 dsimp[Fo']
 simp only [List.mem_append, List.mem_singleton]
@@ -1343,7 +915,7 @@ calc
 
 --∃ (P: SubgraphPath H u v), P.Wa.length≤ 40*p∧ (Disjoint (P.Wa.support.toFinset.toSet)  Fb)
 
--/
+
 constructor
 
 --------------- Avoid S
@@ -1389,7 +961,7 @@ exact hPN2c
 
 
 
-constructor
+
 
 --------------- Avoid E
 intro i hi
@@ -1429,82 +1001,4 @@ have h6: (Fo.P ++ [PN_imp]).get! k=PN_imp:= by
   rw[h1]
 rw[h6]
 exact hPN2d
-
-
-constructor
-------------long:
-intro i hi
-by_cases case:(i< k)
-dsimp[Fo']
-  --simp
-have h1: (Fo.P ++ [PN_imp]).get! i=(Fo.P).get! i:= by
-    simp
-    apply List.getD_append
-    exact Nat.lt_of_lt_of_eq case (id FFoL.symm)
-rw[h1]
-apply FLong
-exact Nat.lt_of_lt_of_eq case (id Fk.symm)
-
-simp at case
-have hieq: i=k:= by
-      exact Nat.eq_of_le_of_lt_succ case hi
-rw[hieq]
-dsimp[Fo']
-have h1: ((Fo.P ++ [PN_imp]).getD (Fo.P.length) default)=[PN_imp].getD (Fo.P.length-Fo.P.length) default:= by
-    apply List.getD_append_right
-    exact Nat.le_refl Fo.P.length
-simp at h1
-rw[FFoL] at h1
-have h6: (Fo.P ++ [PN_imp]).get! k=PN_imp:= by
-  simp
-  rw[h1]
-rw[h6]
-exact hPN1
-
-
-----inHL
-
-intro i hi
-by_cases case:(i< k)
-dsimp[Fo']
-  --simp
-have h1: (Fo.P ++ [PN_imp]).get! i=(Fo.P).get! i:= by
-    simp
-    apply List.getD_append
-    exact Nat.lt_of_lt_of_eq case (id FFoL.symm)
-rw[h1]
-apply FinHL
-exact Nat.lt_of_lt_of_eq case (id Fk.symm)
-
-simp at case
-have hieq: i=k:= by
-      exact Nat.eq_of_le_of_lt_succ case hi
-rw[hieq]
-dsimp[Fo']
-have h1: ((Fo.P ++ [PN_imp]).getD (Fo.P.length) default)=[PN_imp].getD (Fo.P.length-Fo.P.length) default:= by
-    apply List.getD_append_right
-    exact Nat.le_refl Fo.P.length
-simp at h1
-rw[FFoL] at h1
-have h6: (Fo.P ++ [PN_imp]).get! k=PN_imp:= by
-  simp
-  rw[h1]
-rw[h6]
-
-
-
-have h24:_:= by exact PN_imp.Pa.Wa_In_H
-dsimp [PN_imp] at h24
-dsimp [PN_imp]
-simp
-simp at h24
-calc
-  {v | v ∈ PN.Wa.support}
-  ⊆ PN.Wa.toSubgraph.verts:= by
-    intro a ha
-    simp
-    simp at ha
-    exact ha
-  _⊆ (HL.getD k default).verts:=by
-    apply subgraphs_vertex_sets_subsets
-    exact h24
+-/

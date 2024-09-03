@@ -77,7 +77,7 @@ lemma Path_forest_ends_contained
 {v:V| v∈ F.E.take F.k}⊆ Path_forest_support iV iSP F
 := by
 sorry
-
+--used
 lemma set_disjoint_to_internal_disjoint_reverse_taildisj_symm2_tailaligned2
 (F1  F2: PathForest iV iSP H)
 (Fb: Set V)
@@ -96,6 +96,7 @@ lemma set_disjoint_to_internal_disjoint_reverse_taildisj_symm2_tailaligned2
 := by
 sorry
 
+--used
 lemma path_forest_avoids_monotone!
 {H: Subgraph G}
 {F2: PathForest iV iSP H}

@@ -1,6 +1,6 @@
 import MyProject
 
-import MyProject.tail_disjointness
+import MyProject.path_forests_join
 
 open Classical
 open Finset
@@ -27,9 +27,6 @@ variable (iI:Inhabited (Clump G p m κ pr h))
 variable (iV:Inhabited V)
 variable (iSub:Inhabited (Subgraph G))
 variable (iSP:Inhabited (SubgraphPath_implicit   G) )
-
-variable {prggp: pr≫ p}
-variable {mggpr: m≫ pr}
 
 
 
@@ -336,7 +333,8 @@ have RWa_Is_Path: RWa.IsPath:= by
   apply hdisj33 i (t+1); exact hi1; exact Nat.lt.base (t + 1); exact hi2
 
   --(F1.P.get! (t + 1)).Pa.Wa.support ≠ []
-  sorry
+  exact Walk.support_ne_nil (F1.P.get! (t + 1)).Pa.Wa
+
 
 
 

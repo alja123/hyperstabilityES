@@ -44,13 +44,13 @@ lemma path_forest_specified_ends_altk
 (SE_Disjoint : List.Disjoint S E)
 
 
-(Slength: S.length> k)
-(Elength: E.length> k)
+(Slength: S.length≥  k)
+(Elength: E.length≥  k)
 
 (Smaxlength: S.length≤  kmax)
 (Emaxlength: E.length≤  kmax)
 
-(HLlength: HL.length> k)
+(HLlength: HL.length≥  k)
 (HL_in_H: ∀ (i: Fin (HL.length) ), (HL.get i≤ H))
 (Fb: Set V)
 
@@ -151,9 +151,9 @@ have hex: ∃ (Fo: PathForest iV iSP H),Fo.S=S
     apply EinH
     exact Nat.lt_add_right 1 hi
     --
-    exact Nat.lt_of_succ_lt Slength
-    exact Nat.lt_of_succ_lt Elength
-    exact Nat.lt_of_succ_lt HLlength
+    exact Nat.le_of_succ_le Slength
+    exact  Nat.le_of_succ_le Elength
+    exact Nat.le_of_succ_le HLlength
 
     intro i hi
     apply EoutsideFb
@@ -174,27 +174,22 @@ rcases hex with ⟨Fo, ⟨FS, ⟨FE, ⟨Fk, ⟨ FFoL, ⟨ FAvoid, ⟨ FSupport, 
 
 --let k:ℕ := Fo.k
 
-have kUB_KL: k+1< HL.length:= by
-  exact Nat.succ_le_of_lt HLlength
-have hKLget: (HL.get! (k + 1))=HL.get ⟨k+1, kUB_KL⟩:= by
-  simp
-  exact List.getD_eq_get HL default kUB_KL
 
 have kUb2: k< HL.length:= by
-  exact Nat.lt_of_succ_lt HLlength
+  exact  HLlength
 have hKLget2: (HL.get! (k ))=HL.get ⟨k, kUb2⟩:= by
   simp
   exact List.getD_eq_get HL default kUb2
 
-have kUB_S: k+1< S.length:= by
-  exact Nat.succ_le_of_lt Slength
-have hSget: (S.get! (k + 1))=S.get ⟨k+1, kUB_S⟩:= by
+have kUB_S: k< S.length:= by
+  exact  Slength
+have hSget: (S.get! (k ))=S.get ⟨k, kUB_S⟩:= by
   simp
   exact List.getD_eq_get S default kUB_S
 
-have kUB_E: k+1< E.length:= by
+have kUB_E: k< E.length:= by
   exact Nat.succ_le_of_lt Elength
-have hEget: (E.get! (k + 1))=E.get ⟨k+1, kUB_E⟩:= by
+have hEget: (E.get! (k ))=E.get ⟨k, kUB_E⟩:= by
   simp
   exact List.getD_eq_get E default kUB_E
 
@@ -389,7 +384,7 @@ have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.l
   --unfold Path_forest_avoids at FAvoidS
   have h7: S.get! k∈(List.drop k S):= by
     have h9: k+0< S.length:= by
-      exact Nat.lt_of_succ_lt Slength
+      exact  Slength
     have h10: (S.get! k)=S.get ⟨k+0, h9⟩:= by
       simp
       exact List.getD_eq_get S default h9
@@ -421,11 +416,11 @@ have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.l
 
   apply getk_nin_dropk
   exact Snodup
-  exact Nat.lt_of_succ_lt Slength
+  exact   Slength
 
   have h5: S.get! k∈ S:= by
     have h9: k< S.length:= by
-      exact Nat.lt_of_succ_lt Slength
+      exact   Slength
     have h10: (S.get! k)=S.get ⟨k, h9⟩:= by
       simp
       exact List.getD_eq_get S default h9
@@ -455,7 +450,7 @@ have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.l
   intro x hx
   have h7: E.get! k∈(List.drop k E):= by
     have h9: k+0< E.length:= by
-      exact Nat.lt_of_succ_lt Elength
+      exact  Elength
     have h10: (E.get! k)=E.get ⟨k+0, h9⟩:= by
       simp
       exact List.getD_eq_get E default h9
@@ -489,7 +484,7 @@ have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.l
 
   have h5: E.get! k∈ E:= by
     have h9: k< E.length:= by
-      exact Nat.lt_of_succ_lt Elength
+      exact   Elength
     have h10: (E.get! k)=E.get ⟨k, h9⟩:= by
       simp
       exact List.getD_eq_get E default h9
@@ -507,7 +502,7 @@ have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.l
 
   apply getk_nin_dropk
   exact Enodup
-  exact Nat.lt_of_succ_lt Elength
+  exact   Elength
 
   /-unfold Path_forest_avoids at FAvoidE
   intro x hx
