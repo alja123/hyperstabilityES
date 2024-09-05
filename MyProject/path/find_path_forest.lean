@@ -1,8 +1,8 @@
 import MyProject
 
 --import MyProject.path_forests_join
-import MyProject.long_path_forest
-import MyProject.path_forest.path_forests
+import MyProject.path.long_path_forest
+import MyProject.path.path_forests
 
 open Classical
 open Finset
@@ -32,22 +32,11 @@ variable (iSP:Inhabited (SubgraphPath_implicit   G) )
 
 
 
-structure PathForest' (H: Subgraph G)--(G: SimpleGraph V)(iSP:Inhabited (SubgraphPath_implicit G))
-where
-  (S E: List V)
-  (P: List (SubgraphPath_implicit G))
-  (k: ℕ )
-  (Starts_equal: starts_equal iV iSP S P k)--∀ (i: ℕ ), i< k→ ((S.get! i)=(P.get! i).s))
-  (Ends_equal: ends_equal iV iSP E P k)--∀ (i: ℕ ), i< k→ ((S.get! i)=(P.get! i).e))
-  (Graphs_equal: graphs_equal iSP H P (k-1))--∀ (i: ℕ ), i< k→ (P.get! i).H=H)
-  (Paths_disjoint: paths_disjoint iSP  P k)  --(disjoint: ∀ (i j: ℕ ), i< k→ j< k→ i≠ j→ (List.Disjoint ((P.get! i).Pa.Wa.support) ((P.get! j).Pa.Wa.support)))
-  (P_length: P.length=k)
-
 
 
 def Path_forest_avoids!
 {H: Subgraph G}
-(Fo: PathForest' iV iSP H)
+(Fo: PathForest iV iSP H)
 (Fb: Set V)
 (k : ℕ )
 :=
@@ -74,17 +63,10 @@ def small_intersection_list!
 
 def Path_forest_long!
 {H: Subgraph G}
-(Fo:  PathForest' iV iSP H)
+(Fo:  PathForest iV iSP H)
 (l k: ℕ )
 :=
 ∀ (i: ℕ ), i< k→ (Fo.P.get! i).Pa.Wa.length≥ l
-
-
-def Path_forest_support'
-{H: Subgraph G}
-(Fo: PathForest' iV iSP H)
-: Set V
-:={v: V| ∃ (Pi: SubgraphPath_implicit G), Pi∈ Fo.P∧  (v∈ Pi.Pa.Wa.support)}
 
 
 
@@ -152,7 +134,7 @@ lemma path_forest_specified_ends_simplified_prefix
 (pPositive: p>0)
 :
 
-∃ (Fo: PathForest' iV iSP H),
+∃ (Fo: PathForest iV iSP H),
 Fo.S= S.take k
 ∧ Fo.E= E.take k
 ∧ Fo.k=k
@@ -469,12 +451,14 @@ have happly:_:= by
 
 
   ----HL in H-----------
-  intro i
-  rw[HLget2 i]
+  intro i hi
+  rw[HLget i]
   apply HL_in_H i
+  exact hi
   calc
-    _<HL'.length:= by exact i.2
-    _=k:= by exact HL'_length
+    i<k-1 :=by exact hi
+    _≤ k:=by simp
+  --
 
 
   --exact List.Nodup.sublist HLsublist2 HL_nodup
@@ -532,7 +516,7 @@ have happly:_:= by
 
 
 
-rcases happly with ⟨Fo, hFoa, hFob, hFoc, hFod, hFoe, hFof, hFog, hFoh⟩
+rcases happly with ⟨Fo, hFoa, hFob, hFoc, hFod, hFoe, hFof, hFog, hFoh, hFoi⟩
 --let Pk: SubgraphPath_implicit G:= (Fo.P.get! (0))
 --rcases Pkex with ⟨Pk, hPks, hPke⟩
 --let P':= Fo.P++[Pk]
@@ -839,12 +823,15 @@ have happly:_:= by
 
 
   ----HL in H-----------
-  intro i
-  rw[HLget2 i]
+  intro i hi
+  rw[HLget i]
   apply HL_in_H i
   calc
-    _<HL'.length:= by exact i.2
-    _=k:= by exact HL'_length
+    i<k-1 :=by exact hi
+    _≤ k:=by simp
+  calc
+    i<k-1 :=by exact hi
+    _≤ k:=by simp
 
 
   exact List.Nodup.sublist HLsublist2 HL_nodup
@@ -903,7 +890,7 @@ have happly:_:= by
 
 
 
-rcases happly with ⟨Fo, hFoa, hFob, hFoc, hFod, hFoe, hFof, hFog, hFoh, hFoi⟩
+rcases happly with ⟨Fo, hFoa, hFob, hFoc, hFod, hFoe, hFof, hFog, hFoh, hFoi, hFoj⟩
 
 
 use Fo

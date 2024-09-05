@@ -10,7 +10,7 @@ open scoped BigOperators
 namespace SimpleGraph
 
 
-set_option maxHeartbeats 600000
+set_option maxHeartbeats 200000
 
 universe u
 variable {V : Type u} {G : SimpleGraph V}
@@ -309,7 +309,7 @@ lemma join_three_forests_tail_disjoint
 {v:V|v∈ P.Wa.support}=Path_forest_support_until_t iV iSP  F1 (t+1)∪ Path_forest_support_until_t iV iSP  F2 (t+1)∪ Path_forest_support_until_t iV iSP  F3 (t+1)
 
 := by
-sorry/-
+
 
 have F1PGet: ∀ (i:ℕ), (i< F1.P.length)→  (F1.P.get! i ∈ F1.P):=by
   intro i hi
@@ -323,6 +323,20 @@ have F1PGet: ∀ (i:ℕ), (i< F1.P.length)→  (F1.P.get! i ∈ F1.P):=by
 induction' t with t IH
 simp
 
+have pos1': 0<F1.k-1:= by
+  calc
+    0<tmax:= by exact ht
+    _≤ F1.k-1:= by exact Nat.le_sub_one_of_lt pos1
+have pos2': 0<F2.k-1:= by
+  calc
+    0<tmax:= by exact ht
+    _≤ F2.k-1:= by exact Nat.le_sub_one_of_lt pos2
+have pos3': 0<F3.k-1:= by
+  calc
+    0<tmax:= by exact ht
+    _≤ F3.k-1:= by exact Nat.le_sub_one_of_lt pos3
+
+
 have pos1: 0<F1.k:= by
   exact Nat.zero_lt_of_lt pos1
 have pos2: 0<F2.k:= by
@@ -333,9 +347,9 @@ have pos3: 0<F3.k:= by
 
 have hex: _:= by
   apply  join_three_paths H (F1.P.get! 0) (F2.P.get! 0) (F3.P.get! 0) (F1.S.get! 0) (F3.E.get! (0))
-  apply  F1.Graphs_equal 0 pos1
-  apply  F2.Graphs_equal 0 pos2
-  apply  F3.Graphs_equal 0 pos3
+  apply  F1.Graphs_equal 0 pos1'
+  apply  F2.Graphs_equal 0 pos2'
+  apply  F3.Graphs_equal 0 pos3'
 
   apply F1.Starts_equal
   exact pos1
@@ -415,6 +429,19 @@ have hdisj13: ∀(i j: ℕ ), (i< t+2)→ (j<t+2)→ (i≠ j+1)→ (tail_disjoin
   intro i j hi hj;  apply hdisj13; exact Nat.lt_of_lt_of_le hi ht; exact Nat.lt_of_lt_of_le hj ht
 
 
+have pos1': t+1<F1.k-1:= by
+  calc
+    t+1<tmax:= by exact ht
+    _≤ F1.k-1:= by exact Nat.le_sub_one_of_lt pos1
+have pos2': t+1<F2.k-1:= by
+  calc
+    t+1<tmax:= by exact ht
+    _≤ F2.k-1:= by exact Nat.le_sub_one_of_lt pos2
+
+have pos3': t+1<F3.k-1:= by
+  calc
+    t+1<tmax:= by exact ht
+    _≤ F3.k-1:= by exact Nat.le_sub_one_of_lt pos3
 
 have pos1: t+1<F1.k:= by exact Nat.lt_trans ht pos1
 have pos2: t+1<F2.k:= by exact Nat.lt_trans ht pos2
@@ -422,9 +449,9 @@ have pos3: t+1<F3.k:= by exact Nat.lt_trans ht pos3
 
 have hex: _:= by
   apply  join_three_paths H (F1.P.get! (t+1)) (F2.P.get! (t+1)) (F3.P.get! (t+1)) (F3.E.get! t) (F3.E.get! ((t+1)))
-  apply  F1.Graphs_equal (t+1) pos1
-  apply  F2.Graphs_equal (t+1) pos2
-  apply  F3.Graphs_equal (t+1) pos3
+  apply  F1.Graphs_equal (t+1) pos1'
+  apply  F2.Graphs_equal (t+1) pos2'
+  apply  F3.Graphs_equal (t+1) pos3'
 
   rw [hF3_F1]
   have h1: F1.S.tail.get! t=F1.S.get! (t+1):=by
@@ -446,7 +473,8 @@ have hex: _:= by
     exact Nat.lt_trans ht Slength
     simp
     exact Nat.lt_trans ht Slength
-
+  have h1: (F1.S.rotate 1).get! t=F1.S.get! (t+1):=by
+    sorry
   rw[h1]
   apply F1.Starts_equal (t+1)
   exact pos1
@@ -608,7 +636,6 @@ have h5:  {v | v ∈ P.Wa.support ∨ v ∈ Q.Wa.support}= {v | v ∈ P.Wa.suppo
   exact rfl
 rw[h5]
 rw[hP1, hQ2]
-aesop
 
-
--/
+sorry
+--aesop

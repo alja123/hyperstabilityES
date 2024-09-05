@@ -1,6 +1,6 @@
 import MyProject
 
-import MyProject.path_forests
+import MyProject.path.path_forests
   --import MyProject.SimpleGraph
 
 open Classical

@@ -1,6 +1,6 @@
 import MyProject
 
-import MyProject.path_forests
+import MyProject.path.define_pathforest
   --import MyProject.SimpleGraph
 
 open Classical
@@ -10,7 +10,7 @@ open scoped BigOperators
 namespace SimpleGraph
 
 
-set_option maxHeartbeats 100000
+set_option maxHeartbeats 200000
 
 universe u
 variable {V : Type u} {G : SimpleGraph V}
@@ -51,7 +51,7 @@ lemma path_forest_specified_ends_altk
 (Emaxlength: E.length≤  kmax)
 
 (HLlength: HL.length≥  k)
-(HL_in_H: ∀ (i: Fin (HL.length) ), (HL.get i≤ H))
+(HL_in_H: ∀ (i: ℕ  ), (i< kmax-1)→  (HL.get! i≤ H))
 (Fb: Set V)
 
 (SoutsideFb: vertex_list_outside_set iV S Fb (HL.length))
@@ -75,6 +75,7 @@ Fo.S=S
 ∧ (Path_forest_support iV iSP Fo ).toFinset.card≤ 41*p*k
 ∧ Path_forest_avoids iV iSP Fo {v:V|v∈ (List.drop k S)}
 ∧ Path_forest_avoids  iV iSP Fo {v:V|v∈ (List.drop k E)}
+∧ (graphs_equal iSP H Fo.P (min (k) (kmax-1)))
 := by
 
 induction' k with k hd1
@@ -112,7 +113,7 @@ have Paths_disjoint: paths_disjoint  iSP  P0 0:= by
 
 have h3: P0.length = 0:= by exact rfl
 
-let F0:PathForest iV iSP H:= ⟨S, E, P0, 0, Starts_equal, Ends_equal, Graphs_equal, Paths_disjoint , h3⟩
+let F0:PathForest iV iSP H:= ⟨S, E, P0, 0, Starts_equal, Ends_equal,  Paths_disjoint , h3⟩
 use F0
 repeat constructor;exact rfl
 constructor
@@ -132,10 +133,18 @@ intro i hi
 dsimp[F0] at hi
 by_contra
 exact Nat.not_succ_le_zero i hi
+
+
+constructor
 intro i hi
 dsimp[F0] at hi
 by_contra
 exact Nat.not_succ_le_zero i hi
+
+
+intro i hi
+--dsimp[F0] at hi
+simp at hi
 
 
 have hex: ∃ (Fo: PathForest iV iSP H),Fo.S=S
@@ -144,7 +153,8 @@ have hex: ∃ (Fo: PathForest iV iSP H),Fo.S=S
   ∧ (Path_forest_avoids iV iSP Fo Fb)
   ∧ ((Path_forest_support iV iSP Fo ).toFinset.card≤ 41*p*k)
   ∧ Path_forest_avoids iV iSP Fo {v:V|v∈ (List.drop k S)}
-  ∧ Path_forest_avoids iV iSP Fo {v: V|v∈ (List.drop k E)}:= by
+  ∧ Path_forest_avoids iV iSP Fo {v: V|v∈ (List.drop k E)}
+  ∧ (graphs_equal iSP H Fo.P (min (k) (kmax-1))):= by
 
     apply hd1
     intro i hi
@@ -170,7 +180,7 @@ have hex: ∃ (Fo: PathForest iV iSP H),Fo.S=S
 
 
 --rcases hex with ⟨Fo, ⟨FS, ⟨FE, ⟨Fk⟩⟩⟩⟩
-rcases hex with ⟨Fo, ⟨FS, ⟨FE, ⟨Fk, ⟨ FFoL, ⟨ FAvoid, ⟨ FSupport, ⟨ FAvoidS, FAvoidE⟩   ⟩ ⟩ ⟩ ⟩⟩⟩⟩
+rcases hex with ⟨Fo, ⟨FS, ⟨FE, ⟨Fk, ⟨ FFoL, ⟨ FAvoid, ⟨ FSupport, ⟨ FAvoidS, FAvoidE, FinH⟩   ⟩ ⟩ ⟩ ⟩⟩⟩⟩
 
 --let k:ℕ := Fo.k
 
@@ -183,13 +193,13 @@ have hKLget2: (HL.get! (k ))=HL.get ⟨k, kUb2⟩:= by
 
 have kUB_S: k< S.length:= by
   exact  Slength
-have hSget: (S.get! (k + 1))=S.get ⟨k+1, kUB_S⟩:= by
+have hSget: (S.get! (k ))=S.get ⟨k, kUB_S⟩:= by
   simp
   exact List.getD_eq_get S default kUB_S
 
-have kUB_E: k+1< E.length:= by
+have kUB_E: k< E.length:= by
   exact Nat.succ_le_of_lt Elength
-have hEget: (E.get! (k + 1))=E.get ⟨k+1, kUB_E⟩:= by
+have hEget: (E.get! (k ))=E.get ⟨k, kUB_E⟩:= by
   simp
   exact List.getD_eq_get E default kUB_E
 
@@ -202,7 +212,7 @@ have hEget: (E.get! (k + 1))=E.get ⟨k+1, kUB_E⟩:= by
   constructor
   intro h
 -/
-/-
+
 let Fb2: Set V:= Fb∪ {v | ∃ Pi ∈ Fo.P, v ∈ Pi.Pa.Wa.support} ∪ {v | v ∈ List.drop (k + 1) S}∪ {v | v ∈ List.drop (k + 1) E}
 --{v | ∃ Pi ∈ Fo.P, v ∈ Pi.Pa.Wa.support}
 
@@ -384,7 +394,7 @@ have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.l
   --unfold Path_forest_avoids at FAvoidS
   have h7: S.get! k∈(List.drop k S):= by
     have h9: k+0< S.length:= by
-      exact Nat.lt_of_succ_lt Slength
+      exact  Slength
     have h10: (S.get! k)=S.get ⟨k+0, h9⟩:= by
       simp
       exact List.getD_eq_get S default h9
@@ -416,11 +426,11 @@ have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.l
 
   apply getk_nin_dropk
   exact Snodup
-  exact Nat.lt_of_succ_lt Slength
+  exact   Slength
 
   have h5: S.get! k∈ S:= by
     have h9: k< S.length:= by
-      exact Nat.lt_of_succ_lt Slength
+      exact   Slength
     have h10: (S.get! k)=S.get ⟨k, h9⟩:= by
       simp
       exact List.getD_eq_get S default h9
@@ -450,7 +460,7 @@ have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.l
   intro x hx
   have h7: E.get! k∈(List.drop k E):= by
     have h9: k+0< E.length:= by
-      exact Nat.lt_of_succ_lt Elength
+      exact  Elength
     have h10: (E.get! k)=E.get ⟨k+0, h9⟩:= by
       simp
       exact List.getD_eq_get E default h9
@@ -484,7 +494,7 @@ have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.l
 
   have h5: E.get! k∈ E:= by
     have h9: k< E.length:= by
-      exact Nat.lt_of_succ_lt Elength
+      exact   Elength
     have h10: (E.get! k)=E.get ⟨k, h9⟩:= by
       simp
       exact List.getD_eq_get E default h9
@@ -502,7 +512,7 @@ have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.l
 
   apply getk_nin_dropk
   exact Enodup
-  exact Nat.lt_of_succ_lt Elength
+  exact   Elength
 
   /-unfold Path_forest_avoids at FAvoidE
   intro x hx
@@ -626,42 +636,6 @@ have Ends_equal: ends_equal iV iSP E Fo' (k+1):= by
 
 
 
-have Graphs_equal: graphs_equal iSP H Fo' (k+1):= by
-  unfold graphs_equal
-  intros i hi
-  by_cases case:(i< k)
-  dsimp[Fo']
-  --simp
-  have h1: (Fo.P ++ [PN_imp]).get! i=(Fo.P).get! i:= by
-    simp
-    apply List.getD_append
-    exact Nat.lt_of_lt_of_eq case (id FFoL.symm)
-  rw[h1]
-  apply Fo.Graphs_equal
-  exact Nat.lt_of_lt_of_eq case (id Fk.symm)
-
-  simp at case
-  have hieq: i=k:= by
-      exact Nat.eq_of_le_of_lt_succ case hi
-  rw[hieq]
-  dsimp[Fo']
-  have h1: ((Fo.P ++ [PN_imp]).getD (Fo.P.length) default)=[PN_imp].getD (Fo.P.length-Fo.P.length) default:= by
-    apply List.getD_append_right
-    exact Nat.le_refl Fo.P.length
-  simp at h1
-  rw[FFoL] at h1
-  simp
-  rw[h1]
-
-  dsimp[PN_imp]
-  simp
-  calc
-    HL.getD k default
-    =HL.get ⟨ k, kUb2⟩:= by
-      exact List.getD_eq_get HL default kUb2
-    _≤ H:=by
-      apply HL_in_H
-
 
 
 have Paths_disjoint: paths_disjoint iSP  Fo' (k+1):= by
@@ -730,7 +704,7 @@ have Fo'Length: Fo'.length=k+1:=by
   exact Fo.P_length
 
 
-let F1:PathForest iV iSP H:= ⟨S, E, Fo', k+1, Starts_equal, Ends_equal, Graphs_equal, Paths_disjoint, Fo'Length ⟩
+let F1:PathForest iV iSP H:= ⟨S, E, Fo', k+1, Starts_equal, Ends_equal,  Paths_disjoint, Fo'Length ⟩
 
 use F1
 
@@ -962,7 +936,7 @@ exact hPN2c
 
 
 
-
+constructor
 --------------- Avoid E
 intro i hi
 by_cases case:(i< k)
@@ -1001,4 +975,93 @@ have h6: (Fo.P ++ [PN_imp]).get! k=PN_imp:= by
   rw[h1]
 rw[h6]
 exact hPN2d
+
+
+
+
+by_cases case9: k+1≤ (kmax - 1)
+have mineq: min (k + 1) (kmax - 1)=k+1:= by
+  exact Nat.min_eq_left case9
+have mineq2: min (k ) (kmax - 1)=k:= by
+  have kmi: k≤ (kmax - 1):= by
+    calc
+      k≤ k+1:= by simp
+      _≤ kmax - 1:= by
+        exact case9
+  exact Nat.min_eq_left kmi
+unfold graphs_equal
+rw[mineq]
+intros i hi
+by_cases case:(i< k)
+dsimp[Fo']
+--simp
+have h1: (Fo.P ++ [PN_imp]).get! i=(Fo.P).get! i:= by
+  simp
+  apply List.getD_append
+  exact Nat.lt_of_lt_of_eq case (id FFoL.symm)
+rw[h1]
+apply FinH
+rw[mineq2]
+exact   case
+simp at case
+have hieq: i=k:= by
+    exact Nat.eq_of_le_of_lt_succ case hi
+rw[hieq]
+--dsimp[Fo']
+have h1: ((Fo.P ++ [PN_imp]).getD (Fo.P.length) default)=[PN_imp].getD (Fo.P.length-Fo.P.length) default:= by
+  apply List.getD_append_right
+  exact Nat.le_refl Fo.P.length
+simp at h1
+rw[FFoL] at h1
+simp
+rw[h1]
+
+dsimp[PN_imp]
+--simp
+apply HL_in_H
+calc
+  k< k+1:= by simp
+  _≤ kmax - 1:= by
+    exact case9
+
+
+simp at case9
+have mineq: min (k + 1) (kmax - 1)=(kmax - 1):= by
+  have h7: (kmax - 1)≤ (k + 1):= by
+    apply Nat.le_of_lt case9
+  apply Nat.min_eq_right h7
+have case9':(kmax - 1)≤ k:= by
+  exact Nat.le_of_lt_succ case9
+
+intros i hi
+--dsimp[Fo']
+--simp
+have ilk: i<k:= by
+  calc
+    i<min (k + 1) (kmax - 1):= by exact hi
+    _=(kmax - 1):= by rw[mineq]
+    _≤ k:= by exact case9'
+have ilkm: i<(kmax-1):= by
+  calc
+    i<min (k + 1) (kmax - 1):= by exact hi
+    _=(kmax - 1):= by rw[mineq]
+have h1: (Fo.P ++ [PN_imp]).get! i=(Fo.P).get! i:= by
+  simp
+  apply List.getD_append
+  rw[FFoL]
+  exact ilk
+rw[h1]
+apply FinH
+simp
+constructor
+exact ilk
+exact ilkm
+
+
+/-calc
+  HL.getD k default
+  =HL.get ⟨ k, kUb2⟩:= by
+    exact List.getD_eq_get HL default kUb2
+  _≤ H:=by
+   apply HL_in_H
 -/

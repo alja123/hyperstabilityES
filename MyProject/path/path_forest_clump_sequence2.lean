@@ -108,6 +108,16 @@ simp
 exact hdis ha
 
 
+lemma long_path_forest_card
+(Fo: PathForest iV iSP H)
+(long: Path_forest_long! iV iSP Fp l k)
+(t: ℕ)
+(ht: t≤  k)
+:
+((Path_forest_support_until_t iV iSP Fo (t)).toFinset.card)≥ t*l
+:= by
+sorry
+
 lemma clump_path_sequence_gives_path2
 (H: Subgraph G)
 (α: ℕ )
@@ -127,10 +137,20 @@ lemma clump_path_sequence_gives_path2
 (γPositive: γ >0)
 (αPositive: α >0)
 (mggγ: m ≥ 18 * γ)
-(ineq5:  8 * γ * k * m ≤ α * (m / (2 * pr)))
-
+(mggpr2: m ≥ 18 * pr)
+--(ineq5:  8 * γ * k * m ≤ α * (m / (2 * pr)))
+(ineq6: 8 * pr * k * m ≤ α * (m / (2 * pr)))
+(narrow: Clump_family_narrow Seq.Ord.toFinset)
+(gammaineq: γ ≥ 16 * κ ^ (2 * (100 * (pr * pr * h)).factorial))
+(pLarge: p ≥ 20)
+(mLarge: m ≥ 20)
+(mggpr:m ≥ gg1 pr)
+(prggp: pr ≥ gg2 p)
+(hggp: h ≥p)
+(kggh:κ ≥ h)
+(Seq_in_H:∀ i < Seq.Ord.length, (Seq.Ord.get! i).Gr ≤ H)
 :
-∃  (u v: V), ∃  (P: SubgraphPath H u v), P.Wa.length ≥  (k*m)
+∃  (u v: V), ∃  (P: SubgraphPath H u v), P.Wa.length ≥  (k - 3 + 1) * (m / pr / (40 * pr))-1
 
 --Has_length_d_path (Clump_Family_Union KFam) (h*m)
 :=by
@@ -225,16 +245,15 @@ have ex_HS:_:=by
   ring_nf
   gcongr
   apply Nat.lt_of_sub_eq_succ;  simp;  exact rfl
-  sorry
-  sorry
-  sorry
-  sorry
-  sorry
-  sorry
-  sorry
-  sorry
-  sorry
-  exact γ
+  exact narrow
+  exact gammaineq
+  exact pLarge
+  exact mLarge
+  exact mggpr
+  exact prggp
+  exact hggp
+  exact kggh
+  exact Seq_in_H
   exact κPositive
   exact pPositive
   exact mPositive
@@ -255,16 +274,15 @@ have ex_HE:_:=by
   ring_nf
   gcongr
   apply Nat.lt_of_sub_eq_succ;  simp;  exact rfl
-  sorry
-  sorry
-  sorry
-  sorry
-  sorry
-  sorry
-  sorry
-  sorry
-  sorry
-  exact γ
+  exact narrow
+  exact gammaineq
+  exact pLarge
+  exact mLarge
+  exact mggpr
+  exact prggp
+  exact hggp
+  exact kggh
+  exact Seq_in_H
   exact κPositive
   exact pPositive
   exact mPositive
@@ -694,7 +712,7 @@ let Fb3: Set V:=  ({v:V| v∈ Path_forest_support iV iSP F1}∪ {v:V| v∈ Path_
 
 
 have hF3Ex: _:= by
-  apply long_path_forest_specified_ends_simplified_altnum iV iSub iSP H S E Seq.LM  k  m γ pr α  Fb3
+  apply long_path_forest_specified_ends_simplified_altnum iV iSub iSP H S E Seq.LM  k  m pr pr α  Fb3
   --LMSparse
   exact Seq.LM_Sparse
   --LMgeMfamily
@@ -780,8 +798,8 @@ have hF3Ex: _:= by
     apply ((Seq.Ord.get! i).M_Near_Regular (Seq.LM.get! i) h23).2
     --
 
-  apply Cut_Dense_monotone
-  exact prllγ
+  --apply Cut_Dense_monotone
+  --exact prllγ
   exact hcd
   --
 
@@ -791,9 +809,11 @@ have hF3Ex: _:= by
   calc
     _
     =
+    8 * pr * (Fb3 ∩ (Seq.LM.get!  i).verts).toFinset.card + (m/(2*pr) + 8 * pr * (2 * (k ))):= by simp
+    _≤
     8 * γ * (Fb3 ∩ (Seq.LM.get!  i).verts).toFinset.card + (m/(2*pr) + 8 * γ * (2 * (k )))
     :=by
-      simp
+      gcongr
     _≤
     8 * γ * (Fb3).toFinset.card + (m/(2*pr) + 8 * γ * (2 * (k ))):= by
       gcongr
@@ -841,11 +861,11 @@ have hF3Ex: _:= by
       apply (Seq.Ord.get! i).M_Near_Regular
       exact h23
 
-  exact γPositive
+  exact prPositive
   exact kPositive
   exact αPositive
-  exact mggγ
-  exact ineq5
+  exact mggpr2
+  exact ineq6
 
 
 
@@ -1263,7 +1283,7 @@ have Path_ex: _:= by
     simp
   nth_rewrite 1 [h2]
   rw[List.take_left]
-  
+
 
 
   --
@@ -1273,13 +1293,42 @@ rcases Path_ex with ⟨P, hP1⟩
 
 
 
+use (F3.S.get! 0)
+use (F1.E.get! (k - 3))
+use P
 
+have h1: P.Wa.support.length-1=P.Wa.length:= by
+  --simp only [Walk.length_support]
+  simp
 
+have h2: P.Wa.support.toFinset.card={v:V|v∈ P.Wa.support}.toFinset.card:= by
+  congr
+  ext v
+  simp
 
+have h3: P.Wa.support.toFinset.card=P.Wa.support.length:= by
+  rw[ List.toFinset_card_of_nodup]
+  apply Walk.IsPath.support_nodup
+  exact P.Wa_Is_Path
+rw[h1.symm, h3.symm, h2]
+
+calc
+  {v | v ∈ P.Wa.support}.toFinset.card - 1
+  ≥ (Path_forest_support_until_t iV iSP F3 (k - 3 + 1)).toFinset.card-1:= by
+    gcongr
+    simp_rw[hP1]
+    simp
+    --
+  _≥ (k - 3 + 1) * (m / pr / (40 * pr))-1:= by
+    gcongr
+    apply long_path_forest_card
+    exact hF3card
+    rw [Nat.Simproc.add_le_le (k - 3) kPositive]
+    gcongr
+    simp
+    
   --
 
-
-sorry
 
 
 
