@@ -363,7 +363,7 @@ have Hkex: ∃ (Hk: Subgraph G),
         exact Vcard
     rw[hHk]
     simp
-    
+
 
 
 
@@ -842,7 +842,8 @@ lemma long_path_forest_specified_ends_simplified_altnum
 (kPositive: k>0)
 (κPositive: κ >0)
 --(prPositive: pr>0)
-(mggp: m ≥ 18 * p)
+(mggp: m/pr ≥ 18 * p)
+
 (κprop: 8 * p * k * m ≤ κ * (m / (2 * pr)))
 :
 ∃ (Fo: PathForest iV iSP H),

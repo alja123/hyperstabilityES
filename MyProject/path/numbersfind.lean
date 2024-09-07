@@ -68,7 +68,7 @@ lemma find_numbers_for_path
 ∧( γ * k * 16 + γ ^ 2 * k * 328 ≤ m/(2*pr))
 ∧( γ >0)
 ∧( m ≥ 18 * γ)
-∧( m ≥ 18 * pr)
+∧( m/pr ≥ 18 * pr)
 ∧( 8 * pr * k * m ≤ κ  * (m / (2 * pr)))
 ∧( γ ≥ 16 * κ ^ (2 * (100 * (5*pr*pr*pr * pr * h)).factorial))
 ∧( p ≥ 20)
@@ -406,6 +406,8 @@ calc
 
 constructor
 --m ≥ 18 * pr
+simp
+rw [Nat.le_div_iff_mul_le]
 calc
   m≥ κ :=by
     exact gg2_ge mggκ κPositive
@@ -413,13 +415,13 @@ calc
     exact gg1_ge κggh hPositive
   _≥ 10000*pr^3:=by
     exact gg1_1 hggp prPositive
-  _≥ 18*pr^1:=by
+  _≥ 18*pr^2:=by
     gcongr
     simp
     exact prPositive
     simp
   _=_:=by  ring_nf
-
+exact prPositive
 
 constructor
 calc
@@ -684,7 +686,80 @@ calc
     exact Pl
   _=(pr * pr * pr * h - 9 - 3 + 1) * (m / pr / (40 * pr)) - 1:= by
     rw[a21]
-  _≥ h*m:= by sorry
+  _≥ h*m:= by
+    apply Nat.le_sub_of_add_le'
+    calc
+      (pr * pr * pr * h - 9 - 3 + 1) * (m / pr / (40 * pr))
+      ≥(10000 * pr * pr * h - 9 - 3 + 1) * (m / pr / (40 * pr)):= by
+        gcongr
+        apply gg1_large2
+        exact pPositive
+        apply gg2_gg1
+        exact prggp
+        exact pPositive
+      _=(9988 * pr * pr * h +12* pr^2 * h- 9 - 3 + 1) * (m / pr / (40 * pr)):=by
+        ring_nf
+      _≥ (8000 * pr * pr * h +12* 1^2 * 1- 9 - 3 + 1) * (m / pr / (40 * pr)):= by
+        gcongr
+        simp
+        exact prPositive
+        exact hPositive
+      _=(8000 * pr * pr * h +3+9- 9 - 3 + 1) * (m / pr / (40 * pr)):= by
+        ring_nf
+      _=(8000 * pr * pr * h +3 - 3 + 1) * (m / pr / (40 * pr)):= by
+        exact rfl
+      _=(8000 * pr * pr * h +1) * (m / pr / (40 * pr)):= by
+        exact rfl
+      _≥ (8000 * pr * pr * h ) * (m / pr / (40 * pr)):= by
+        gcongr
+        simp
+      _=(8000 * pr * pr * h ) * (m / (pr*(40 * pr))):= by
+        congr 1
+        exact Nat.div_div_eq_div_mul m pr (40 * pr)
+      _= (2*(40 * pr * pr)  ) * (m / (40 * pr * pr))*100* h:= by
+        ring_nf
+      _≥(( (40 * pr * pr)   * m) / (40 * pr * pr))*100* h:= by
+        gcongr
+        apply div_assoc_le1
+        apply mul_pos
+        apply mul_pos
+        simp
+        exact prPositive
+        exact prPositive
+        calc
+          m≥ κ := by
+            exact gg2_ge mggκ κPositive
+          _≥ h:= by
+            exact gg1_ge κggh hPositive
+          _≥ 10000*pr^3:= by
+            exact gg1_1 hggp prPositive
+          _≥ 40*pr^2:= by
+            gcongr
+            simp
+            exact prPositive
+            simp
+          _=_:= by  ring_nf
+      _=(( m*(40 * pr * pr)   ) / (40 * pr * pr))*100* h:=by
+        ring_nf
+      _=(m)*100* h:=by
+        congr
+        apply Nat.mul_div_left
+        apply mul_pos
+        apply mul_pos
+        simp
+        exact prPositive
+        exact prPositive
+      _≥ (m)*2* h:= by
+        gcongr
+        simp
+      _=h*m+h*m:= by ring_nf
+      _≥ h*m+1*1:=by
+        gcongr
+        exact hPositive
+        exact mPositive
+      _=_:=by ring_nf
+
+
 
 
 

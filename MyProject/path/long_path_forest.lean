@@ -232,7 +232,8 @@ lemma long_path_forest_specified_ends
 
 (cutdense: cut_dense_list  HL p )--∀(i: ℕ ), (i< k)→ (cut_dense G  (HL.get! i) p))
 (Fbcard: small_intersection_list  HL Fb p ((8*p*kmax*m/κ)  +8*p*(2*1*kmax)))--∀(i: ℕ ), (i< k)→ (8*p*(((HL.get! i).verts∩ Fb).toFinset.card≤ (HL.get! i).verts.toFinset.card)))
-(mggp: m ≥ 18 * p)
+--(mggp: m ≥ 18 * p)
+(mggpr:  m / pr ≥ 18 * p)
 :
 ∃ (Fo: PathForest iV iSP H),
 Fo.S=S
@@ -588,7 +589,7 @@ have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.l
             exact Nat.not_eq_zero_of_lt κPositive
             ring_nf
 
-            
+
         _=8*p*(κ*∑  (x∈ Finset.Ico 0 k), (((HL.get! x).verts.toFinset∩ (HL.get! k).verts.toFinset).card))/κ:= by
           ring_nf
         _= 8*p*(∑  (x∈ Finset.Ico 0 k), (κ *((HL.get! x).verts.toFinset∩ (HL.get! k).verts.toFinset).card))/κ:=by
@@ -934,7 +935,9 @@ have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.l
     _≥ 1*m:=by gcongr; exact NeZero.one_le
     _=m:= by ring_nf-/
   --m/pr≥ 18*p
-  sorry
+
+  exact mggpr
+
 
 
 

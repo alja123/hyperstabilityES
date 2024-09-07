@@ -226,7 +226,7 @@ lemma clump_path_sequence_gives_path2
 (γPositive: γ >0)
 (αPositive: α >0)
 (mggγ: m ≥ 18 * γ)
-(mggpr2: m ≥ 18 * pr)
+(mggpr2: m/pr ≥ 18 * pr)
 --(ineq5:  8 * γ * k * m ≤ α * (m / (2 * pr)))
 (ineq6: 8 * pr * k * m ≤ α * (m / (2 * pr)))
 (narrow: Clump_family_narrow' Seq.Ord.toFinset)
