@@ -386,7 +386,11 @@ have hi2: i<VL.length:=by
 have h1: VL.get! i∈ BSetPlusM K:=by
   dsimp [VL]
   have h2: (VS.toList).get! i =(VS.toList).get ⟨ i, hi2⟩ :=by
-    exact (get_eq_get2! iV VS.toList i (sorryAx (i < VS.toList.length) true)).symm
+    apply (get_eq_get2! iV VS.toList i ?_).symm
+    simp
+    dsimp[VL] at hi2
+    simp at hi2
+    exact hi2
   rw[h2]
   have h3: (VS.toList).get ⟨ i, hi2⟩ ∈ VS.toList.toFinset:=by
     refine List.mem_toFinset.mpr ?_
@@ -1251,7 +1255,7 @@ have head_eq: (KL.rotate ↑i).head! = K:=by
   calc
     (KL.rotate ↑i).head! =(KL.rotate ↑i).head hnonemp:=by
       refine List.head!_of_head? ?_
-      exact List.head?_eq_head (KL.rotate ↑i) (sorryAx (KL.rotate ↑i ≠ []) true)
+      apply List.head?_eq_head (KL.rotate ↑i)
     _=(KL.rotate ↑i).get ⟨ 0, hnonemp2 ⟩ :=by
       exact (List.get_mk_zero hnonemp2).symm
 
@@ -1500,9 +1504,8 @@ have hVerInOrdNew: Vertex_list_in_clump_list_BSet iI iV OrdNew VerNew:=by
       simp
     calc
       (S'.Ord ++ [Knew]).getD S'.Ord.length default=(S'.Ord ++ [Knew]).get ⟨ S'.Ord.length, hle⟩ :=by
-        exact
-          List.getD_eq_get (S'.Ord ++ [Knew]) default
-            (sorryAx (S'.Ord.length < (S'.Ord ++ [Knew]).length) true)
+        apply List.getD_eq_get
+
 
       _=Knew:=by
         apply List.get_last
@@ -1686,7 +1689,7 @@ have hi2: i < M.length:=by
   exact hi
 have hget: M.get! i= M.get ⟨i, hi2 ⟩:=by
   simp
-  exact List.getD_eq_get M ⊥ (sorryAx (i < M.length) true)
+  apply List.getD_eq_get 
 have hget2: S.Ord.get! i= S.Ord.get ⟨i, hi ⟩:=by
   simp
   exact List.getD_eq_get S.Ord default hi

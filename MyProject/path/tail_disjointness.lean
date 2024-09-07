@@ -621,7 +621,7 @@ v= (F.S.get! i)
 := by
 rw[F.Starts_equal i hi]
 exact Path_forest_get_start iV iSP F i hi v hv inStarts hk
- 
+
 
 
 
@@ -1301,7 +1301,7 @@ have ainS: a ∈ F2.S:= by
           _≤  F1.k:= by exact F1k
           _=F1.P.length:= by exact F1.P_length.symm
       rw[h3]
-      exact List.get_mem F1.P i (sorryAx (i < F1.P.length) true)
+      apply List.get_mem F1.P i
       exact in2
 
 
@@ -1331,6 +1331,7 @@ have aeq3: ((F2.S.rotate 1).get! (j-1))=(F2.S.get! (j)):= by
   have h1: j=jm+1:= by
     dsimp[jm]
     refine (Nat.sub_eq_iff_eq_add ?h).mp rfl
+    exact Nat.one_le_iff_ne_zero.mpr jzer
   rw[h1]
   simp only [add_tsub_cancel_right]
   apply list_rotate_get_V

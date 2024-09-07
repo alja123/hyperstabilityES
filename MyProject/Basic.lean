@@ -167,9 +167,14 @@ have hn: n= ((Nat.floor (a' / b') + 1)) * e:= by exact rfl
 have h6: (n:ℚ )≥ (v:ℚ):= by calc
   (n:ℚ) =  (((Nat.floor (a' / b') + 1) * e:ℕ ):ℚ):= by exact nat_eq_rat n ((Nat.floor (a' / b') + 1) * e) hn
   _=(((Nat.floor (a' / b') + 1:ℕ ) * (e:ℕ )):ℚ):= by exact nat_rat_mul ((Nat.floor (a' / b') + 1)) e ((Nat.floor (a' / b') + 1) * e) hn
-  _≥ (Nat.ceil (a'/b'))*e:= by gcongr; sorry
+  _≥ (Nat.ceil (a'/b'))*e:= by
+    gcongr;
+    simp
   _=  (Nat.ceil (a'/b'))*e':= by exact rfl
-  _≥ (a'/b')*e':= by gcongr; sorry
+  _≥ (a'/b')*e':= by
+    gcongr;
+    dsimp[e']
+    simp
   _= e'*(a'/b'):= by exact Rat.mul_comm (a' / b') e'
   _= (e'*a')/b':= by exact id h2.symm
   _= (a'*e')/b':= by   rw [Rat.mul_comm]
@@ -308,7 +313,7 @@ _≥ a/2:= by
   exact minus_half_halves_ge a
 
 
- 
+
 
 --Basic Set Theory----------------------------------
 lemma intersection_contained_in_union
