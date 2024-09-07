@@ -10,7 +10,7 @@ open scoped BigOperators
 namespace SimpleGraph
 
 
-set_option maxHeartbeats 200000
+set_option maxHeartbeats 600000
 
 universe u
 variable {V : Type u} {G : SimpleGraph V}
@@ -474,7 +474,10 @@ have hex: _:= by
     simp
     exact Nat.lt_trans ht Slength
   have h1: (F1.S.rotate 1).get! t=F1.S.get! (t+1):=by
-    sorry
+    apply list_rotate_get_V
+    calc
+      t+1<tmax:= by exact ht
+      _<F1.S.length:= by exact Slength
   rw[h1]
   apply F1.Starts_equal (t+1)
   exact pos1
@@ -637,5 +640,4 @@ have h5:  {v | v ∈ P.Wa.support ∨ v ∈ Q.Wa.support}= {v | v ∈ P.Wa.suppo
 rw[h5]
 rw[hP1, hQ2]
 
-sorry
---aesop
+aesop

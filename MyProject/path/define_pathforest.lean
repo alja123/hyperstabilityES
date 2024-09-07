@@ -319,3 +319,55 @@ have sublist: List.Sublist (List.drop k S) S:= by
 exact List.Nodup.sublist sublist nodup
 --have h2: S.get ⟨k, hk⟩=(List.drop k S).head Snonemp:= by
 --  simp
+
+
+lemma list_rotate_get_V
+(L: List V)
+(t: ℕ )
+(ht: t+1<L.length)
+:
+(L.rotate 1).get! t=L.get! (t+1)
+:= by
+have ht2:t< (L.rotate 1).length:=by
+  simp
+  exact Nat.lt_of_succ_lt ht
+have get1: L.get! (t+1)=L.get ⟨t+1, ht⟩:= by
+  simp
+  exact List.getD_eq_get L default ht
+have get2: (L.rotate 1).get! t=(L.rotate 1).get ⟨t, ht2⟩:= by
+  simp
+  exact List.getD_eq_get (L.rotate 1) default ht2
+rw[get1, get2]
+rw[List.get_rotate L]
+simp
+have h3: (t + 1) % L.length=t+1:= by
+  exact Nat.mod_eq_of_lt ht
+simp_rw[h3]
+
+
+lemma list_rotate_get_V_last
+(L: List V)
+(ht:  (L.length)>0 )
+:
+(L.rotate 1).get! (L.length-1)=L.get! (0)
+:= by
+have ht2: (L.length-1)< (L.rotate 1).length:=by
+  simp
+  refine Nat.sub_lt ?_ ?_
+  exact ht
+  simp
+have get1: L.get!  0=L.get ⟨ 0, ht⟩:= by
+  simp
+  exact List.getD_eq_get L default ht
+have get2: (L.rotate 1).get!  (L.length-1)=(L.rotate 1).get ⟨ (L.length-1), ht2⟩:= by
+  simp
+  exact List.getD_eq_get (L.rotate 1) default ht2
+rw[get1, get2]
+rw[List.get_rotate L]
+simp
+have h3: (L.length - 1 + 1) % L.length=0:= by
+  rw [Nat.sub_one_add_one_eq_of_pos ht]
+  simp
+simp_rw[h3]
+
+

@@ -10,7 +10,7 @@ open scoped BigOperators
 namespace SimpleGraph
 
 
-set_option maxHeartbeats    150000
+set_option maxHeartbeats    250000
 
 universe u
 variable {V : Type u} {G : SimpleGraph V}
@@ -30,6 +30,349 @@ variable (iSub:Inhabited (Subgraph G))
 variable (iSP:Inhabited (SubgraphPath_implicit   G) )
 
 
+
+
+--used
+/-
+lemma start_not_in_tail
+(P: SubgraphPath_implicit G)
+:
+P.s∉ P.Pa.Wa.support.tail
+:= by
+refine Walk_start_not_in_tail P.Pa.Wa ?hP
+exact P.Pa.Wa_Is_Path
+-/
+
+lemma Path_forest_ends_inter
+(F: PathForest iV iSP H)
+--(P: SubgraphPath_implicit G)
+(i: ℕ )
+(hi: i< F.k)
+--(v: V)
+--(hv: v ∈ P.Pa.Wa.support)
+--(hk: F.k=F.E.length)
+:
+F.E.get! i∈ (F.P.get! i).Pa.Wa.support
+:= by
+have h1:  (F.P.get! i).e=F.E.get! i:= by
+  symm
+  exact F.Ends_equal i hi
+rw[h1.symm]
+exact Walk.end_mem_support (F.P.get! i).Pa.Wa
+
+--not used?
+lemma Path_forest_endss_inter2
+(F: PathForest iV iSP H)
+--(P: SubgraphPath_implicit G)
+(i j: ℕ )
+(hi: i< F.k)
+(hj: j< F.k)
+(hij: i< j)
+--(v: V)
+--(hv: v ∈ P.Pa.Wa.support)
+(hk: F.k=F.E.length)
+:
+F.E.get! j∉  (F.P.get! i).Pa.Wa.support
+:= by
+by_contra cont
+have hhi:  F.E.get! j∈  (F.P.get! j).Pa.Wa.support:= by
+  apply Path_forest_ends_inter
+  exact hj
+
+have hdisj: _:= by exact F.Paths_disjoint
+unfold paths_disjoint at hdisj
+
+have hdisj2: _:= by exact hdisj i j hij hj
+have neg: ¬ (Disjoint {v | v ∈ (F.P.get! i).Pa.Wa.support} {v | v ∈ (F.P.get! j).Pa.Wa.support})
+:= by
+  refine Set.not_disjoint_iff.mpr ?_
+  use F.E.get! j
+  constructor
+  simp only [Set.mem_setOf_eq]
+  exact cont
+
+  simp only [Set.mem_setOf_eq]
+  exact hhi
+exact neg (hdisj i j hij hj)
+
+
+
+
+
+lemma Path_forest_ends_inter3
+(F: PathForest iV iSP H)
+--(P: SubgraphPath_implicit G)
+(i j: ℕ )
+(hi: i< F.k)
+(hj: j< F.k)
+(hij: i≠  j)
+--(v: V)
+--(hv: v ∈ P.Pa.Wa.support)
+--(hk: F.k=F.S.length)
+:
+F.E.get! j∉  (F.P.get! i).Pa.Wa.support
+:= by
+by_contra cont
+have hhi:  F.E.get! j∈  (F.P.get! j).Pa.Wa.support:= by
+   apply Path_forest_ends_inter
+   exact hj
+
+
+have hdisj: _:= by exact F.Paths_disjoint
+unfold paths_disjoint at hdisj
+
+have hdisj2: Disjoint {v | v ∈ (F.P.get! i).Pa.Wa.support} {v | v ∈ (F.P.get! j).Pa.Wa.support}:= by
+  by_cases case: i<j
+  apply hdisj
+  exact case
+  exact hj
+
+  rw[disjoint_comm]
+  apply hdisj
+  simp at case
+  exact Nat.lt_of_le_of_ne case (id (Ne.symm hij))
+  exact hi
+
+--have hdisj2: _:= by exact hdisj i j hij hj
+have neg: ¬ (Disjoint {v | v ∈ (F.P.get! i).Pa.Wa.support} {v | v ∈ (F.P.get! j).Pa.Wa.support})
+:= by
+  refine Set.not_disjoint_iff.mpr ?_
+  use F.E.get! j
+  constructor
+  simp only [Set.mem_setOf_eq]
+  exact cont
+
+  simp only [Set.mem_setOf_eq]
+  exact hhi
+exact neg hdisj2
+
+
+lemma Path_forest_ends_aux_get
+(F: PathForest iV iSP H)
+(i: ℕ )
+(hi: i< F.k)
+(v: V)
+(hv: v ∈ (F.P.get! i).Pa.Wa.support)
+(hv2: v≠ (F.P.get! i).e)
+(hk: F.k=F.E.length)
+:
+v∉ F.E
+:= by
+
+by_contra cont
+have hex: ∃ (j: Fin (F.E.length)), F.E.get j=v:= by
+  exact List.mem_iff_get.mp cont
+rcases hex with ⟨j, hj⟩
+have hj': F.E.get! j=v:= by
+  have h1: F.E.get! j.1=F.E.get ⟨ j.1,j.2⟩ := by
+    simp only [List.get!_eq_getD]
+    exact List.getD_eq_get F.E default j.isLt
+  rw[h1]
+  simp
+  exact hj
+
+rw[hj'.symm] at hv
+have ne: (j:ℕ )≠ i:= by
+  by_contra cont2
+  have h3: F.E.get! ↑j=(F.P.get! j).e:= by
+    apply F.Ends_equal
+    exact lt_of_eq_of_lt cont2 hi
+  rw[h3] at hj'
+  rw[cont2] at hj'
+  rw[hj'] at hv2
+  exact hv2 rfl
+
+have hhh: F.E.get! j∉  (F.P.get! i).Pa.Wa.support
+:= by
+  apply Path_forest_ends_inter3
+  repeat assumption
+  rw[hk]
+  exact j.isLt
+  exact ne.symm
+exact hhh hv
+
+
+lemma Path_forest_get_end
+(F: PathForest iV iSP H)
+(i: ℕ )
+(hi: i< F.k)
+(v: V)
+(hv: v ∈ (F.P.get! i).Pa.Wa.support)
+(inStarts: v∈  F.E)--.droplast
+--(hv2: v≠ (F.P.get! i).s)
+(hk: F.k=F.E.length)
+:
+v= (F.P.get! i).e
+:= by
+by_contra cont
+have hc: v∉  F.E:= by
+  exact Path_forest_ends_aux_get iV iSP F i hi v hv cont hk
+exact hc inStarts
+
+--used
+lemma Path_forest_get_end2
+(F: PathForest iV iSP H)
+(i: ℕ )
+(hi: i< F.k)
+(v: V)
+(hv: v ∈ (F.P.get! i).Pa.Wa.support)
+(inStarts: v∈  F.E)
+--(hv2: v≠ (F.P.get! i).s)
+(hk: F.k=F.E.length)
+:
+v= (F.E.get! i)
+:= by
+rw[F.Ends_equal i hi]
+exact Path_forest_get_end iV iSP F i hi v hv inStarts hk
+
+
+
+
+
+lemma path_support_eq
+(H: Subgraph G)
+(x y: V)
+(P:SubgraphPath H x y)
+:
+{v:V|v∈ P.Wa.support}.toFinset.card=P.Wa.length+1
+:=by
+
+have h1: P.Wa.support.length=P.Wa.length+1:= by
+  --simp only [Walk.length_support]
+  simp
+
+have h2: P.Wa.support.toFinset.card={v:V|v∈ P.Wa.support}.toFinset.card:= by
+  congr
+  ext v
+  simp
+
+have h3: P.Wa.support.toFinset.card=P.Wa.support.length:= by
+  rw[ List.toFinset_card_of_nodup]
+  apply Walk.IsPath.support_nodup
+  exact P.Wa_Is_Path
+rw[h1.symm, h3.symm, h2]
+
+lemma path_support_eq2
+(H: Subgraph G)
+(x y: V)
+(P:SubgraphPath H x y)
+:
+P.Wa.support.toFinset.card=P.Wa.length+1
+:=by
+have h3: P.Wa.support.toFinset.card=P.Wa.support.length:= by
+  rw[ List.toFinset_card_of_nodup]
+  apply Walk.IsPath.support_nodup
+  exact P.Wa_Is_Path
+have h1: P.Wa.support.length=P.Wa.length+1:= by
+  --simp only [Walk.length_support]
+  simp
+rw[h1.symm, h3.symm]
+
+
+lemma long_path_forest_card
+(t k: ℕ)
+(Fo: PathForest iV iSP H)
+(long: Path_forest_long! iV iSP Fo l k)
+(hk: k≤ Fo.k)
+
+(ht': t≤  k)
+:
+((Path_forest_support_until_t iV iSP Fo (t)).toFinset.card)≥ t*l
+:= by
+have ht: t≤  Fo.k:= by
+  exact Nat.le_trans ht' hk
+unfold Path_forest_support_until_t
+--simp only [Set.mem_setOf_eq]
+have supeq: {v :V| ∃ (i:ℕ ), i < t∧  v ∈ (Fo.P.get! i).Pa.Wa.support}.toFinset = (Finset.range t).biUnion  fun x ↦ ((Fo.P.get! x).Pa.Wa.support.toFinset):= by
+  ext x
+  simp
+calc
+  _={v :V| ∃ (i:ℕ ), i < t∧  v ∈ (Fo.P.get! i).Pa.Wa.support}.toFinset.card
+    := by simp
+  _= ((Finset.range t).biUnion  fun x ↦ ((Fo.P.get! x).Pa.Wa.support.toFinset)).card:= by
+    congr
+  _=∑ (i∈ Finset.range t), ((Fo.P.get! i).Pa.Wa.support.toFinset).card:= by
+    refine card_biUnion ?h
+    intro i hi j hj hij
+    rw [@List.disjoint_toFinset_iff_disjoint]
+    have hdis:_:=by exact Fo.Paths_disjoint
+    unfold paths_disjoint at hdis
+    by_cases case: i<j
+    have h1: Disjoint {v | v ∈ (Fo.P.get! i).Pa.Wa.support} {v | v ∈ (Fo.P.get! j).Pa.Wa.support}:= by
+      apply hdis
+      exact case
+      calc
+        j<t:= by exact List.mem_range.mp hj
+        _≤ Fo.k:= by exact ht
+    simp at h1
+    apply List.disjoint_left.mpr
+    intro a ha
+    have ain:a∈ {v | v ∈ (Fo.P.get! i).Pa.Wa.support}:= by
+      simp
+      exact ha
+    have anin: a∉ {v | v ∈ (Fo.P.get! j).Pa.Wa.support}:= by
+      by_contra cont
+      have neg: ¬ (Disjoint {v | v ∈ (Fo.P.get! i).Pa.Wa.support} {v | v ∈ (Fo.P.get! j).Pa.Wa.support}):= by
+        rw [@Set.not_disjoint_iff]
+        use a
+      exact neg h1
+    simp at anin
+    exact anin
+    --
+    simp at case
+    have case: j<i:= by
+      exact Nat.lt_of_le_of_ne case (id (Ne.symm hij))
+    rw[List.disjoint_comm]
+    have h1: Disjoint  {v | v ∈ (Fo.P.get! j).Pa.Wa.support} {v | v ∈ (Fo.P.get! i).Pa.Wa.support}:= by
+      apply hdis
+      exact case
+      calc
+        i<t:= by exact List.mem_range.mp hi
+        _≤ Fo.k:= by exact ht
+    simp at h1
+    apply List.disjoint_left.mpr
+    intro a ha
+    have ain:a∈ {v | v ∈ (Fo.P.get! j).Pa.Wa.support}:= by
+      simp
+      exact ha
+    have anin: a∉ {v | v ∈ (Fo.P.get! i).Pa.Wa.support}:= by
+      by_contra cont
+      have neg: ¬ (Disjoint {v | v ∈ (Fo.P.get! j).Pa.Wa.support} {v | v ∈ (Fo.P.get! i).Pa.Wa.support}):= by
+        rw [@Set.not_disjoint_iff]
+        use a
+      exact neg h1
+    simp at anin
+    exact anin
+
+
+
+
+
+  _≥ ∑ (i∈ Finset.range t), l:=by
+    gcongr  with i hi
+    unfold Path_forest_long! at long
+    rw[path_support_eq2]
+    calc
+      (Fo.P.get! i).Pa.Wa.length + 1
+      ≥ (Fo.P.get! i).Pa.Wa.length := by
+        simp
+      _≥ l:= by
+        apply long
+        calc
+          i<t:= by exact List.mem_range.mp hi
+          _≤ k:= by exact ht'
+
+
+
+    --
+
+
+
+
+
+  _= _:= by
+    rw [@sum_const]
+    simp
 
 
 ---used
@@ -115,7 +458,7 @@ rw[h1.symm]
 exact Walk.start_mem_support (F.P.get! i).Pa.Wa
 
 --not used?
-/-lemma Path_forest_starts_inter2
+lemma Path_forest_starts_inter2
 (F: PathForest iV iSP H)
 --(P: SubgraphPath_implicit G)
 (i j: ℕ )
@@ -132,7 +475,7 @@ by_contra cont
 have hhi:  F.S.get! j∈  (F.P.get! j).Pa.Wa.support:= by
   apply Path_forest_starts_inter
   exact hj
-  exact hk
+  --exact hk
 
 have hdisj: _:= by exact F.Paths_disjoint
 unfold paths_disjoint at hdisj
@@ -149,7 +492,7 @@ have neg: ¬ (Disjoint {v | v ∈ (F.P.get! i).Pa.Wa.support} {v | v ∈ (F.P.ge
   simp only [Set.mem_setOf_eq]
   exact hhi
 exact neg (hdisj i j hij hj)
--/
+
 
 lemma Path_forest_starts_inter3
 (F: PathForest iV iSP H)
@@ -278,36 +621,7 @@ v= (F.S.get! i)
 := by
 rw[F.Starts_equal i hi]
 exact Path_forest_get_start iV iSP F i hi v hv inStarts hk
-
-
---used
-lemma Path_forest_get_end2
-(F: PathForest iV iSP H)
-(i: ℕ )
-(hi: i< F.k)
-(v: V)
-(hv: v ∈ (F.P.get! i).Pa.Wa.support)
-(inStarts: v∈  F.E)
---(hv2: v≠ (F.P.get! i).s)
-(hk: F.k=F.E.length)
-:
-v= (F.E.get! i)
-:= by
-sorry
-
-lemma Path_forest_starts_aux
-(F: PathForest iV iSP H)
-(P: SubgraphPath_implicit G)
-(hP: P ∈ F.P)
-(v: V)
-(hv: v ∈ P.Pa.Wa.support)
-(hv2: v≠ P.s)
-(hk: F.k=F.S.length)
-:
-v∉ F.S
-:= by
-
-sorry
+ 
 
 
 
@@ -938,7 +1252,7 @@ lemma set_disjoint_to_internal_disjoint_reverse_taildisj_symm2_tailaligned2
 (F1  F2: PathForest iV iSP H)
 (Fb: Set V)
 (k: ℕ )
-(F1k: F1.k≥ k)
+(F1k': F1.k> k)
 (F2k: F2.k≥ k)
 (F2k2: F2.k = F2.S.length)
 (F1k2: F1.k = F1.E.length)
@@ -950,6 +1264,7 @@ lemma set_disjoint_to_internal_disjoint_reverse_taildisj_symm2_tailaligned2
 :
 ∀(j i: ℕ ), (j< k)→ (i<k)→ j≠ i+1→  (tail_disjoint_imp  (F2.P.get! j) (F1.P.get! i))
 := by
+have F1k: F1.k≥  k:=by exact Nat.le_of_succ_le F1k'
 intro j i hj hi hneq
 unfold tail_disjoint_imp
 apply List.disjoint_left.mpr
@@ -1008,16 +1323,35 @@ have aeq2: a=(F2.S.get! j):= by
     _≤ F2.k:= by exact F2k
   exact ha
   exact ainS
-  sorry
+  exact F2k2
 
+by_cases jzer: j≠ 0
 have aeq3: ((F2.S.rotate 1).get! (j-1))=(F2.S.get! (j)):= by
-  sorry
+  let jm:= j-1
+  have h1: j=jm+1:= by
+    dsimp[jm]
+    refine (Nat.sub_eq_iff_eq_add ?h).mp rfl
+  rw[h1]
+  simp only [add_tsub_cancel_right]
+  apply list_rotate_get_V
+  dsimp[jm]
+  rw [← h1]
+  rw[F2k2.symm]
+  exact Nat.lt_of_lt_of_le hj F2k
+
 rw[aeq3.symm] at aeq2
 rw[Ends_eq.symm] at aeq2
 have in4:  a ∈ (F1.P.get! (j-1)).Pa.Wa.support:=by
-    sorry
+    rw[aeq2]
+    rw[F1.Ends_equal]
+    exact Walk.end_mem_support (F1.P.get! (j - 1)).Pa.Wa
+    calc
+      j-1≤ j:= by simp
+      _< k:= by exact hj
+      _≤ F1.k:= by exact F1k
 
-by_cases jzer: j≠ 0
+
+
 
 have h1:  Disjoint {v:V|v∈ (F1.P.get! (j - 1)).Pa.Wa.support} {v:V|v∈ (F1.P.get! (i)).Pa.Wa.support}:= by
   have h2:_:=by exact  F1.Paths_disjoint
@@ -1056,7 +1390,17 @@ exact h1neg h1
 simp at jzer
 rw[ jzer] at aeq
 have aeq4: a=(F1.E.get! (F1.k-1)):= by
-  sorry
+  rw[jzer] at aeq2
+  rw[Ends_eq]
+  rw[aeq2]
+  have F1keq: F1.k=F2.k:= by
+    rw[F1k2, F2k2, Ends_eq]
+    simp
+  rw[F1keq, F2k2]
+  symm
+  apply list_rotate_get_V_last
+  exact List.length_pos_of_mem ainS
+
 
 have h1:  Disjoint {v:V|v∈ (F1.P.get! (i)).Pa.Wa.support} {v:V|v∈ (F1.P.get! (F1.k-1)).Pa.Wa.support}:= by
   have h2:_:=by exact  F1.Paths_disjoint
@@ -1070,14 +1414,28 @@ have h1:  Disjoint {v:V|v∈ (F1.P.get! (i)).Pa.Wa.support} {v:V|v∈ (F1.P.get!
     _> i:= by exact hi
     _≥ 0:= by simp
   simp
+
   exfalso
   simp at case
-  sorry
+  have iieq : i+1< F1.k:=by
+    calc
+      i+1≤ k:= by exact hi
+      _< F1.k:= by exact F1k'
+  have neg:¬ ( i + 1 < F1.k):=by
+    simp
+    exact case
+  exact neg  iieq
+
 
 
 
 have in4:  a ∈ (F1.P.get! (F1.k-1)).Pa.Wa.support:=by
-    sorry
+    rw[aeq4]
+    rw[F1.Ends_equal]
+    exact Walk.end_mem_support (F1.P.get! (F1.k - 1)).Pa.Wa
+    refine Nat.sub_lt ?_ ?_
+    exact Nat.zero_lt_of_lt F1k'
+    simp
 
 
 have h1neg: ¬  (Disjoint {v | v ∈ (F1.P.get! (i)).Pa.Wa.support} {v | v ∈ (F1.P.get! (F1.k-1)).Pa.Wa.support}):=by

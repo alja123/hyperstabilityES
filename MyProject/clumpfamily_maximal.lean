@@ -136,7 +136,7 @@ calc
   Ki.k≤ h * m / (m / pr) + 1:=by
     apply hProp.2
     exact hKi
-  _≤ pr * pr * h:=by
+  _≤ pr * pr *pr * pr * h:=by
     --h * m / (m / pr) + 1 ≤ pr * pr * h
     calc
       h * m / (m / pr) + 1
@@ -176,8 +176,8 @@ calc
       _≤ h*pr+h*pr+h*pr:= by
         gcongr
         repeat assumption
-      _= 3*pr*h:= by ring_nf
-      _≤ pr*pr*h:= by
+      _= 3*1*1*pr*h:= by ring_nf
+      _≤ pr * pr *pr*pr*h:= by
         gcongr
         calc
           pr≥ gg1 p:= by
@@ -187,6 +187,8 @@ calc
             apply gg1_large
             repeat assumption
           _≥ _:= by simp
+        exact prPositive
+        exact prPositive
 
 
 

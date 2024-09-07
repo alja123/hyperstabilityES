@@ -12,7 +12,7 @@ open scoped BigOperators
 namespace SimpleGraph
 
 
-set_option maxHeartbeats 0
+set_option maxHeartbeats 400000
 
 universe u
 variable {V : Type u} {G : SimpleGraph V}
@@ -29,6 +29,8 @@ variable {prPositive: pr >0}-/
 --variable (iI:Inhabited (Clump G p m κ pr h))
 variable (iV:Inhabited V)
 variable (iSub:Inhabited (Subgraph G))
+variable (iSP:Inhabited (SubgraphPath_implicit   G) )
+
 /-
 variable (pLarge: p≥ 20)
 variable (prggp: pr ≥ gg2 p)
@@ -157,7 +159,7 @@ calc
 theorem version3
 (H: Subgraph G)
 (ε d: ℕ )
---(dggε: d ≥ gg2 (gg1 (gg1 (gg2 (gg1 ε)))) * gg1 (gg2 (gg1 ε)))
+(dggε: d ≥ gg2 (gg1 (gg1 (gg2 (gg1 ε)))) * gg1 (gg2 (gg1 ε)))
 (εPositive: ε >0)
 (dPositive: d>0)
 (no_paths: ¬ Has_length_d_path (H) (d))
@@ -232,7 +234,7 @@ have num_ex: ∃ (p pr h κ α : ℕ),  p≥ 20 ∧ pr ≥ gg2 p ∧ h ≥ gg1 p
 
   constructor
   dsimp[κ, h, pr, p]
-  sorry--exact dggε
+  exact dggε
 
   dsimp[κ, h, pr, p]
 

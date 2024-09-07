@@ -12,7 +12,7 @@ open scoped BigOperators
 namespace SimpleGraph
 
 
-set_option maxHeartbeats  200000
+set_option maxHeartbeats  500000
 
 universe u
 variable {V : Type u} {G : SimpleGraph V}
@@ -49,6 +49,35 @@ variable (iSP:Inhabited (SubgraphPath_implicit   G) )
   --(LM_NoDup: LM.Nodup)
 -/
 
+lemma list_tail_eq_drop
+(L: List V)
+:
+L.tail=L.drop 1
+:= by
+have h1: L=L.drop 0:= by simp
+nth_rewrite 1 [h1]
+rw[List.tail_drop L 0]
+
+lemma list_tail_get_V
+(L: List V)
+(t: ℕ )
+(ht: 1+t<L.length)
+:
+(L.tail).get! t=L.get! (t+1)
+:= by
+rw[list_tail_eq_drop]
+have ht2:t< (List.drop 1 L).length:=by
+  simp
+  exact Nat.lt_sub_iff_add_lt'.mpr ht
+rw[add_comm]
+have get1: L.get! (1+t)=L.get ⟨1+t, ht⟩:= by
+  simp
+  exact List.getD_eq_get L default ht
+have get2: (List.drop 1 L).get! t=(List.drop 1 L).get ⟨t, ht2⟩:= by
+  simp only [ List.get!_eq_getD]
+  exact List.getD_eq_get (List.drop 1 L) default ht2
+rw[get1, get2]
+exact (List.get_drop L ht).symm
 
 
 lemma get_rotate_tail
@@ -58,23 +87,91 @@ lemma get_rotate_tail
 :
 (L.rotate 1).get! i=L.tail.get! i
 := by
-sorry
+rw[list_rotate_get_V]
+rw[list_tail_get_V]
+exact Nat.add_lt_of_lt_sub' hi
+exact Nat.add_lt_of_lt_sub hi
+
 
 lemma get_take_tail
 (L: List V)
 (i k: ℕ )
 (hi: i< k-1)
+(hk: k≤ L.length)
 :
 (List.take k L).tail.get! i= L.tail.get! i
 := by
-sorry
+
+rw[list_tail_get_V]
+rw[list_tail_get_V]
+have h1: (L).get! (i+1)=( L).get ⟨ i+1, ?_⟩:= by
+  simp only [ List.get!_eq_getD]
+  apply List.getD_eq_get
+have h2: (List.take k L).get! (i + 1)=(List.take k L).get ⟨ (i + 1), ?_⟩:= by
+  simp
+  apply List.getD_eq_get
+rw[h1, h2]
+
+rw[List.get_take']
+simp
+constructor
+exact Nat.add_lt_of_lt_sub hi
+calc
+  i+1 < k:= by exact Nat.add_lt_of_lt_sub hi
+  _≤ L.length:= by exact hk
+calc
+  i+1 < k:= by exact Nat.add_lt_of_lt_sub hi
+  _≤ L.length:= by exact hk
+rw[add_comm]
+calc
+  i+1 < k:= by exact Nat.add_lt_of_lt_sub hi
+  _≤ L.length:= by exact hk
+rw[add_comm]
+calc
+  i+1 < k:= by exact Nat.add_lt_of_lt_sub hi
+  _≤ (List.take k L).length:= by
+    simp
+    exact hk
 
 lemma Path_forest_ends_contained
 (F : PathForest iV iSP H)
+(hElen: F.k≥  F.E.length)
 :
 {v:V| v∈ F.E.take F.k}⊆ Path_forest_support iV iSP F
 := by
-sorry
+intro v hv
+simp at hv
+have h1: (List.take F.k F.E)⊆  F.E:= by
+  exact List.take_subset F.k F.E
+have h2: v∈ F.E:= by exact h1 hv
+
+have h3: ∃ (i: Fin F.E.length), F.E.get i=v:=by
+  apply List.mem_iff_get.1
+  exact h2
+rcases h3 with ⟨ i, hi⟩
+have h4: F.E.get i=F.E.get! i.1:=by
+  simp
+  rw [get_eq_get! iV F.E i]
+  simp
+rw[hi.symm, h4]
+rw[F.Ends_equal]
+unfold Path_forest_support
+simp
+use F.P.get! i.1
+constructor
+have hi2: i.1<F.P.length:=by
+  rw[F.P_length]
+  exact Fin.val_lt_of_le i hElen
+have hget2: F.P.get! i.1=F.P.get ⟨ i.1, hi2⟩ :=by
+  simp
+  exact List.getD_eq_get F.P default hi2
+rw[hget2]
+exact List.get_mem F.P (↑i) hi2
+have h4: F.P.getD (↑i) default=(F.P.get! ↑i):=by
+  simp
+rw[h4]
+exact Walk.end_mem_support (F.P.get! ↑i).Pa.Wa
+exact Fin.val_lt_of_le i hElen
 
 --used
 lemma path_forest_avoids_monotone!
@@ -108,15 +205,6 @@ simp
 exact hdis ha
 
 
-lemma long_path_forest_card
-(Fo: PathForest iV iSP H)
-(long: Path_forest_long! iV iSP Fp l k)
-(t: ℕ)
-(ht: t≤  k)
-:
-((Path_forest_support_until_t iV iSP Fo (t)).toFinset.card)≥ t*l
-:= by
-sorry
 
 lemma clump_path_sequence_gives_path2
 (H: Subgraph G)
@@ -140,8 +228,8 @@ lemma clump_path_sequence_gives_path2
 (mggpr2: m ≥ 18 * pr)
 --(ineq5:  8 * γ * k * m ≤ α * (m / (2 * pr)))
 (ineq6: 8 * pr * k * m ≤ α * (m / (2 * pr)))
-(narrow: Clump_family_narrow Seq.Ord.toFinset)
-(gammaineq: γ ≥ 16 * κ ^ (2 * (100 * (pr * pr * h)).factorial))
+(narrow: Clump_family_narrow' Seq.Ord.toFinset)
+(gammaineq: γ ≥ 16 * κ ^ (2 * (100 * (5*pr*pr*pr * pr * h)).factorial))
 (pLarge: p ≥ 20)
 (mLarge: m ≥ 20)
 (mggpr:m ≥ gg1 pr)
@@ -149,13 +237,23 @@ lemma clump_path_sequence_gives_path2
 (hggp: h ≥p)
 (kggh:κ ≥ h)
 (Seq_in_H:∀ i < Seq.Ord.length, (Seq.Ord.get! i).Gr ≤ H)
+(mbig3: m * 3 ≥ γ * k * 16 + γ ^ 2 * k * 328 + m / (pr * 2) )
 :
 ∃  (u v: V), ∃  (P: SubgraphPath H u v), P.Wa.length ≥  (k - 3 + 1) * (m / pr / (40 * pr))-1
 
 --Has_length_d_path (Clump_Family_Union KFam) (h*m)
 :=by
 
+
+
+
 have kPositive: k>0:= by exact Nat.zero_lt_of_lt kLarge
+
+have kin6:k>k-2:=by
+  refine Nat.sub_lt ?_ ?_
+  exact kPositive
+  simp
+
 have Ord_length3: Seq.Ord.length>k+1:= by
   calc
     Seq.Ord.length>k+8:= by exact Ord_length
@@ -522,6 +620,32 @@ have hF1Ex: _:= by
   exact ineq
   exact γPositive
 
+  calc
+    _=
+    (Fb).toFinset.card:=by
+      congr 1
+      ext
+      simp
+    _≤ (k+4):= by
+      dsimp[Fb]
+      have h1: {v | v ∈ E}.toFinset= E.toFinset:= by
+        ext v
+        simp
+      rw[h1]
+      simp
+      calc
+        E.toFinset.card≤  E.length:= by exact List.toFinset_card_le E
+        _= k+4:= by exact hE
+    _=(k+4*1):= by ring_nf
+    _≤ k+4*k:= by
+      gcongr
+      exact kPositive
+    _=5*1*k:= by ring_nf
+    _≤41*γ *k:= by
+      gcongr
+      simp
+      exact γPositive
+  exact mbig3
 
   intro i hi2
   have hi: i< k+1:= by exact Nat.lt_add_right 1 hi2
@@ -538,6 +662,10 @@ have hF1Ex: _:= by
       _≤ k+1:= by simp;ring_nf;simp
   exact hi
   exact hi2
+  dsimp[S']
+  calc
+   k≤ k+4:= by simp
+   _= S.length:= by rw[hS]
   dsimp[S']
   simp
   rw [hS]
@@ -679,6 +807,26 @@ have hF2Ex: _:= by
   exact γPositive
   --exact γPositive
   --vertex_list_in_graph_list iV iSub S HS (k + 1)
+  calc
+    _=
+    (Fb2).toFinset.card:=by
+      congr 1
+      ext
+      simp
+
+    _≤41*γ *k:= by
+
+      dsimp[Fb2]
+      calc
+        (Path_forest_support iV iSP F1 \ {v | v ∈ Seq.Ver.take (k)}).toFinset.card
+        ≤ (Path_forest_support iV iSP F1).toFinset.card:=by
+          gcongr
+          simp
+          exact Set.diff_subset (Path_forest_support iV iSP F1) _
+        _≤ 41 * γ * k:= by exact hFcard
+  exact mbig3
+
+
   intro i hi2
   have hi: i< k+1:= by exact Nat.lt_add_right 1 hi2
   apply hE_in_HE i hi
@@ -997,6 +1145,7 @@ have SinFb2: {v:V|v∈ List.take (k) S}⊆ Fb2:= by
   dsimp[Fb2]
   have h2:  {v | v ∈ List.take F1.k F1.E} ⊆ Path_forest_support iV iSP F1:= by
     apply Path_forest_ends_contained
+    rw[E1length, hF1k]
   have h3: Disjoint {v | v ∈ List.take F1.k F1.E}   {v | v ∈ List.take k Seq.Ver} := by
     rw[h1.symm]
     rw [@Set.disjoint_right]
@@ -1203,7 +1352,8 @@ have Path_ex: _:= by
   rw[hF3k, hF3S_length]
   --∀ (i j : ℕ), i < k → j < k → i ≠ j + 1 → tail_disjoint_imp (F3.P.get! i) (F1.P.get! j)
   apply set_disjoint_to_internal_disjoint_reverse_taildisj_symm2_tailaligned2
-  exact F1_ge_k
+  rw[hF1k]
+  exact kin6
   exact F3_ge_k
   rw[hF3k, hF3S_length]
   rw[hF1k, hF1E_length]
@@ -1321,12 +1471,29 @@ calc
     --
   _≥ (k - 3 + 1) * (m / pr / (40 * pr))-1:= by
     gcongr
-    apply long_path_forest_card
-    exact hF3card
-    rw [Nat.Simproc.add_le_le (k - 3) kPositive]
-    gcongr
+    apply long_path_forest_card iV iSP (k - 3 + 1)  (k - 3 + 1)
+    intro i hi
+    apply hF3card
+    have hkinus: k - 3 + 1=k-2:=by
+      rw [Nat.sub_succ']
+      rw [Nat.sub_add_eq_max]
+      simp
+      rw [@Nat.succ_le_iff]
+      exact Nat.zero_lt_sub_of_lt kLarge
+    calc
+      i < k - 3 + 1:= by exact hi
+      _≤ k:= by rw[hkinus]; simp
+    have hkinus: k - 3 + 1=k-2:=by
+      rw [Nat.sub_succ']
+      rw [Nat.sub_add_eq_max]
+      simp
+      rw [@Nat.succ_le_iff]
+      exact Nat.zero_lt_sub_of_lt kLarge
+    rw[hkinus]
+    exact F3_ge_k
+
     simp
-    
+
   --
 
 

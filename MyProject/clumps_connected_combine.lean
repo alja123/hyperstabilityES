@@ -11,7 +11,7 @@ open scoped BigOperators
 namespace SimpleGraph
 
 
- --set_option maxHeartbeats 400000
+set_option maxHeartbeats 600000
 
 universe u
 variable {V : Type u} {G : SimpleGraph V}
@@ -609,7 +609,8 @@ have cutdense2: cut_dense G (K2.Gr.induce (I∪ K2.C.verts)) q1:=by
           _≥ 2*p:= by
             gcongr
             apply gg2_ge
-            repeat assumption
+            exact prggp
+            exact pPositive
 
   exact hq1_q2_ineq
   calc
@@ -617,7 +618,10 @@ have cutdense2: cut_dense G (K2.Gr.induce (I∪ K2.C.verts)) q1:=by
     _⊆  BSetPlusM K2:= by
       exact Set.inter_subset_right (BSetPlusM K1) (BSetPlusM K2)
   exact hIupperbound2
-  repeat assumption
+  exact mggpr
+  exact prPositive
+  exact hPositive
+
   calc
           κ ≥10000 *h^3:= by
             apply gg1_1
@@ -663,11 +667,11 @@ calc
           _≥ 10000*(gg1 p):= by
             gcongr
             apply gg2_gg1
-            repeat assumption
+            exact prggp
+            exact pPositive
           _≥10000*(10000* p^3):= by
             gcongr
             apply gg1_1
-            repeat assumption
             exact Nat.le_refl (gg1 p)
             assumption
           _≥10000*(10000* 1^3):= by

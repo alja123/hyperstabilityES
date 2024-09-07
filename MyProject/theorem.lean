@@ -1,7 +1,7 @@
 
 import MyProject
 
-import MyProject.wide_or_separated_gives_path
+import MyProject.path.wide_or_separated_gives_path
 import MyProject.brooms
 import MyProject.locally_dense_find
 import MyProject.JSet_properties
@@ -30,6 +30,7 @@ variable {prPositive: pr >0}
 variable (iI:Inhabited (Clump G p m κ pr h))
 variable (iV:Inhabited V)
 variable (iSub:Inhabited (Subgraph G))
+variable (iSP:Inhabited (SubgraphPath_implicit   G) )
 
 variable (pLarge: p≥ 20)
 variable (prggp: pr ≥ gg2 p)
@@ -67,6 +68,7 @@ have hNoWideClumps: ¬ L_contains_wide_clump p m κ pr h G L :=by
   have hPath:Has_length_d_path (L.Gr) (h*m):=by
     apply Wide_clump_implies_path iI iV
     repeat assumption
+    --
 
   exact no_paths hPath
 

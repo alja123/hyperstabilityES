@@ -10,7 +10,7 @@ open scoped BigOperators
 namespace SimpleGraph
 
 
- set_option maxHeartbeats 650000
+ set_option maxHeartbeats 600000
 
 universe u
 variable {V : Type u} {G : SimpleGraph V}

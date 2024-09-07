@@ -150,14 +150,14 @@ def L_contains_wide_clump
 --(KFam: Finset (Clump G p m κ pr h))
 (p m κ pr h:ℕ )(G: SimpleGraph V)(L: Locally_Dense G p m h)
 :=∃ (K: Clump G p m κ pr h),K.Gr≤ L.Gr∧
-K.k≥ pr*pr*h
-∧ K.k≤  4*pr*pr*h
+K.k≥ pr*pr*pr*pr*h
+∧ K.k≤  4*pr*pr*pr*pr*h
 
 
 def Clump_family_narrow
 (KFam: Finset (Clump G p m κ pr h))
 :=∀  (K: Clump G p m κ pr h),
-K∈ KFam →  K.k≤ pr*pr*h
+K∈ KFam →  K.k≤ pr*pr*pr*pr*h
 
 
 lemma Clump_family_replace_two_sets_stays_edgedisjoint
@@ -242,18 +242,18 @@ simp at hUnSeparated
 rcases hUnSeparated with ⟨K1, hK1, K2, hK2, hK1K2, hUnSeparated⟩
 
 have κggk: gg1 κ ≥ Nat.max K1.k K2.k:= by
-  have h1: gg1 κ ≥ 10000*κ^3:= by
-    apply gg1_1
+  have h1: gg1 κ ≥ 10000*κ^5:= by
+    apply gg1_6
     exact Nat.le_refl (gg1 κ)
     repeat assumption
-  have h2: gg1 κ≥ pr*pr*h:= by
+  have h2: gg1 κ≥ pr*pr*pr*pr*h:= by
     calc
-      gg1 κ≥ 10000*κ^3:= by exact h1
-      _≥ 1*κ^3:= by
+      gg1 κ≥ 10000*κ^5:= by exact h1
+      _≥ 1*κ^5:= by
         gcongr
         simp
-      _=κ *κ *κ := by ring_nf
-      _≥ h*h*h:= by
+      _=κ *κ *κ*κ *κ  := by ring_nf
+      _≥ h*h*h*h*h:= by
         gcongr
         apply gg1_ge;
         repeat assumption
@@ -261,23 +261,31 @@ have κggk: gg1 κ ≥ Nat.max K1.k K2.k:= by
         repeat assumption
         apply gg1_ge;
         repeat assumption
+        apply gg1_ge;
+        repeat assumption
+        apply gg1_ge;
+        repeat assumption
         --
-      _≥ pr*pr*h:= by
+      _≥ pr*pr*pr*pr*h:= by
         gcongr
         apply gg1_ge;
         repeat assumption
         apply gg1_ge;
         repeat assumption
-        --
+        apply gg1_ge;
+        repeat assumption
+        apply gg1_ge;
+        repeat assumption
+                        --
   refine Nat.max_le_of_le_of_le ?_ ?_
   calc
-    gg1 κ≥ pr*pr*h:= by
+    gg1 κ≥ pr*pr*pr*pr*h:= by
       exact h2
     _≥ K1.k:= by
       apply hNarrow
       assumption
   calc
-    gg1 κ≥ pr*pr*h:= by
+    gg1 κ≥ pr*pr*pr*pr*h:= by
       exact h2
     _≥ K2.k:= by
       apply hNarrow
@@ -449,16 +457,16 @@ have hcase2: K'=K:=by
   exact mem_of_union_elim_left (KFam \ {K1, K2}) {K} K' hK' h2
 
 rw[hcase2]
-have h1:  K.k ≤ 4*pr * pr * h:=by
+have h1:  K.k ≤ 4*pr * pr *pr * pr* h:=by
   calc
     K.k ≤K1.k+K2.k:=by exact hKk2
-    _≤ pr*pr*h+pr*pr*h:=by
+    _≤ pr*pr*pr*pr*h+pr*pr*pr*pr*h:=by
       gcongr
       exact hNarrow K1 hK1
       exact hNarrow K2 hK2
-    _=2*pr*pr*h:=by
+    _=2*pr*pr*pr*pr*h:=by
       ring_nf
-    _≤ 4*pr*pr*h:=by
+    _≤ 4*pr*pr*pr*pr*h:=by
       gcongr
       exact Nat.AtLeastTwo.prop
 
@@ -490,6 +498,3 @@ lemma Initial_Clump_Decomposition
 ∃ (KFam: Finset (Clump G p m κ pr h)),
 Clump_Decomposition L KFam
 -/
-
-
- 

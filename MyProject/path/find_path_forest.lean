@@ -132,6 +132,8 @@ lemma path_forest_specified_ends_simplified_prefix
 (kBig: k>1)
 (mbig1: 172 * p * p * k ≤ m / (2 * pr) + 8 * p * (2 * k))
 (pPositive: p>0)
+(Fbcard2: Fb.toFinset.card≤ (41 * p * k))
+(mbig2: m * 3 ≥ p * k * 16 + p ^ 2 * k * 328 + m / (pr * 2))
 :
 
 ∃ (Fo: PathForest iV iSP H),
@@ -151,9 +153,20 @@ have Hkex: ∃ (Hk: Subgraph G),
   S.get! (k-1) ∈ Hk.verts
   ∧ E.get! (k-1) ∈ Hk.verts
   ∧ cut_dense G Hk p
-  ∧ (8 * p * Fb.toFinset.card + (m / (2 * pr) + 8 * p * (2 * k))≤ Hk.verts.toFinset.card)
+  ∧ Hk.verts.toFinset.card≥ 3*m
   := by sorry
-rcases Hkex with ⟨Hk, hHks, hHke, hHkcutdense, hHkintersect⟩
+rcases Hkex with ⟨Hk, hHks, hHke, hHkcutdense, hHkorder⟩
+have hHkintersect: (8 * p * Fb.toFinset.card + (m / (2 * pr) + 8 * p * (2 * k))≤ Hk.verts.toFinset.card):= by
+  calc
+    Hk.verts.toFinset.card≥ 3*m:= by exact hHkorder
+    _≥ 8 * p * (41 * p * k) + (m / (2 * pr) + 8 * p * (2 * k)):= by
+      ring_nf
+      exact mbig2
+    _≥ 8 * p * Fb.toFinset.card + (m / (2 * pr) + 8 * p * (2 * k)):= by
+      gcongr
+
+
+
 let HL:List (Subgraph G):= HL_init.set (k-1) Hk
 
 have HLget: ∀ (i: ℕ ), (i<k-1)→ HL.get! i= HL_init.get! i:= by

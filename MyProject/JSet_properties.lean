@@ -290,19 +290,23 @@ intro i hi
 unfold JCover
 unfold Clump_family_narrow at narrow
 
-have hineq: κ ≥ h * 4 ^ (pr * pr * h):= by
-  have hin2: h*h*h≥ (pr * pr * h):= by
+have hineq: κ ≥ h * 4 ^ (pr * pr *pr * pr * h):= by
+  have hin2: h*h*h*h*h≥ (pr * pr *pr * pr * h):= by
     gcongr
+    apply gg1_ge
+    repeat assumption
+    apply gg1_ge
+    repeat assumption
     apply gg1_ge
     repeat assumption
     apply gg1_ge
     repeat assumption
 
   calc
-      κ ≥ h*4^(h*h*h):= by
+      κ ≥ h*4^(h*h*h*h*h):= by
         apply gg1_5
         repeat assumption
-      _≥ h* 4^(pr*pr*h):= by
+      _≥ h* 4^(pr*pr*pr*pr*h):= by
         gcongr h*?_
         gcongr
         simp
@@ -322,7 +326,7 @@ calc
     exact fun i_1 i_2 ↦ M_verts_contained_in_C_verts_set i_2
   _≤ m*h* 4^((Ord.get! i).k):= by
     exact (Ord.get! i).C_Order
-  _≤m*h* 4^(pr*pr*h):= by
+  _≤m*h* 4^(pr*pr*pr*pr*h):= by
     gcongr
     simp
     apply narrow
@@ -333,7 +337,7 @@ calc
     exact List.get_mem Ord i hi
     --
 
-  _=h* 4^(pr*pr*h)*m:= by ring_nf
+  _=h* 4^(pr*pr*pr*pr*h)*m:= by ring_nf
   _≤ κ *m:= by
     gcongr
 

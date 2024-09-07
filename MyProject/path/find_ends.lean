@@ -29,7 +29,10 @@ variable (iSub:Inhabited (Subgraph G))
 variable (iSP:Inhabited (SubgraphPath_implicit   G) )
 
 
-
+def Clump_family_narrow'
+ (KFam: Finset (Clump G p m κ pr h))
+:=∀  (K: Clump G p m κ pr h),
+K∈ KFam →  K.k≤ 5*pr*pr*pr*pr*h
 
 lemma finset_disjoint_left
 (v: V)
@@ -455,8 +458,8 @@ lemma add_Ver_to_M_list
 (Ver_length: Ver.length> k)
 (S_length: S.length> k)
 --new
-(narrow: Clump_family_narrow  (Ord.toFinset))
-(γggκ: γ ≥ 16 * κ ^ (2 * (100 * (pr*pr*h)).factorial))
+(narrow: Clump_family_narrow'  (Ord.toFinset))
+(γggκ: γ ≥ 16 * κ ^ (2 * (100 * (5*pr*pr*pr*pr*h)).factorial))
 (pLarge: p≥ 20)
 (mLarge: m≥ 20)
 (mggpr: m ≥ gg1 pr)
@@ -573,8 +576,8 @@ have Kcut_dense: cut_dense G K γ:= by
   exact κPositive
   exact iSub
   --γ ≥ 16 * κ ^ (2 * (100 * (Ord.get! k).k).factorial)
-  have h1: (Ord.get! k).k ≤ pr * pr * h:= by
-    unfold Clump_family_narrow at narrow
+  have h1: (Ord.get! k).k ≤ 5*pr*pr *pr* pr * h:= by
+    unfold Clump_family_narrow' at narrow
     apply narrow
     have h1: Ord.get! k =Ord.get ⟨k, ?_⟩ := by
       simp
@@ -585,7 +588,7 @@ have Kcut_dense: cut_dense G K γ:= by
     exact hkl
   calc
     16 * κ ^ (2 * (100 * (Ord.get! k).k).factorial)
-    ≤16 * κ ^ (2 * (100 * (pr*pr*h)).factorial):= by
+    ≤16 * κ ^ (2 * (100 * (5*pr*pr*pr*pr*h)).factorial):= by
       gcongr
       exact κPositive
     _≤ γ := by exact γggκ
@@ -813,8 +816,8 @@ lemma add_Ver_to_M_list_starts_alt
 (S_length: S.length> k+1+1)
 
 --new
-(narrow: Clump_family_narrow  (Ord.toFinset))
-(γggκ: γ ≥ 16 * κ ^ (2 * (100 * (pr*pr*h)).factorial))
+(narrow: Clump_family_narrow'  (Ord.toFinset))
+(γggκ: γ ≥ 16 * κ ^ (2 * (100 * (5*pr*pr*pr*pr*h)).factorial))
 (pLarge: p≥ 20)
 (mLarge: m≥ 20)
 (mggpr: m ≥ gg1 pr)
@@ -934,8 +937,8 @@ have Kcut_dense: cut_dense G K γ:= by
   exact κPositive
   exact iSub
   --γ ≥ 16 * κ ^ (2 * (100 * (Ord.get! k).k).factorial)
-  have h1: (Ord.get! (k+1)).k ≤ pr * pr * h:= by
-    unfold Clump_family_narrow at narrow
+  have h1: (Ord.get! (k+1)).k ≤ 5*pr*pr*pr * pr * h:= by
+    unfold Clump_family_narrow' at narrow
     apply narrow
     have h1: Ord.get! (k+1) =Ord.get ⟨k+1, ?_⟩ := by
       simp
@@ -946,7 +949,7 @@ have Kcut_dense: cut_dense G K γ:= by
     exact Nat.add_lt_of_lt_sub kml
   calc
     16 * κ ^ (2 * (100 * (Ord.get! (k+1)).k).factorial)
-    ≤16 * κ ^ (2 * (100 * (pr*pr*h)).factorial):= by
+    ≤16 * κ ^ (2 * (100 * (5*pr*pr*pr*pr*h)).factorial):= by
       gcongr
       exact κPositive
     _≤ γ := by exact γggκ

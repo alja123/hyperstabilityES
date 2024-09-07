@@ -1,6 +1,6 @@
 import MyProject
 
-import MyProject.path_sequence_construct
+import MyProject.path.path_sequence_construct
   --import MyProject.SimpleGraph
 
 open Classical
@@ -360,7 +360,7 @@ have hstrict2: 4*(Nd.toFinset.card)*(B.toFinset.card)> 2*(Nd.toFinset.card)*(B.t
   use ⟨Wv, Wv_In_H ⟩
   dsimp[Wv]
   simp
-  
+
   exact Nat.lt_of_sub_eq_succ rfl
 
 have hstr3: ¬( 4*(Nd.toFinset.card)*(B.toFinset.card)> 2*(Nd.toFinset.card)*(B.toFinset.card)):=by
