@@ -343,18 +343,6 @@ calc
 
     --ring_nf
 
-    /-calc
-      κ ≥ h*4^(h*h*h):= by
-        sorry
-        --apply gg1_5
-        --repeat assumption
-      _≥ h* 4^(pr*pr*h):= by
-        sorry
-        /-gcongr
-        apply gg1_ge
-        repeat assumption
-        apply gg1_ge
-        repeat assumption-/-/
 
 
 
@@ -675,50 +663,7 @@ have disj: Disjoint (sSup {Oi: Subgraph G| ∃ (i:ℕ), i <(n)∧  Oi=(Ord.get! 
   rw [← @Set.disjoint_iff_inter_eq_empty] at hemp
   exact hemp
 
-
-  /-simp
-  intro i hi
-  refine Set.disjoint_iff_forall_ne.mpr ?_
-  intro a ha b hb
-  have hxyex: ∃ (a1 a2:V), a=s(a1,a2):= by
-    exact Sym2_to_tuple a
-  have hbxyex: ∃ (b1 b2:V), b=s(b1,b2):= by
-    exact Sym2_to_tuple b
-  rcases hxyex with ⟨a1, a2, ha1a1 ⟩
-  rcases hbxyex with ⟨b1, b2, hb1b1 ⟩
-  rw[ha1a1] at ha
-  have ha1in: a1∈ ((Ord.get! i).Gr).verts:=by
-    exact ((Ord.get! i).Gr).edge_vert ha
-
-  have disj: Disjoint ((Ord.get! i).Gr).verts (Ord.get! n).Gr.verts:= by
-    sorry
-  have anin: a1∉ (JClump p m κ pr h iI n Ord).verts:= by
-    by_contra cont
-    have neg: ¬(Disjoint ((Ord.get! i).Gr).verts (JClump p m κ pr h iI n Ord).verts):= by
-      refine Set.not_disjoint_iff.mpr ?_
-      use a1
-    exact neg disj
-      --
-  rw[hb1b1] at hb
-  have hb1in: b1∈ (JClump p m κ pr h iI n Ord).verts:=by
-      exact (JClump p m κ pr h iI n Ord).edge_vert hb--
-  have hb2in: b2∈ (JClump p m κ pr h iI n Ord).verts:=by
-      exact Subgraph.Adj.snd_mem hb
-  have ha1ne:a1≠ b1:= by
-    by_contra cont
-    rw[cont] at anin
-    exact anin hb1in
-  have ha2ne:a1≠ b2:= by
-    by_contra cont
-    rw[cont] at anin
-    exact anin hb2in
-  rw[hb1b1, ha1a1]
-  by_contra cont
-  simp at cont
-  rcases cont with ⟨ case1, case2⟩ | ⟨ case1, case2⟩
-  exact ha1ne case1
-  exact ha2ne case1-/
-
+ 
 --rw[hunion]
 calc
   _=(sSup {Oi: Subgraph G| ∃ (i:ℕ), i <n+1∧  Oi=(Ord.get! i).Gr}).edgeSet.toFinset.card:= by

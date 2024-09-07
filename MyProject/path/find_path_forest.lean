@@ -31,6 +31,176 @@ variable (iSub:Inhabited (Subgraph G))
 variable (iSP:Inhabited (SubgraphPath_implicit   G) )
 
 
+lemma auxsums
+(A B: Finset V )
+(Acard: A.card≥  2)
+(Abig: A.card≥ B.card)
+:
+A.card*B.card≥ 2*(A∩ B).card:= by
+by_cases case0: B.card=0
+have h33: (A∩ B).card≤ 0:= by
+    calc
+     (A∩ B).card≤ B.card:= by
+        gcongr
+        exact inter_subset_right A B
+      _=0:= by
+        exact case0
+rw [@Nat.le_zero] at h33
+rw[h33, case0]
+ring_nf
+simp
+
+by_cases case1: B.card=1
+have h33: (A∩ B).card≤ 1:= by
+    calc
+     (A∩ B).card≤ B.card:= by
+        gcongr
+        exact inter_subset_right A B
+      _=1:= by
+        exact case1
+  --rw [case1]
+calc
+    A.card*B.card= A.card*1:= by
+      rw[case1]
+    _≥ 2*1:= by
+      gcongr
+
+    _≥ 2*(A∩ B).card:= by
+      gcongr
+
+have hge: B.card≥ 2:= by
+    refine (Nat.two_le_iff B.card).mpr ?_
+    constructor
+    exact case0
+    exact case1
+calc
+  A.card*B.card≥ A.card*2:= by
+    gcongr
+  _≥ 2*(A∩ B).card:= by
+    ring_nf
+    gcongr
+    exact inter_subset_left A B
+
+
+lemma complete_graph_has_cutdense_subgraph
+(G : SimpleGraph V)
+(GComplete: G=completeGraph V)
+(Vcard: Fintype.card V≥ 4)
+:
+∃ (H: Subgraph G),
+cut_dense G H 2
+∧ H.verts.toFinset=univ
+:=by
+let H:Subgraph G:= ⊤
+use H
+constructor
+intro A B hUnion
+simp
+let g: V→ V× V:= fun v => ⟨v,v⟩
+have h2: (Rel.interedges (fun (x : V) (y : V) => ¬H.Adj x y) A B)⊆Finset.image g (A∩ B):= by
+  dsimp [g]
+  intro ⟨x,y ⟩ he
+  simp
+  unfold Rel.interedges at he
+  simp at he
+  dsimp[H] at he
+  rw[GComplete] at he
+  simp at he
+  rw[he.2.symm]
+  rw[he.2.symm] at he
+  exact he
+
+--have h3: (Finset.image g (A∩ B)).card ≤  (A∩ B).card:= by
+--  exact card_image_le
+have h4: (Rel.interedges H.Adj A B).card+(A∩ B).card≥ A.card*B.card:= by
+  calc
+    (Rel.interedges H.Adj A B).card+(A∩ B).card≥
+    (Rel.interedges H.Adj A B).card+(Finset.image g (A∩ B)).card:= by
+      gcongr
+      exact card_image_le
+    _≥  (Rel.interedges H.Adj A B).card+(Rel.interedges (fun (x : V) (y : V) => ¬H.Adj x y) A B).card:= by
+      gcongr
+    _= A.card*B.card:= by
+      apply Rel.card_interedges_add_card_interedges_compl
+
+have hsum: A.card+B.card≥4:= by
+  calc
+    A.card+B.card≥ (A∪  B).card:= by
+      exact card_union_le A B
+    _=H.verts.toFinset.card:= by
+      congr 1
+      symm
+      rw[hUnion.symm]
+      simp
+
+    _=Fintype.card V:= by
+      dsimp[H]
+      simp
+    _≥4:= by
+      exact Vcard
+
+have h6: A.card*B.card≥ 2*(A∩ B).card:= by
+  by_cases case: A.card ≥ B.card
+  have hbig: A.card≥ 2:= by
+    by_contra contra
+    simp at contra
+    have neg: ¬ (A.card+B.card≥4):= by
+      simp
+      calc
+        A.card+B.card
+        ≤ A.card+A.card:= by
+          gcongr
+        _< 2+2:= by
+          gcongr
+        _=4:= by
+          ring_nf
+    exact neg hsum
+  exact auxsums A B hbig case
+
+  simp at case
+  have case: B.card≥ A.card:= by
+    exact Nat.le_of_succ_le case
+  have hbig: B.card≥ 2:= by
+    by_contra contra
+    simp at contra
+    have neg: ¬ (A.card+B.card≥4):= by
+      simp
+      calc
+        A.card+B.card
+        ≤ B.card+B.card:= by
+          gcongr
+        _< 2+2:= by
+          gcongr
+        _=4:= by
+          ring_nf
+    exact neg hsum
+  rw[Nat.mul_comm, inter_comm]
+  exact auxsums B A hbig case
+      --
+
+
+
+
+have h5: 2*(Rel.interedges H.Adj A B).card≥  A.card*B.card:= by
+  calc
+  2*(Rel.interedges H.Adj A B).card≥ 2*(A.card*B.card-(A∩ B).card):= by
+       gcongr
+       exact Nat.sub_le_of_le_add h4
+  _= 2*A.card*B.card-2*(A∩ B).card:= by
+    rw [Nat.mul_sub_left_distrib]
+    ring_nf
+  _=A.card*B.card+A.card*B.card-2*(A∩ B).card:= by
+    ring_nf
+  _≥ A.card*B.card+2*(A∩ B).card-2*(A∩ B).card:=by
+    gcongr
+  _≥ A.card*B.card:= by
+    exact le_add_tsub'
+
+
+exact h5
+
+dsimp[H]
+simp
 
 
 
@@ -134,6 +304,10 @@ lemma path_forest_specified_ends_simplified_prefix
 (pPositive: p>0)
 (Fbcard2: Fb.toFinset.card≤ (41 * p * k))
 (mbig2: m * 3 ≥ p * k * 16 + p ^ 2 * k * 328 + m / (pr * 2))
+(GComplete: G=completeGraph V)
+(Vcard: Fintype.card V≥ 4*m)
+(pLarge: p≥ 2)
+(mPositive: m>0)
 :
 
 ∃ (Fo: PathForest iV iSP H),
@@ -154,7 +328,48 @@ have Hkex: ∃ (Hk: Subgraph G),
   ∧ E.get! (k-1) ∈ Hk.verts
   ∧ cut_dense G Hk p
   ∧ Hk.verts.toFinset.card≥ 3*m
-  := by sorry
+  := by
+    have Vcard': Fintype.card V≥ 4:= by
+      calc
+        Fintype.card V≥ 4*m:= by
+          exact Vcard
+        _≥ 4*1:= by
+          gcongr
+          exact mPositive
+        _= 4:= by ring_nf
+    have Hex: _:= by exact complete_graph_has_cutdense_subgraph G GComplete Vcard'
+    rcases Hex with ⟨Hk, hHkcutdense, hHk⟩
+    use Hk
+    simp at hHk
+    constructor
+    rw[hHk]
+    exact trivial
+    constructor
+    rw[hHk]
+    exact trivial
+    constructor
+    apply Cut_Dense_monotone
+    exact pLarge
+    exact hHkcutdense
+    rw[hHk]
+    simp
+    calc
+      3*m≤ 4*m:= by
+        gcongr
+        simp
+      _≤ Hk.verts.toFinset.card:= by
+        rw[hHk]
+        simp
+        exact Vcard
+    rw[hHk]
+    simp
+    
+
+
+
+
+
+
 rcases Hkex with ⟨Hk, hHks, hHke, hHkcutdense, hHkorder⟩
 have hHkintersect: (8 * p * Fb.toFinset.card + (m / (2 * pr) + 8 * p * (2 * k))≤ Hk.verts.toFinset.card):= by
   calc

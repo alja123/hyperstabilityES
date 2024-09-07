@@ -36,6 +36,10 @@ variable (iV:Inhabited V)
 variable (iSub:Inhabited (Subgraph G))
 variable (iSP:Inhabited (SubgraphPath_implicit   G) )
 
+variable (GComplete: G=completeGraph V)
+variable (Vcard: Fintype.card V ≥ 4 * m)
+
+
 
 
 lemma find_numbers_for_path
@@ -74,6 +78,8 @@ lemma find_numbers_for_path
 ∧(h ≥p)
 ∧(κ ≥ h)
 ∧ (k=(pr*pr*pr*h-9))
+∧ (m * 3 ≥ γ * k * 16 + γ ^ 2 * k * 328 + m / (pr * 2) )
+
 :=by
 use (pr*pr*pr*h-9)
 use (gg1 κ )
@@ -539,8 +545,76 @@ constructor
 apply gg1_ge
 exact κggh
 exact hPositive
-
+constructor
 simp
+
+calc
+  m * 3=m+m+m:= by ring_nf
+  _≥ _:= by
+    gcongr
+    ring_nf
+    calc
+      gg1 κ * (pr ^ 3 * h - 9) * 16
+      _≤gg1 κ * (pr ^ 3 * h ) * 16:= by
+        gcongr
+        simp
+      _=gg1 κ^1 * (pr ^ 3 * h^1) * 16:= by
+        ring_nf
+      _≤ gg1 κ^2 * (h^3 * h^3) * 10000:= by
+        gcongr
+        apply gg1_pos
+        exact κPositive
+        simp
+        apply gg1_ge
+        exact hggp
+        exact prPositive
+        exact hPositive
+        simp
+        simp
+      _=gg1 κ^2 * h^6 * 10000:= by
+        ring_nf
+      _≤ gg1 κ^2 * κ^6 * 10000:= by
+        gcongr
+        apply gg1_ge
+        exact κggh
+        exact hPositive
+      _≤ m:= by
+        apply gg2_7
+        exact mggκ
+        exact κPositive
+    ring_nf
+    calc
+      gg1 κ ^ 2 * (pr ^ 3 * h - 9) * 328
+      _≤gg1 κ^2 * (pr ^ 3 * h ) * 328:= by
+        gcongr
+        simp
+      _=gg1 κ^2 * (pr ^ 3 * h^1) * 328:= by
+        ring_nf
+      _≤ gg1 κ^2 * (h^3 * h^3) * 10000:= by
+        gcongr
+        apply gg1_ge
+        exact hggp
+        exact prPositive
+        exact hPositive
+        simp
+        simp
+      _=gg1 κ^2 * h^6 * 10000:= by
+        ring_nf
+      _≤ gg1 κ^2 * κ^6 * 10000:= by
+        gcongr
+        apply gg1_ge
+        exact κggh
+        exact hPositive
+      _≤ m:= by
+        apply gg2_7
+        exact mggκ
+        exact κPositive
+
+
+    exact Nat.div_le_self m (pr * 2)
+    --
+
+
 
 
 lemma clump_path_sequence_gives_path3
@@ -557,7 +631,7 @@ lemma clump_path_sequence_gives_path3
 have hex:_:=by
   apply find_numbers_for_path p m κ pr h
   repeat assumption
-rcases hex with ⟨k, γ  ,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14 ,a15,a16,a17,a18,a19,a20, a21⟩
+rcases hex with ⟨k, γ  ,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14 ,a15,a16,a17,a18,a19,a20, a21, a22⟩
 have ex: ∃  (u v: V), ∃  (P: SubgraphPath H u v), P.Wa.length ≥  (k - 3 + 1) * (m / pr / (40 * pr))-1:= by
   apply clump_path_sequence_gives_path2
   exact κPositive
@@ -565,6 +639,8 @@ have ex: ∃  (u v: V), ∃  (P: SubgraphPath H u v), P.Wa.length ≥  (k - 3 + 
   exact mPositive
   exact prPositive
   exact iSP
+  exact GComplete
+  exact Vcard
   exact a3
 
 

@@ -118,7 +118,7 @@ calc
     exact Rel.card_interedges_comm (fun ⦃x y⦄ a ↦ id (Subgraph.adj_symm H a)) A B
   _≥  (H.induce ↑A).edgeSet.toFinset.card + (H.induce ↑B).edgeSet.toFinset.card + ((Finset.image f) (Rel.interedges H.Adj A B) ).card+((Finset.image f) (Rel.interedges H.Adj B A) ).card
   := by
-    --sorry
+
     gcongr
     exact card_image_le
     exact card_image_le
@@ -791,57 +791,4 @@ have h8: h≥  p * H^2:= by
 
 
 exact h7 h8
-/-
-theorem not_cut_dense_two_cases
-(q s n: ℕ )--p≫ q
-(H: Subgraph G)
-(HEdges: q*H.edgeSet.toFinset.card≥ H.verts.toFinset.card^2)
-(not_cut_dense : ¬cut_dense G H p)
-:∃(B: Subgraph G),
-(B≤  H)
-∧
-s*(v H)^2 *(e B)+(v B)*(v H)*(e H)≥ s*(v B)*(v H)*(e H)+(v B)^2*(e B)
-:= by
-unfold cut_dense at not_cut_dense
-simp at not_cut_dense
-rcases not_cut_dense with ⟨AS, BS, hUnion, hNotCut⟩
-
-
-let A: Subgraph G:= H.induce AS
-
-let B: Subgraph G:= H.induce BS
-
-
-have hedgesum: (e A)+(e B) + (Rel.interedges H.Adj AS BS).card
-≥ (e H):= by
-  sorry
-
-have hedgesum2: p*(e A)+p*(e B) + (v A)*(v B)
-≥ p*(e H):= by
-  sorry
-
-
-have A_upperbound: 2*(e A) + (v A)≤ (v A)*(v A):=by sorry
-have B_upperbound: 2*(e B) + (v B)≤ (v B)*(v B):=by sorry
-
-
-have cont1: s*(v H)^2 *(e B)+(v B)*(v H)*(e H)
-< s*(v B)*(v H)*(e H)+(v B)^2*(e B):=by
-  sorry
-
-have cont2: s*(v H)^2 *(e A)+(v A)*(v H)*(e H)
-< s*(v A)*(v H)*(e H)+(v A)^2*(e A):=by
-  sorry
--/
-/-
-theorem near_regular_subgraph
-(H: Subgraph G)
-(HEdges: p*H.edgeSet.toFinset.card≥ H.verts.toFinset.card^2)
-(HOrder: H.verts.toFinset.card≥ m):
-∃ (H': Subgraph G), H' ≤ H ∧ near_regular H' (m/pr):= by
- sorry
-
-def cut_dense (G : SimpleGraph V)(H: Subgraph G)(k : ℕ ): Prop :=
-∀ (A B: Finset V), (H.verts.toFinset= A ∪ B)→  k*(Rel.interedges H.Adj A B).card ≥ A.card*B.card
-
--/
+ 

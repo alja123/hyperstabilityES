@@ -39,6 +39,10 @@ variable (κggh: κ ≥ gg1 h)
 variable (mggκ :m≥ gg2 κ )
 variable (κggα: κ ≥ gg1 α )
 variable (αggh: α ≥ h)
+variable (GComplete: G=completeGraph V)
+variable (Vcard: Fintype.card V ≥ 4 * m)
+
+
 
 theorem version1
 (L: Locally_Dense G p m h)
@@ -230,88 +234,4 @@ rcases hex with ⟨Ord, hOrd1, hOrd2, hOrd3, hOrd4 ⟩
 apply theorem_conversion2
 repeat assumption
 
-
-/-
-theorem version2
-(L: Locally_Dense G p m h)
-(LNonempty: L.H.Nonempty )
-(no_paths: ¬ Has_length_d_path (L.Gr) (h*m))
-:
-∃ (f: V→ Set V), ∃ (Sub: Subgraph G),
-(∀ (x: V), Sub.neighborSet x ⊆  f x)
-∧ (∀ ( x y: V), f x ≠ f y → (Disjoint (f x) (f y)))
-∧ (∀ (x: V), (f x).toFinset.card≤ (κ *m))
-∧ (p*Sub.edgeSet.toFinset.card+ L.Gr.edgeSet.toFinset.card≥ p*L.Gr.edgeSet.toFinset.card)
-:=by
-sorry-/
-/-
-have hex:
-  ∃ (Ord: List (Clump G p m κ pr h)),
-  Clump_Decomposition L (Ord.toFinset)
-  ∧
-  (∀ (i: ℕ ),
-  i≤ Ord.length→
-  p*(JClump p m κ pr h iI i Ord).edgeSet.toFinset.card
-  +
-  ((Ord.get! i)).Gr.edgeSet.toFinset.card
-  ≥
-  p*(Ord.get! i).Gr.edgeSet.toFinset.card
-  ):= by
-    apply version1
-    repeat assumption
-
-rcases hex with ⟨Ord, hOrd1, hOrd2 ⟩
-
-let Sub: Subgraph G:= sSup {Oi: Subgraph G| ∃ (i:ℕ), i <Ord.length∧  Oi=JClump p m κ pr h iI i Ord}
-let g: V→ Set (Subgraph G):=
-  fun v => {Oi: Subgraph G| ∃ (i:ℕ), i <Ord.length∧  Oi=JClump p m κ pr h iI i Ord∧  v∈ Oi.verts}
-let f: V→ Set V:=
-  fun v=> if hne: (g v).Nonempty    then hne.some.verts  else {v}
----------f should only take M rather than all of J
-use f
-use Sub
-constructor
---edges stay in fv
-intro v
-intro y hy
-dsimp [Sub] at hy
-simp at hy
---dsimp [f]
-by_cases case: ¬((g v).Nonempty)
-
-/-
-have hfv: f v ={v}:= by
-  dsimp [f]
-  simp
-  intro h1
-  exfalso
-  exact case h1
-rw[hfv]
-simp-/
-rcases hy with ⟨j, hKj, hKj2 ⟩
-have nin: v∉ (JClump p m κ pr h iI j Ord).verts:= by
-  by_contra cont
-  have h2: (JClump p m κ pr h iI j Ord)∈ g v:= by
-    dsimp[g]
-    use j
-  have h3: (g v).Nonempty:= by
-    use (JClump p m κ pr h iI j Ord)
-  exact case h3
-exfalso
-have hcon: v ∈  (JClump p m κ pr h iI j Ord).verts:= by
-  exact (JClump p m κ pr h iI j Ord).edge_vert hKj2
-exact nin hcon
-
-simp at case
-have hfv: f v =case.some.verts:= by
-  dsimp [f]
-  exact dif_pos case
-rw[hfv]
-sorry
-
-constructor
-
-sorry
-
-constructor
--/
+ 

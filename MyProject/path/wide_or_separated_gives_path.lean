@@ -35,6 +35,11 @@ variable (prggp: pr ≥ gg2 p)
 variable (hggp: h ≥ gg1 pr)
 variable (κggh: κ ≥ gg1 h)
 variable (mggκ :m≥ gg2 κ )
+variable (GComplete: G=completeGraph V)
+variable (Vcard: Fintype.card V ≥ 4 * m)
+
+
+
 
 /-
 lemma clump_path_sequence_gives_path4

@@ -30,6 +30,11 @@ variable {prPositive: pr >0}-/
 variable (iV:Inhabited V)
 variable (iSub:Inhabited (Subgraph G))
 variable (iSP:Inhabited (SubgraphPath_implicit   G) )
+variable (GComplete: G=completeGraph V)
+--variable (Vcard: Fintype.card V ≥ 4 * m)
+
+
+
 
 /-
 variable (pLarge: p≥ 20)
@@ -42,7 +47,86 @@ variable (αggh: α ≥ h)
 -/
 
 
+theorem theorem_small_graph
+(H: Subgraph G)
+(ε d: ℕ )
+(εPositive: ε >0)
+(graphsmall: H.verts.toFinset.card ≤ 4*d)
+:
+∃(Sub: Subgraph G), ∃ (Com Cov: List (Set V)),
+Components_cover_graph Sub Com
+∧
+Components_disjoint Com
+∧
+No_edges_between_components Sub Com
+∧
+Components_covered_by_covers Sub Com Cov
+∧
+Covers_small (gg1 (gg1 (gg2 (gg1 ε)))) d Cov
+∧
+(ε *Sub.edgeSet.toFinset.card+ H.edgeSet.toFinset.card≥ ε *H.edgeSet.toFinset.card)
+:= by
+
+use H
+use [H.verts]
+use [H.verts]
+constructor
+intro v hv
+use 0
+simp
+exact hv
+
+constructor
+intro i j hi hj hdiff
+simp at hi
+simp at hj
+rw[hi,hj] at hdiff
+exfalso
+exact hdiff rfl
+
+constructor
+intro i j u v hi hj hdiff hu hv
+simp at hi
+simp at hj
+rw[hi,hj] at hdiff
+exfalso
+exact hdiff rfl
+
+constructor
+intro i  u v hi hu hv huv
+simp at hi
+rw[hi]
+simp
+rw[hi] at hu
+simp at hu
+left
+exact hu
+
+constructor
+intro i hi
+simp at hi
+rw[hi]
+simp only [List.get!_eq_getD, List.getD_cons_zero]
+calc
+  H.verts.toFinset.card≤ 4*d:= by assumption
+  _≤ 10000*d:= by
+    gcongr
+    simp
+  _≤ (gg1 (gg1 (gg2 (gg1 ε))))* d:= by
+    gcongr
+    apply gg1_large
+    apply gg1_pos
+    apply gg2_pos
+    apply gg1_pos
+    assumption
+simp
+
+
+
+
+
 lemma clumps_nonempty
+(L: Subgraph G)
 (m κ  pr p h: ℕ)
 (prggp: pr ≥ gg2 p)
 (hggp: h ≥ gg1 pr)
@@ -52,7 +136,7 @@ lemma clumps_nonempty
 (pPositive: p>0)
 (hPositive: h>0)
 (prPositive: pr>0)
-{L: Subgraph G}
+
 (hLorderm: L.verts.toFinset.card ≥ m)
 (hLorderhm: L.verts.toFinset.card ≤  h*m)
 (hL: cut_dense G L p)
@@ -104,6 +188,10 @@ theorem average_degree_implies_min_degree_4
 (∀ (v:V),(v∈ K.verts)
 →  2*p*(K.degree v)≥d  )
 := by
+
+
+
+
 have hd: d≥p:= by
   calc
     d≥ 2*p:= by assumption
@@ -186,10 +274,13 @@ Covers_small (gg1 (gg1 (gg2 (gg1 ε)))) d Cov
 -/:=by
 
 
---have p:ℕ := by sorry
---have pr:ℕ := by sorry
---have h:ℕ := by sorry
---have κ :ℕ := by sorry
+ 
+by_cases caseVsmall: H.verts.toFinset.card ≤ 4*d
+apply  theorem_small_graph
+repeat assumption
+
+
+
 have num_ex: ∃ (p pr h κ α : ℕ),  p≥ 20 ∧ pr ≥ gg2 p ∧ h ≥ gg1 pr ∧ κ ≥ gg1 h∧ κ ≥ gg1 α ∧ α ≥ h∧ p≥ gg1 ε ∧ d≥gg2 κ *h ∧ (gg1 (gg1 (gg2 (gg1 ε))))= κ:= by
   let p: ℕ := gg1 ε
   let pr: ℕ := gg2 p
@@ -367,10 +458,6 @@ have hp1: p≥ 4*ε :=by
 
 
 
---have pLarge: p≥ 20:= by sorry
---have prggp: pr ≥ gg2 p:= by sorry
---have hggp: h ≥ gg1 pr:= by sorry
---have κggh: κ ≥ gg1 h:= by sorry
 have mggκ :m≥ gg2 κ := by
   dsimp[m]
   calc
@@ -461,6 +548,24 @@ have dm3:  m ≤ d:= by
       assumption
       simp
     _=m:= by ring_nf
+
+
+have Vcard: Fintype.card V ≥ 4 * m:=by
+  calc
+    Fintype.card V =(⊤: Subgraph G).verts.toFinset.card:= by
+      simp
+    _≥ H.verts.toFinset.card:= by
+      gcongr
+      simp
+
+    _≥ 4*d:= by
+      simp at caseVsmall
+      apply le_of_lt
+      simp
+      exact caseVsmall
+    _≥ 4*m:= by
+      gcongr
+
 
 
 have hLex: ∃ (L : Locally_Dense G p m h),
@@ -855,7 +960,24 @@ have Lnonempty: L.H.Nonempty:= by
     exact h10 h9
 
 have clumpsnonemp: Nonempty (Clump G p m κ pr h):= by
-  sorry
+  rcases Lnonempty with ⟨ Li, hLi⟩
+  apply clumps_nonempty iSub (Li)
+  repeat assumption
+  apply L.H_Order
+  exact hLi
+  exact L.H_Order_Upper_Bound Li hLi
+  exact L.H_Cut_Dense Li hLi
+  /-have h2: (⊤: Subgraph G).verts.toFinset.card≥ m:= by
+    calc
+      (⊤: Subgraph G).verts.toFinset.card= Fintype.card V:= by simp
+      _≥ 4*m:= by
+        exact Vcard
+      _≥ 1*m:= by
+        gcongr
+        simp
+      _=m:= by ring_nf-/
+
+
   --
 
 inhabit (Clump G p m κ pr h)
@@ -1169,5 +1291,5 @@ theorem version2
 ∧ (∀ (x: V), (f x).toFinset.card≤ (κ *m))
 ∧ (p*Sub.edgeSet.toFinset.card+ L.Gr.edgeSet.toFinset.card≥ p*L.Gr.edgeSet.toFinset.card)
 :=by
-sorry
+
 -/

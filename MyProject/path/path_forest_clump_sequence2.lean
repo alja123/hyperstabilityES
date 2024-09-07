@@ -30,7 +30,8 @@ variable (iI:Inhabited (Clump G p m κ pr h))
 variable (iV:Inhabited V)
 variable (iSub:Inhabited (Subgraph G))
 variable (iSP:Inhabited (SubgraphPath_implicit   G) )
-
+variable (GComplete: G=completeGraph V)
+variable (Vcard: Fintype.card V ≥ 4 * m)
 
 
 /-structure ClumpPathSequence
@@ -238,6 +239,7 @@ lemma clump_path_sequence_gives_path2
 (kggh:κ ≥ h)
 (Seq_in_H:∀ i < Seq.Ord.length, (Seq.Ord.get! i).Gr ≤ H)
 (mbig3: m * 3 ≥ γ * k * 16 + γ ^ 2 * k * 328 + m / (pr * 2) )
+
 :
 ∃  (u v: V), ∃  (P: SubgraphPath H u v), P.Wa.length ≥  (k - 3 + 1) * (m / pr / (40 * pr))-1
 
@@ -543,6 +545,19 @@ have LM_get: ∀ (i: ℕ ), (hi:i< k+1)→  (Seq.LM.get! i)∈ (Seq.Ord.get! i).
 
 #check path_forest_specified_ends_simplified_prefix
 
+have γlarge: γ ≥ 2:= by
+    calc
+      γ ≥ pr:=by exact prllγ
+      _≥ p:= by
+        apply gg2_ge
+        exact prggp
+        exact pPositive
+      _≥20:= by exact pLarge
+      _≥2:= by simp
+
+
+
+
 have hF1Ex: _:= by
   apply path_forest_specified_ends_simplified_prefix iV iSub iSP H Seq.Ver (S'.rotate 1) HS  (k)  m γ pr Fb _ _ _ _ _ _ _
   --vertex_list_outside_set iV Seq.Ver Fb (k + 1)
@@ -647,6 +662,11 @@ have hF1Ex: _:= by
       exact γPositive
   exact mbig3
 
+  exact GComplete
+  exact Vcard
+  exact γlarge
+  exact mPositive
+
   intro i hi2
   have hi: i< k+1:= by exact Nat.lt_add_right 1 hi2
   apply hVer_in_HS i hi
@@ -685,9 +705,6 @@ have hF1Ex: _:= by
   intro i hi2
   have hi: i< k+1:= by exact Nat.lt_add_right 1 hi2
   apply HSinH i hi
-
-
-
 
 
 
@@ -825,8 +842,10 @@ have hF2Ex: _:= by
           exact Set.diff_subset (Path_forest_support iV iSP F1) _
         _≤ 41 * γ * k:= by exact hFcard
   exact mbig3
-
-
+  exact GComplete
+  exact Vcard
+  exact γlarge
+  exact mPositive
   intro i hi2
   have hi: i< k+1:= by exact Nat.lt_add_right 1 hi2
   apply hE_in_HE i hi

@@ -588,7 +588,7 @@ have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.l
             exact Nat.not_eq_zero_of_lt κPositive
             ring_nf
 
-            --sorry--- p<κ/kmax
+            
         _=8*p*(κ*∑  (x∈ Finset.Ico 0 k), (((HL.get! x).verts.toFinset∩ (HL.get! k).verts.toFinset).card))/κ:= by
           ring_nf
         _= 8*p*(∑  (x∈ Finset.Ico 0 k), (κ *((HL.get! x).verts.toFinset∩ (HL.get! k).verts.toFinset).card))/κ:=by

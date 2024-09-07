@@ -308,11 +308,7 @@ _≥ a/2:= by
   exact minus_half_halves_ge a
 
 
-/-lemma n_le_n_factorial
-(n:ℕ)
-(nPositive: n>0)
-: n≤ n!:= by
-sorry-/
+ 
 
 --Basic Set Theory----------------------------------
 lemma intersection_contained_in_union

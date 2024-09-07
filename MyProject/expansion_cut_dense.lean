@@ -656,34 +656,4 @@ have hpath: Q.IsPath:= by
 
 use ⟨Q, hpath, hcont⟩
 
-
-/-
-lemma support_le_length
-(u v: V)
-(W: Walk G u v)
-:
-W.support.length = W.length+1
-:= by
-exact Walk.length_support W
--/
-
-
-/-
-This was uncommented before, but I couldn't see it used anywhere
-
-lemma extend_path_in_cutdense
-(u v w: V)
-(P: Walk G u v)
-(ispath: P.IsPath)
-(H: Subgraph G)
-(H_cut_dense: cut_dense G H p)
-(hInt: 2*p*(P.support.toFinset∩ H.verts.toFinset).card≤ H.verts.toFinset.card)
-:
-∃ (Q: SubgraphPath H v w),
-Q.Wa.length≤20*p
-∧ (Walk.append P  Q.Wa).IsPath
-:= by
-
-#check cut_dense_subgraph_monotone
-sorry
--/
+ 
