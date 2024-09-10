@@ -1,7 +1,6 @@
+--These lines import other parts of the project
 import MyProject
 import MyProject.theorem_improve
-
-
 open Classical
 namespace SimpleGraph
 
