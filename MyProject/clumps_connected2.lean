@@ -1,7 +1,7 @@
 import MyProject
 
-import MyProject.clumps_Bset
-import MyProject.clumps_Bset_improved
+import MyProject.clumps_BSet
+import MyProject.clumps_BSet_improved
 
 open Classical
 open Finset

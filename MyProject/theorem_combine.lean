@@ -65,6 +65,10 @@ Components_covered_by_covers Sub Com Cov
 Covers_small (gg1 (gg1 (gg2 (gg1 ε)))) d Cov
 ∧
 (ε *Sub.edgeSet.toFinset.card+ H.edgeSet.toFinset.card≥ ε *H.edgeSet.toFinset.card)
+∧
+(Sub ≤ H)
+∧
+(Com.length=Cov.length)
 := by
 
 use H
@@ -266,6 +270,10 @@ Components_covered_by_covers Sub Com Cov
 Covers_small (gg1 (gg1 (gg2 (gg1 ε)))) d Cov
 ∧
 (ε *Sub.edgeSet.toFinset.card+ H.edgeSet.toFinset.card≥ ε *H.edgeSet.toFinset.card)
+∧
+(Sub ≤ H)
+∧
+(Com.length=Cov.length)
 /-∃ (f: V→ Set V), ∃ (Sub: Subgraph G),
 (∀ (x: V), Sub.neighborSet x ⊆  f x)
 ∧ (∀ ( x y: V), f x ≠ f y → (Disjoint (f x) (f y)))
@@ -274,7 +282,7 @@ Covers_small (gg1 (gg1 (gg2 (gg1 ε)))) d Cov
 -/:=by
 
 
- 
+
 by_cases caseVsmall: H.verts.toFinset.card ≤ 4*d
 apply  theorem_small_graph
 repeat assumption
@@ -995,6 +1003,10 @@ have Ldec:
   Covers_small κ m Cov
   ∧
   (p*Sub.edgeSet.toFinset.card+ L.Gr.edgeSet.toFinset.card≥ p*L.Gr.edgeSet.toFinset.card)
+  ∧
+  (Sub≤ L.Gr)
+  ∧
+  (Com.length=Cov.length)
   := by
     apply version2
     exact κPositive
@@ -1033,7 +1045,7 @@ have Ldec:
     exact no_paths ex
 
 
-rcases Ldec with ⟨Sub, Com, Cov, hf1, hf2, hf3, hf4, hf5, hSub ⟩
+rcases Ldec with ⟨Sub, Com, Cov, hf1, hf2, hf3, hf4, hf5, hSub , hf6⟩
 use Sub
 use Com
 use Cov
@@ -1196,7 +1208,7 @@ have hfin: p*ε * Sub.edgeSet.toFinset.card + p*H.edgeSet.toFinset.card ≥ p*ε
 
 
 
-
+constructor
 
 
 by_contra cont9
@@ -1213,6 +1225,11 @@ have h1:  ¬ (p * ε * Sub.edgeSet.toFinset.card + p * H.edgeSet.toFinset.card �
 exact h1 hfin
 
 
+constructor
+rw[hLR1.symm]
+exact le_sup_of_le_left hf6.1
+
+exact hf6.2
 
 
 /-

@@ -1,6 +1,6 @@
 
 
-import Mathlib.combinatorics.pigeonhole
+import Mathlib.Combinatorics.Pigeonhole
 import Mathlib.Combinatorics.SimpleGraph.DegreeSum
 import Mathlib.Combinatorics.SimpleGraph.Acyclic
 import Mathlib.Combinatorics.SimpleGraph.Finsubgraph

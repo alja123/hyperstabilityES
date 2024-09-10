@@ -663,7 +663,7 @@ have disj: Disjoint (sSup {Oi: Subgraph G| ∃ (i:ℕ), i <(n)∧  Oi=(Ord.get! 
   rw [← @Set.disjoint_iff_inter_eq_empty] at hemp
   exact hemp
 
- 
+
 --rw[hunion]
 calc
   _=(sSup {Oi: Subgraph G| ∃ (i:ℕ), i <n+1∧  Oi=(Ord.get! i).Gr}).edgeSet.toFinset.card:= by
@@ -956,7 +956,7 @@ repeat assumption
 
 
 def Components_cover_graph (Sub: Subgraph G) (Com: List (Set V)):=
-  (∀ (v: V), v∈ Sub.verts→ ∃ (i: ℕ ),v∈ (Com.get! i) )
+  (∀ (v: V), v∈ Sub.verts→ ∃ (i: ℕ ),(i<Com.length)∧v∈ (Com.get! i) )
 
 def Components_disjoint (Com: List (Set V)):=
   (∀ (i j: ℕ),i<Com.length→j<Com.length→i≠ j→
@@ -1003,6 +1003,10 @@ Components_covered_by_covers Sub Com Cov
 Covers_small κ m Cov
 ∧
 (p*Sub.edgeSet.toFinset.card+ L.Gr.edgeSet.toFinset.card≥ p*L.Gr.edgeSet.toFinset.card)
+∧
+(Sub ≤ L.Gr)
+∧
+(Com.length=Cov.length)
 :=by
 unfold Components_cover_graph
 unfold Components_disjoint
@@ -1062,7 +1066,7 @@ use i
 simp
 rw[getCom]
 
-exact hi2
+exact ⟨ hi1, hi2⟩
 exact hi1
 
 
@@ -1102,7 +1106,42 @@ rw[getCov]
 apply JCover_bound
 repeat assumption
 
+constructor
 apply sum_Grs_sub_approx
 repeat assumption
 dsimp[Sub]
 repeat assumption
+
+constructor
+dsimp[Sub]
+simp
+intro Ki i hi hiKi
+rw[hiKi]
+
+unfold  Clump_Decomposition at decomp
+unfold Clump_family_contained_in_L at decomp
+
+
+
+have in2: Ord.get! i∈ Ord.toFinset:= by
+  simp
+  have geteq: Ord.getD i default=Ord.get ⟨ i, ?_⟩ := by
+    refine List.getD_eq_get Ord default ?_
+  rw[geteq]
+  refine List.get_mem Ord i ?refine_1
+  exact hi
+calc
+  JClump p m κ pr h iI i Ord≤ (Ord.get! i).Gr:= by
+    calc
+      JClump p m κ pr h iI i Ord≤ (CovM p m κ pr h (Ord.get! i)):= by
+        unfold JClump
+        exact Subgraph.deleteVerts_le
+      _≤ (Ord.get! i).Gr:= by
+        exact CovM_in_Gr p m κ pr h (Ord.get! i)
+  _≤ L.Gr:= by
+    apply decomp.2.1
+    exact in2
+
+
+dsimp[Cov, Com]
+simp 

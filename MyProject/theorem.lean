@@ -211,6 +211,10 @@ Components_covered_by_covers Sub Com Cov
 Covers_small κ m Cov
 ∧
 (p*Sub.edgeSet.toFinset.card+ L.Gr.edgeSet.toFinset.card≥ p*L.Gr.edgeSet.toFinset.card)
+∧
+(Sub≤ L.Gr)
+∧
+(Com.length=Cov.length)
 :=by
 have hex:
   ∃ (Ord: List (Clump G p m κ pr h)),
@@ -233,5 +237,3 @@ have hex:
 rcases hex with ⟨Ord, hOrd1, hOrd2, hOrd3, hOrd4 ⟩
 apply theorem_conversion2
 repeat assumption
-
- 
