@@ -16,7 +16,7 @@ open Classical
 #check SimpleGraph.IsTree
 
 #check injective_iff_map_eq_one
-
+set_option linter.unusedVariables false
 
 open Finset
 --open scoped BigOperators
@@ -325,7 +325,7 @@ have hUnique:∀ (y : VT), T.Adj lT y → y = x:= by
   have hsubset3:{x,y}⊆ T.neighborFinset lT:= by exact insert_subset hx hsubset2
   have hxysize:Finset.card {x, y}=2:= by exact card_pair fun a => neq (id a.symm)
   have hsize2: Finset.card (T.neighborFinset lT)≥ 2:= by calc
-    Finset.card (T.neighborFinset lT)≥Finset.card {x, y}:= by exact card_le_of_subset hsubset3
+    Finset.card (T.neighborFinset lT)≥Finset.card {x, y}:= by exact card_le_card hsubset3
     _=2:= by exact hxysize
   have hsize3: Finset.card (T.neighborFinset lT)≠ 1:=by exact Ne.symm (Nat.ne_of_lt hsize2)
   exact hsize3 hDeg1
@@ -473,8 +473,9 @@ have heq:y=z:= by
       yzs=ys∪ zs:=by exact rfl
       _⊆ Cgraph.neighborFinset x':= by exact union_subset yscont zscont
 
+    #check card_le_card
     have hcard: (Cgraph.neighborFinset x').card>1:= by calc
-      (Cgraph.neighborFinset x').card≥ yzs.card:= by exact card_le_of_subset yzscont
+      (Cgraph.neighborFinset x').card≥ yzs.card:= by apply card_le_card yzscont
       _=2:= by exact yzcard
       _>1:= by exact Nat.one_lt_two
     have hneg: ¬ ((Cgraph.neighborFinset x').card ≤ 1):= by exact Nat.not_le_of_lt hcard
@@ -720,7 +721,8 @@ have hInjective: Function.Injective f:= by
   have din: d∈ VT':= by exact hVT'_membership d hd
   by_contra hcont
   have hneq: (⟨c, cin⟩:  typeVT') ≠   (⟨d, din⟩:  typeVT'):= by
-    exact Subtype.ne_of_val_ne hcont
+    apply (Subtype.coe_ne_coe).1--Subtype.ne_of_val_ne hcont
+    exact hcont
   have hf'neq: f' ⟨c, cin⟩≠ f' ⟨d, din⟩:= by exact fun a => hneq (hf' a)
   have hfc: f c= f' ⟨c, cin⟩:= by exact dif_pos cin
   have hfd: f d= f' ⟨d, din⟩:= by exact dif_pos din

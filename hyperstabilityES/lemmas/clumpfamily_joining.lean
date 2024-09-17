@@ -2,7 +2,7 @@
 
 import hyperstabilityES.lemmas.clump_decomposition
  --import hyperstabilityES.lemmas.SimpleGraph
-
+set_option linter.unusedVariables false
 open Classical
 open Finset
 open scoped BigOperators
@@ -194,7 +194,7 @@ have h2: k1.Gr.edgeSet ∩ K2.Gr.edgeSet=∅:=by
   exact case1.1
   exact hK2
   exact case1.2.2
-rw [@Set.inter_distrib_left]
+rw [@Set.inter_union_distrib_left]
 rw[h1, h2]
 simp
 
@@ -211,7 +211,7 @@ have h2: k2.Gr.edgeSet ∩ K2.Gr.edgeSet=∅:=by
   exact case2.1
   exact hK2
   exact case2.2.2
-rw [@Set.inter_distrib_right]
+rw [@Set.union_inter_distrib_right]
 rw[Set.inter_comm] at h1
 rw[Set.inter_comm] at h2
 rw[h1, h2]
@@ -414,7 +414,7 @@ have KFam_at_least_2: KFam.card≥ 2:=by
   constructor
   refine insert_subset hK1 ?h.left.hs
   exact singleton_subset_iff.mpr hK2
-  exact card_doubleton hK1K2
+  exact card_pair hK1K2
 
 
 dsimp[KFam2]
@@ -432,7 +432,7 @@ calc
     exact singleton_subset_iff.mpr hK2
   _= (KFam.card - 2)+1:=by
     congr
-    exact card_doubleton hK1K2
+    exact card_pair hK1K2
   _= KFam.card - 1:=by
     refine ((fun {m n} ↦ Nat.pred_eq_succ_iff.mpr) ?_).symm--refine ((fun {b a c} h ↦ (Nat.sub_eq_iff_eq_add h).mp) ?h rfl).symm
     exact (Nat.sub_eq_iff_eq_add KFam_at_least_2).mp rfl

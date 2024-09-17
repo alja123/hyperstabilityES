@@ -1,6 +1,7 @@
 --import MyProject
 
 import hyperstabilityES.lemmas.cut_dense_basics
+set_option linter.unusedVariables false
 
 
 open Classical
@@ -81,7 +82,7 @@ have cont2:Rel.interedges H.Adj A' B'⊆Rel.interedges (H ⊔ K).Adj A B:= by ca
   Rel.interedges H.Adj A' B'⊆ Rel.interedges H.Adj A B:= by exact Rel.interedges_mono hA' hB'
   _⊆ Rel.interedges (H⊔ K).Adj A B:= by exact cont1
 
-have ineq1:  (Rel.interedges (H ⊔ K).Adj A B).card ≥ (Rel.interedges H.Adj A' B').card:= by exact  card_le_of_subset cont2
+have ineq1:  (Rel.interedges (H ⊔ K).Adj A B).card ≥ (Rel.interedges H.Adj A' B').card:= by exact  card_le_card cont2
 
 
 let AI:= A∩ I
@@ -100,7 +101,7 @@ rw [B'eq.symm] at hBwlog
 have hAcont: A⊆ (H.verts ∪ K.verts).toFinset:= by calc
  A⊆A∪ B:= by exact subset_union_left A B
  _=(H.verts ∪ K.verts).toFinset:= by exact id hunion.symm
-have aAcontcard:A.card≤  (H.verts ∪ K.verts).toFinset.card:= by exact card_le_of_subset hAcont
+have aAcontcard:A.card≤  (H.verts ∪ K.verts).toFinset.card:= by exact card_le_card hAcont
 
 
 
@@ -115,7 +116,7 @@ calc
     have _:(k*((Rel.interedges H.Adj A' B').card ))≥ (A'.card * B'.card):= by exact      HCutDense A' B' (id Hunion.symm)
     gcongr--exact HCutDense A' B' (id Hunion.symm)
   _≥ 4*((H.verts ∪  K.verts).toFinset.card )* (AI.card *B'.card):= by
-    have h1: A'.card≥ AI.card:= by exact card_le_of_subset hAicont;
+    have h1: A'.card≥ AI.card:= by exact card_le_card hAicont;
     gcongr
   _=2*((H.verts ∪  K.verts).toFinset.card )*B'.card* (2*AI.card):= by
     ring_nf--exact mul_right_comm p ↑AI.card ↑B'.card

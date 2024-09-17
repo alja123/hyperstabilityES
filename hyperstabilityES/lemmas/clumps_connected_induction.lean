@@ -2,6 +2,7 @@
 
 import hyperstabilityES.lemmas.clumps_connected_combine
  --import hyperstabilityES.lemmas.SimpleGraph
+set_option linter.unusedVariables false
 
 open Classical
 open Finset

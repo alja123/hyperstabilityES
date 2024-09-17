@@ -2,6 +2,7 @@
 
 import hyperstabilityES.lemmas.clumps_basics
  --import hyperstabilityES.lemmas.SimpleGraph
+set_option linter.unusedVariables false
 
 open Classical
 open Finset
@@ -31,7 +32,7 @@ lemma Finset_add_one_element
 have hdisj: Disjoint S {x}:= by
   apply Finset.disjoint_singleton_right.2
   exact hx
-exact Finset.card_disjoint_union hdisj
+exact Finset.card_union_of_disjoint hdisj
 
 
 

@@ -2,6 +2,7 @@
 
 import hyperstabilityES.lemmas.brooms
   --import hyperstabilityES.lemmas.SimpleGraph
+set_option linter.unusedVariables false
 
 open Classical
 open Finset
@@ -490,10 +491,10 @@ have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.l
       simp only [List.get!_eq_getD, Set.toFinset_inter, Set.mem_setOf_eq, Set.toFinset_union,
         ]
       apply finsets4cardinequality_alt --_ _ _ _ 1 1 1 1 _ _ _ _
-      exact card_le_of_subset fun ⦃a⦄ a ↦ a
+      exact card_le_card fun ⦃a⦄ a ↦ a
       --{v | ∃ i < k, v ∈ (Fo.P.get! i).Pa.Wa.support}.toFinset.card ≤ k * p
 
-      exact card_le_of_subset fun ⦃a⦄ a ↦ a
+      exact card_le_card fun ⦃a⦄ a ↦ a
 
       calc
         {v | v ∈ List.drop (k + 1) S}.toFinset.card

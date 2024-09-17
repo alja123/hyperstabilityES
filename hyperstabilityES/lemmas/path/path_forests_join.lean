@@ -2,6 +2,7 @@
 
 import hyperstabilityES.lemmas.path.find_path_forest
   --import hyperstabilityES.lemmas.SimpleGraph
+set_option linter.unusedVariables false
 
 open Classical
 open Finset

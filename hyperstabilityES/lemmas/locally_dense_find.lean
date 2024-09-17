@@ -2,6 +2,7 @@
 
 import hyperstabilityES.lemmas.J_bound
   --import hyperstabilityES.lemmas.SimpleGraph
+set_option linter.unusedVariables false
 
 open Classical
 open Finset

@@ -2,6 +2,7 @@
 
 import hyperstabilityES.lemmas.cut_dense_union
 import hyperstabilityES.lemmas.interedges_auxiliary
+set_option linter.unusedVariables false
 
 open Classical
 open Finset
@@ -36,7 +37,7 @@ _⊆Rel.interedges K.Adj A B:= by exact interedges_subgraph_leq G H K hHK
 lemma interedges_subsets_leq_card (H K: Subgraph G)(A B A' B': Finset V)(hHK: H≤ K)(hA: A'⊆ A)(hB: B'⊆ B):
 ((Rel.interedges H.Adj A' B').card≤   (Rel.interedges K.Adj A B).card):= by
 have h1:(Rel.interedges H.Adj A' B'⊆  Rel.interedges K.Adj A B):=by exact  interedges_subsets_leq G H K A B A' B' hHK hA hB
-exact card_le_of_subset h1
+exact card_le_card h1
 
 
 lemma partition_subset_partition (A B C D: Finset V) (hD: D=A∪ B) (hCD:C⊆ D): (C= (A∩ C)∪ (B∩ C)):= by

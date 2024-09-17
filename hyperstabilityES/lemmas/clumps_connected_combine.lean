@@ -1,6 +1,7 @@
 --import MyProject
 
 import hyperstabilityES.lemmas.clumps_2basics
+set_option linter.unusedVariables false
 
  --import hyperstabilityES.lemmas.SimpleGraph
 

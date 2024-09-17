@@ -4,6 +4,7 @@ import hyperstabilityES.lemmas.theorem
 import hyperstabilityES.lemmas.brooms
 import hyperstabilityES.lemmas.locally_dense_find
 import hyperstabilityES.lemmas.long_path_avoiding
+set_option linter.unusedVariables false
 
 open Classical
 open Finset

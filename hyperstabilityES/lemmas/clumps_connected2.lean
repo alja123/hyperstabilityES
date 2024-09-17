@@ -2,6 +2,7 @@
 
 import hyperstabilityES.lemmas.clumps_BSet
 import hyperstabilityES.lemmas.clumps_BSet_improved
+set_option linter.unusedVariables false
 
 open Classical
 open Finset
@@ -18,8 +19,7 @@ variable   [Fintype V]--[FinV: Fintype V]
 variable  [DecidableRel G.Adj] --[DecG: DecidableRel G.Adj]
 variable [Fintype (Sym2 V)]-- [FinV2: Fintype (Sym2 V)]
 variable {p m κ pr h : ℕ}
-variable (prggp: pr≫ p)
-variable (mggpr: m≫ pr)
+
 variable (mPositive: m>0)
 variable (pPositive: p>0)
 variable (κPositive: κ>0)

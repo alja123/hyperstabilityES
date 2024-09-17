@@ -2,7 +2,7 @@
 
 import hyperstabilityES.lemmas.clump_order
  --import hyperstabilityES.lemmas.SimpleGraph
-
+set_option linter.unusedVariables false
 open Classical
 open Finset
 open scoped BigOperators

@@ -1,6 +1,7 @@
 --import MyProject
 
 import hyperstabilityES.lemmas.Basic
+set_option linter.unusedVariables false
 
 
 @[irreducible] def gg1 (b: ℕ ): ℕ := 10000 *b^4*4^(b^5)*(b ^ 16 * 75557863725914323419136)*( b ^ (2 * (100 * (5 * b^5)).factorial))
@@ -15,7 +16,7 @@ def GG (a b: ℕ ): Prop:=
 a≥ gg1 b
 
 
-@[inherit_doc] infixl:50 " ≫  " => GG
+--@[inherit_doc] infixl:50 " ≫  " => GG
 
 lemma gg1_1
 {a b: ℕ}

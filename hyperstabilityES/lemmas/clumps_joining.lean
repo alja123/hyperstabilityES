@@ -2,6 +2,7 @@
 
 import hyperstabilityES.lemmas.clumps_connected_induction
  --import hyperstabilityES.lemmas.SimpleGraph
+set_option linter.unusedVariables false
 
 open Classical
 open Finset
@@ -725,7 +726,7 @@ have hCsize:C.verts.toFinset.card ≤ m*h*4^(k'):= by
         simp_rw[hsSup]
       _≤ HM.card*(h*m):=by
         apply biunion_max_bound2 (h*m) (HM.card)
-        exact card_le_of_subset fun ⦃a⦄ a ↦ a
+        exact card_le_card fun ⦃a⦄ a ↦ a
         intro Hi hHi
         apply HOrder_le_hm_family
         exact HM_subset_H hHi

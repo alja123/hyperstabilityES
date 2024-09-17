@@ -2,6 +2,7 @@
 
 import hyperstabilityES.lemmas.path.find_ends
 import hyperstabilityES.lemmas.path.tail_disjointness
+set_option linter.unusedVariables false
 
 --import hyperstabilityES.lemmas.path_forest_clump_sequence
 --C:\Users\alja1\Downloads\pro\my_project\MyProject\path_forests_clump_sequence_preparation.lean

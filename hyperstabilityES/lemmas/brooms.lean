@@ -3,6 +3,7 @@
 import hyperstabilityES.lemmas.locally_dense_find
 import hyperstabilityES.lemmas.long_path_avoiding
   --import hyperstabilityES.lemmas.SimpleGraph
+set_option linter.unusedVariables false
 
 open Classical
 open Finset

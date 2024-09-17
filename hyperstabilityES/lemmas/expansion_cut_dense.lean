@@ -2,6 +2,7 @@
 
 import hyperstabilityES.lemmas.paths_in_cutdense
   --import hyperstabilityES.lemmas.SimpleGraph
+set_option linter.unusedVariables false
 
 open Classical
 open Finset
@@ -127,7 +128,7 @@ calc
 (A ∪ B).card= (A ∪ (B\ A)).card:= by
   simp
 _=A.card+(B\ A).card:= by
-  refine card_disjoint_union ?_
+  refine card_union_of_disjoint ?_
   exact disjoint_sdiff
 
 _=(B\ A).card+A.card:= by
@@ -140,7 +141,7 @@ lemma simpleunionbound2
 (disj: A ∩ B = ∅)
 :
 (A ∪ B).card =  A.card+(B).card:= by
-refine card_disjoint_union ?_
+refine card_union_of_disjoint ?_
 exact disjoint_iff_inter_eq_empty.mpr disj
 
 lemma Cut_Dense_Nd_size

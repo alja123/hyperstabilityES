@@ -130,8 +130,8 @@ exact ha
 
 
 lemma nat_self_div (a:ℕ)(ha:0<a): (a/a=1):= by
-have h0: a≤ a:= by exact Nat.le_refl a
-have h1:a/a=(a-a)/a+1:= by exact Nat.div_eq_sub_div ha h0
+--have h0: a≤ a:= by exact Nat.le_refl a
+--have h1:a/a=(a-a)/a+1:= by exact Nat.div_eq_sub_div ha h0
 exact Nat.div_self ha
 
 lemma nat_div_ge (a b e v:ℕ)
@@ -159,7 +159,7 @@ have h4: Nat.ceil (a'/b')≤ Nat.floor (a'/b')+1:= by exact Nat.ceil_le_floor_ad
 have h5: Nat.floor ((a:ℚ) /(b:ℚ))=a/b:=by exact Nat.floor_div_eq_div a b
 --have h7: (Nat.ceil (a'/b'):ℚ)≤ ((Nat.floor (a'/b')+1):ℚ):= by  apply Nat.cast_le.mpr
 have h7: (Nat.ceil (a'/b'):ℚ)≤ ((Nat.floor (a'/b')+1:ℕ ):ℚ):= by exact  nat_le_rat ⌈a' / b'⌉₊ (⌊a' / b'⌋₊ + 1) h4
-have h8: (Nat.floor (a' / b') + 1)=Nat.floor (a' / b') + 1:= by exact rfl
+--have h8: (Nat.floor (a' / b') + 1)=Nat.floor (a' / b') + 1:= by exact rfl
 
 let n:ℕ := ((Nat.floor (a' / b') + 1)) * e
 have hn: n= ((Nat.floor (a' / b') + 1)) * e:= by exact rfl
@@ -182,7 +182,7 @@ have h6: (n:ℚ )≥ (v:ℚ):= by calc
   _=(v:ℚ):= by exact rfl
 
 have h8: Nat.floor (n:ℚ )≥ Nat.floor (v:ℚ):=by gcongr
-have h9: Nat.floor (n: ℚ)=n:= by exact nat_rat_nat n
+--have h9: Nat.floor (n: ℚ)=n:= by exact nat_rat_nat n
 have h10: Nat.floor (v:ℚ)= v:= by exact nat_rat_nat v
 have h11:n≥ v:=by calc
   n=Nat.floor (n: ℚ):= by exact rfl
@@ -616,7 +616,7 @@ calc
 (⋃ H ∈ F, H.verts).toFinset.card
 ≤∑ H∈ F, H.verts.toFinset.card:= by
   exact bigunion_bound F
-_≤∑ H∈ F, M:= by
+_≤∑ _∈ F, M:= by
   apply sum_le_sum
   intros a b
   exact hM a b

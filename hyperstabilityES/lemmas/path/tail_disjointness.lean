@@ -3,6 +3,8 @@
 import hyperstabilityES.lemmas.path.find_path_forest
 import hyperstabilityES.lemmas.path.path_forests_join
 --C:\Users\alja1\Downloads\pro\my_project\MyProject\path_forests_clump_sequence_preparation.lean
+set_option linter.unusedVariables false
+
 open Classical
 open Finset
 open scoped BigOperators

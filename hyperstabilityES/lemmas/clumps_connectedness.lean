@@ -3,6 +3,7 @@
 import hyperstabilityES.lemmas.clumps_basics
 import hyperstabilityES.lemmas.clumps_3basics
  --import hyperstabilityES.lemmas.SimpleGraph
+set_option linter.unusedVariables false
 
 open Classical
 open Finset
@@ -165,7 +166,7 @@ have h4:  M.verts.toFinset⊆ K.C.verts.toFinset:= by
   exact M_verts_contained_in_C_verts hM
 calc
 K.C.verts.toFinset.card ≥ M.verts.toFinset.card:= by
-  exact card_le_of_subset h4
+  exact card_le_card h4
 _≥ m/pr:= by
   exact M_order_lower_bound hM
 

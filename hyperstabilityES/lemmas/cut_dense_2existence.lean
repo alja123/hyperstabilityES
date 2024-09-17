@@ -4,6 +4,7 @@ import hyperstabilityES.lemmas.cut_dense_existence
 import hyperstabilityES.lemmas.cut_dense_add_vertices
 
   --import hyperstabilityES.lemmas.SimpleGraph
+set_option linter.unusedVariables false
 
 open Classical
 open Finset

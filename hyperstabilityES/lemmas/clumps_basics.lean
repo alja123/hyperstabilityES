@@ -4,6 +4,7 @@ import hyperstabilityES.lemmas.cut_dense_add_vertices
 import hyperstabilityES.lemmas.degree_edge_basics
 import hyperstabilityES.lemmas.cut_dense_3existence
 import hyperstabilityES.lemmas.gg
+set_option linter.unusedVariables false
 
 
  --import hyperstabilityES.lemmas.SimpleGraph

@@ -2,6 +2,7 @@
 
 import hyperstabilityES.lemmas.path.define_pathforest
   --import hyperstabilityES.lemmas.SimpleGraph
+set_option linter.unusedVariables false
 
 open Classical
 open Finset
@@ -308,7 +309,7 @@ have exN:∃ (PN: SubgraphPath (HL.get! (k)) (S.get! (k)) (E.get! (k))), PN.Wa.l
       simp only [List.get!_eq_getD, Set.toFinset_inter, Set.mem_setOf_eq, Set.toFinset_union,
         ]
       apply finsets4cardinequality --_ _ _ _ 1 1 1 1 _ _ _ _
-      exact card_le_of_subset fun ⦃a⦄ a ↦ a
+      exact card_le_card fun ⦃a⦄ a ↦ a
       --{v | ∃ i < k, v ∈ (Fo.P.get! i).Pa.Wa.support}.toFinset.card ≤ k * p
       unfold Path_forest_support at FSupport
       --simp

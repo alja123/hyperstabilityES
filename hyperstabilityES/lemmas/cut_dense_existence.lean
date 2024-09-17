@@ -2,6 +2,7 @@
 import hyperstabilityES.lemmas.interedges_auxiliary
 --import hyperstabilityES.lemmas.cut_dense_basics
   --import hyperstabilityES.lemmas.SimpleGraph
+set_option linter.unusedVariables false
 
 open Classical
 open Finset
@@ -58,7 +59,7 @@ unfold vv
 symm
 apply nat_rat_add --A.card B.card (filter (fun x ↦ x ∈ H.verts) univ).card ?heq).symm
 rw[part]
-exact card_disjoint_union disj
+exact card_union_of_disjoint disj
 
 
 
@@ -384,7 +385,7 @@ have hAcc: 4*A'.card≥ AS.card:= by
 
     _= 2*((AS\ I).card + AI.card)+2:= by
       congr
-      refine card_disjoint_union ?_
+      refine card_union_of_disjoint ?_
       exact Disjoint.symm (disjoint_of_subset_left hAI1 (id (Disjoint.symm h8)))
 
     _=  2*((AS\ I).card + (I).card/2)+2:= by
@@ -424,7 +425,7 @@ have hBcc: 4*B'.card≥ BS.card:= by
 
     _= 2*((BS\ I).card + BI.card)+2:= by
       congr
-      refine card_disjoint_union ?_
+      refine card_union_of_disjoint ?_
       apply disjoint_of_subset_right
       exact h10
       exact h9

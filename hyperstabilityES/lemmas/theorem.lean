@@ -5,6 +5,7 @@ import hyperstabilityES.lemmas.path.wide_or_separated_gives_path
 import hyperstabilityES.lemmas.brooms
 import hyperstabilityES.lemmas.locally_dense_find
 import hyperstabilityES.lemmas.JSet_properties
+set_option linter.unusedVariables false
 
 open Classical
 open Finset

@@ -2,6 +2,7 @@ import hyperstabilityES.lemmas.J_bound
 open Classical
 open Finset
 open scoped BigOperators
+set_option linter.unusedVariables false
 
 namespace SimpleGraph
 
@@ -500,7 +501,7 @@ calc
   _=
   (sSup {Oi | ∃ i < n , Oi = JClump p m κ pr h iI i Ord}).edgeSet.toFinset.card
   +((JClump p m κ pr h iI (n) Ord).edgeSet.toFinset).card:= by
-    exact card_disjoint_union disj
+    exact card_union_of_disjoint disj
   _=∑ i ∈  (Finset.range (n)), (JClump p m κ pr h iI (i) Ord).edgeSet.toFinset.card
   +∑ i ∈  ({n}: Finset ℕ ), (JClump p m κ pr h iI (i) Ord).edgeSet.toFinset.card
     :=by
@@ -674,7 +675,7 @@ calc
   _=
   (sSup {Oi | ∃ i < n , Oi = (Ord.get! i).Gr}).edgeSet.toFinset.card
   +((Ord.get! n).Gr.edgeSet.toFinset).card:= by
-    exact card_disjoint_union disj
+    exact card_union_of_disjoint disj
   _=∑ i ∈  (Finset.range (n)), ((Ord.get! i).Gr).edgeSet.toFinset.card
   +∑ i ∈  ({n}: Finset ℕ ), ((Ord.get! i).Gr).edgeSet.toFinset.card
     :=by

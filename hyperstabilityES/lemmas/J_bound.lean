@@ -3,7 +3,7 @@
 
 import hyperstabilityES.lemmas.CovM_bound
  --import hyperstabilityES.lemmas.SimpleGraph
-
+set_option linter.unusedVariables false
 open Classical
 open Finset
 open scoped BigOperators
@@ -365,7 +365,7 @@ _≥ (∑ (Hi∈ K.H), Hi.verts.toFinset.card^2)
 
 _= (∑ (Hi∈ K.H), Hi.verts.toFinset.card*Hi.verts.toFinset.card)
 :=by
-  congr with Hi hHi
+  congr with Hi --hHi
   ring_nf
 
 _≥ (∑ (Hi∈ K.H), m*Hi.verts.toFinset.card)

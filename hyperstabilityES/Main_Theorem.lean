@@ -1,3 +1,7 @@
+--Here the following theorem is formalized:
+--Theorem: Fix ε > 0, and let C be sufficiently large compared to ε. Let P be a path with d ≥ C edges. For any graph G with e(G) ≥ ε * d * |G| having no copies of P, it is possible to delete (ε * e(G)) edges to get a graph H each of whose connected components has a cover of order ≤ Cd.
+
+
 --These lines import other parts of the project
 import hyperstabilityES.lemmas.theorem_improve
 open Classical

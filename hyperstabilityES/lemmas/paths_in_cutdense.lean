@@ -2,6 +2,7 @@
 
 import hyperstabilityES.lemmas.path.path_sequence_construct
   --import hyperstabilityES.lemmas.SimpleGraph
+set_option linter.unusedVariables false
 
 open Classical
 open Finset
@@ -196,8 +197,21 @@ unfold Rel.interedges
 simp
 unfold Rel.interedges at h
 simp at h
+by_cases cas: y ∈ C ∨ y ∈ D
 aesop
-exact mem_union.mp (hBCD right_1)
+--exact mem_union.mp (hBCD right_1)
+simp at cas
+let ⟨c1, c2 ⟩:= cas
+have c3: y∉B:= by
+  by_contra contr2
+  have h4: y∈ C ∪ D:= by
+    exact hBCD contr2
+  simp at h4
+  have h5: ¬(y∈ C∨ y∈ D):= by
+    simp
+    exact cas
+  exact h5 h4
+aesop
 
 
 

@@ -2,6 +2,7 @@
 
 import hyperstabilityES.lemmas.expansion_cut_dense
   --import hyperstabilityES.lemmas.SimpleGraph
+set_option linter.unusedVariables false
 
 open Classical
 open Finset

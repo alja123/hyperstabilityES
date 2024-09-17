@@ -3,6 +3,7 @@
 --import hyperstabilityES.lemmas.path_forests_join
 import hyperstabilityES.lemmas.path.long_path_forest
 import hyperstabilityES.lemmas.path.path_forests
+set_option linter.unusedVariables false
 
 open Classical
 open Finset

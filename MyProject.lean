@@ -8,13 +8,13 @@ As I understand, this will be one of the first theorems to come out simultaneous
 
 - The code currently generates a lot of warnings. Are these okay, or should the standard be zero warnings?
 
-- Is it okay that the project uses an old version of Mathlib (from May this year)? I somehow hadn't realized that I should be keeping an eye out for updates in Mathlib until I was basically done with the project. I tried compiling it with the latest version - with a lot of fairly routine changes it should be possible to get it to work, though I wasn't sure if it was necessary.
+- Is it okay that the project uses an old version of Mathlib (from May this year)? I somehow hadn't realized that I should be keeping an eye out for updates in Mathlib until I was basically done. I tried compiling it with the latest version - with a lot of fairly routine changes it should be possible to get it to work, though I wasn't sure if it was necessary.
 
-- What are useful things to write for people to be able to check that the formalization actually does what it says it does? In the main lean file [Main_Theorem.lean], I tried to explain what the various lines do, while in the pdf I have a short section describing the formalization. In the statement of the theorem I stuck entirely with definitions from Mathlib - was this a good idea or would it have been better to write it using custom definitions in order to get a more concise statement? Would something else be useful (e.g. some sort of guide for how to install Lean).
+- What are useful things to write for people to be able to check that the formalization actually does what it says it does? In the main lean file [Main_Theorem.lean], I tried to explain what the various lines do, while in the pdf I have a short section describing the formalization. In the statement of the theorem I stuck entirely with definitions from Mathlib - was this a good idea or would it have been better to write it using custom definitions in order to get a more concise statement? Would something else be useful in the readme on Github (e.g. some sort of guide for how to get Lean to work).
 
 Any other thoughts you have would be greatly appreciated also. If you'd rather meet in person in Imperial/UCL rather than composing a long email let me know - from my side it would be nice to link up with the formalization community in London. 
 
-Best wishes,
+Thanks in advance for any help,
 Alexey
 
 PS. Apologies for how messy most of the code is - some of it is from May when I knew basically zero Lean.

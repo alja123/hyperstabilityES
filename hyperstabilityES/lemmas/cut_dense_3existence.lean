@@ -2,6 +2,7 @@
 
 import hyperstabilityES.lemmas.cut_dense_2existence
   --import hyperstabilityES.lemmas.SimpleGraph
+set_option linter.unusedVariables false
 
 open Classical
 open Finset

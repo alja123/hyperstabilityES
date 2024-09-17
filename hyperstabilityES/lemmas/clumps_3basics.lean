@@ -2,6 +2,7 @@
 
 import hyperstabilityES.lemmas.clumps_basics
  --import hyperstabilityES.lemmas.SimpleGraph
+set_option linter.unusedVariables false
 
 open Classical
 open Finset
@@ -77,7 +78,7 @@ calc
   K.Gr.verts.toFinset.card
   ≤
   (Finset.biUnion K.H (fun x=>x.verts.toFinset)).card:= by
-    refine card_le_of_subset ?_
+    refine card_le_card ?_
     apply clump_Gr_verts_subs
   _≤
   ∑ Hi ∈ K.H, Hi.verts.toFinset.card:= by

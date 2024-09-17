@@ -1,6 +1,7 @@
 --import MyProject
 
 import hyperstabilityES.lemmas.clumps_BSet
+set_option linter.unusedVariables false
 
 open Classical
 open Finset

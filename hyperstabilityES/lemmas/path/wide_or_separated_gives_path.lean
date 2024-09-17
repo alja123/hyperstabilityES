@@ -2,6 +2,7 @@
 --import MyProject
 
 import hyperstabilityES.lemmas.path.numbersfind
+set_option linter.unusedVariables false
 
   --import hyperstabilityES.lemmas.SimpleGraph
 

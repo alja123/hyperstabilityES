@@ -4,6 +4,7 @@
 import hyperstabilityES.lemmas.J_bound
 import hyperstabilityES.lemmas.clumpfamily_maximal
  --import hyperstabilityES.lemmas.SimpleGraph
+set_option linter.unusedVariables false
 
 open Classical
 open Finset
@@ -1043,7 +1044,7 @@ have Fam2_dense: @dense_clump_family V G FinV   p m κ pr h (2*α)  KFam2:=by
   repeat assumption
   exact fun ⦃a⦄ a_1 ↦ AvoidContained (hAvCont a_1)
   calc
-    (Av \ {KL}).card ≤ Av.card:=by exact card_le_of_subset hAvCont
+    (Av \ {KL}).card ≤ Av.card:=by exact card_le_card hAvCont
     _≤ h * pr*pr*pr:= by exact AvoidCard
   repeat assumption
 

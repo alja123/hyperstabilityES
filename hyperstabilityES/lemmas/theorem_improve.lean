@@ -1,7 +1,8 @@
 --import MyProject
 import hyperstabilityES.lemmas.Subgraph
 import hyperstabilityES.lemmas.theorem_combine
-import Mathlib.Combinatorics.SimpleGraph.Connectivity
+--import Mathlib.Combinatorics.SimpleGraph.Connectivity
+set_option linter.unusedVariables false
 
 
 open Classical

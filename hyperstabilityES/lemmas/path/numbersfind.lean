@@ -3,6 +3,7 @@
 
 import hyperstabilityES.lemmas.gg
 import hyperstabilityES.lemmas.path.path_forest_clump_sequence2
+set_option linter.unusedVariables false
 
 open Classical
 open Finset

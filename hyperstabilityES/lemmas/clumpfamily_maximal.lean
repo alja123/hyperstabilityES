@@ -2,7 +2,7 @@
 
 import hyperstabilityES.lemmas.clumpfamily_joining
  --import hyperstabilityES.lemmas.SimpleGraph
-
+set_option linter.unusedVariables false
 open Classical
 open Finset
 open scoped BigOperators

@@ -2,6 +2,7 @@
 
 import hyperstabilityES.lemmas.clumps_connectedness
 import hyperstabilityES.lemmas.clumps_connected2
+set_option linter.unusedVariables false
 
  --import hyperstabilityES.lemmas.SimpleGraph
 

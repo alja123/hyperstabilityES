@@ -7,7 +7,7 @@ open Finset
 
 namespace SimpleGraph
 
-
+set_option linter.unusedVariables false
 universe u
 variable {V : Type u} (G : SimpleGraph V)
 variable [Fintype V] [DecidableRel G.Adj]
@@ -32,7 +32,7 @@ have hnoedges1: G.edgeFinset=∅:= by
     have forAll: ∀(e:Sym2 V), ¬ (e ∈ G.edgeFinset):= by
       intro e  he
       have henin:e∉ G.edgeFinset:= by
-        by_contra cont3
+        by_contra _
         have h:∃ (e: Sym2 V), e ∈ G.edgeFinset:= by exact Exists.intro e he
         exact cont2 h
       exact henin he
@@ -41,7 +41,7 @@ have hnoedges1: G.edgeFinset=∅:= by
     exact cont h2
   #check Sym2 V
   let f: Sym2 V → Prop := fun s =>  s∈ G.edgeFinset
-  have hedge2: ∃ (e:Sym2 V), f e := by exact hedge
+  --have hedge2: ∃ (e:Sym2 V), f e := by exact hedge
   have edgeexists: ∃ (a b : V), (f s(a,b)):= by exact Sym2.exists.mp hedge
   have edgeexists: ∃ (a b : V), (s(a,b)∈ G.edgeFinset):= by exact edgeexists
   rcases edgeexists with  ⟨a,b,hab ⟩

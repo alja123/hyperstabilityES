@@ -1,6 +1,7 @@
 --import MyProject
 
 import hyperstabilityES.lemmas.path.find_path_forest
+set_option linter.unusedVariables false
 
 open Classical
 open Finset
