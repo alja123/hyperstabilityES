@@ -15,8 +15,7 @@ The project can be compiled remotely on GitHub codespaces by following the follo
 
 - In the terminal section on the bottom right, type: 
 `code --install-extension leanprover.Lean4`
-
-- Wait for it to stop installing Lean.
+Wait for it to stop installing Lean.
 
 - In the terminal section on the bottom right, type: 
 `code Main_Theorem.lean`
@@ -29,7 +28,7 @@ The project can be compiled remotely on GitHub codespaces by following the follo
 - Now wait a *very* long time while everything compiles (around an hour for me).  
 
 - When it is done, Lean Infoview should display: 
-    `Main_Theorem.lean:3:0`
-    `No info found.`
-    `All Messages (0)`
+    ```Main_Theorem.lean:3:0
+    No info found.
+    All Messages (0)```
 The fact that it didn't generate error or warning messages means that it compiled successfully. 
