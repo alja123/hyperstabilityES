@@ -27,11 +27,11 @@ def Large_Enough :ℚ → ℕ :=fun x => large_enough (Nat.ceil (1/x))
 theorem Main_Theorem
 --The statement of the theorem starts with a list of assumptions
 (G: Subgraph K)-- G is the graph about which the main theorem is about.
-(ε: ℚ)(ε_Positive: ε >0)--ε is a positive rational
+(ε: ℚ)(ε_Positive: ε > 0)--ε is a positive rational
 (C: ℕ )(C_large: C ≥ Large_Enough (ε) )-- C is a natural number which is large compared to [some function of] ε
 (d: ℕ )(d_geq_C: d ≥ C) -- d is a natural number which is at least C
-(G_has_no_d_paths: ∀ (u v : V), ∀ (P: K.Walk u v), (P.IsPath ∧ P.toSubgraph≤ G)→ P.length < d)--This assumption says that G has no paths of length d. More precisely it reads "for any pair of vertices u and v in V, for any walk P from u to v in G which is a path, the length of P is < d".
-(Hedges: (G.edgeSet.toFinset.card: ℚ) ≥ ε*d*(G.verts.toFinset.card: ℚ ))-- This says that e(G)≥ ε v(G).
+(G_has_no_d_paths: ∀ (u v : V), ∀ (P: K.Walk u v), (P.IsPath ∧ P.toSubgraph ≤ G)→ P.length < d)--This assumption says that G has no paths of length d. More precisely it reads "for any pair of vertices u and v in V, for any walk P from u to v in G which is a path, the length of P is < d".
+(Hedges: (G.edgeSet.toFinset.card: ℚ) ≥ ε * d * (G.verts.toFinset.card: ℚ ))-- This says that e(G)≥ ε d v(G).
 
 
 :-- This colon indicates that after this the conclusion of the theorem begins. The conclusion of the theorem says that there exists a graph H that satisfies three properties (which are separated by the "and" symbols "∧")
@@ -42,16 +42,16 @@ theorem Main_Theorem
 
 ∧
 
-((H.edgeSet.toFinset.card: ℚ )≥ (1-ε) *(G.edgeSet.toFinset.card: ℚ))
+((H.edgeSet.toFinset.card: ℚ )≥ (1 - ε) * (G.edgeSet.toFinset.card: ℚ))
 --The second property says that H has at least a (1-ε) proportion of the edges of G
 
 ∧
 
-(∀ (Comp: Subgraph K), Comp≤ H∧  Comp.Connected
+(∀ (Comp: Subgraph K), Comp ≤ H ∧ Comp.Connected
   → ∃ (Cover: Finset V),
-    Cover.card≤ C* d
-      ∧ ∀ (u v : V), (u ∈ Comp.verts) ∧  (v ∈ Comp.verts) ∧  (H.Adj u v) →
-        (u∈ Cover ∨ v∈ Cover))
+    Cover.card≤ C * d
+      ∧ ∀ (u v : V), (u ∈ Comp.verts) ∧ (v ∈ Comp.verts) ∧ (H.Adj u v) →
+        (u ∈ Cover ∨ v ∈ Cover))
 --The third property says that "for every connected subgraph of H, there exists a set of vertices Cover that is at most C*d in size, such that for every pair of vertices u and v in the connected subgraph, if u and v are adjacent in H, then at least one of u or v is in Cover."
 
 
