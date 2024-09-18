@@ -28,7 +28,9 @@ Wait for it to stop installing Lean.
 - Now wait a *very* long time while everything compiles (around an hour for me).  
 
 - When it is done, Lean Infoview should display: 
-    ```Main_Theorem.lean:3:0
+    ```
+    Main_Theorem.lean:3:0
     No info found.
-    All Messages (0)```
+    All Messages (0)
+    ```
 The fact that it didn't generate error or warning messages means that it compiled successfully. 
