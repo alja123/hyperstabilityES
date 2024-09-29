@@ -8,9 +8,9 @@ open Classical
 namespace SimpleGraph
 
 
--- These lines set up the context in which the main theorem will be proved. Essentially they say that `V` is a finite set of vertices (and then the graphs considered in the theorem will be subgraphs of a complete graph `K`).
+-- These lines set up the context in which the main theorem will be proved. Essentially they say that `V` is a nonempty finite set of vertices.
 universe u
-variable {V : Type u} [Fintype V] {K : SimpleGraph V} [DecidableRel K.Adj] [Fintype (Sym2 V)]
+variable {V : Type u} [Fintype V] [Inhabited V] {K : SimpleGraph V}
 
 
 
@@ -20,8 +20,8 @@ def Large_Enough : ℚ → ℕ := fun x => large_enough (Nat.ceil (1/x))
 -- By looking through the proof one can make this function completely explicit. It turns out to be a complicated combination of iterated exponentials and factorials (almost certainly nowhere near what the optimal bounds in the theorem should be).
 
 theorem Main_Theorem
---The statement of the theorem starts with a list of assumptions
-(KComplete : K = completeGraph V) (iV : Inhabited V) -- `K` is the complete graph on a nonempty vertex set `V`.
+-- The statement of the theorem starts with a list of assumptions
+(KComplete : K = completeGraph V) -- `K` is the complete graph on the vertex set `V`.
 (G : Subgraph K) -- `G` is the graph about which the main theorem is about.
 (ε : ℚ) (ε_Positive : ε > 0) -- `ε` is a positive rational.
 (C : ℕ) (C_large : C ≥ Large_Enough ε) -- `C` is a natural number which is large compared to [some function of] `ε`.
